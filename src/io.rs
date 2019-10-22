@@ -33,8 +33,7 @@ pub fn read_existance(path: &str) -> (u8, bv::BitVec<u8>) {
     let k = get_k(path);
 
     let mut data: Vec<u8> = vec![0u8; (pcon::io::read::get_kmer_space_size(k) / 8) as usize];
-
     reader.read_exact(&mut data).expect("Error durring reading of data");
-
+    
     return (k, bv::BitVec::from_bits(&data));
 }

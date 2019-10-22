@@ -20,13 +20,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
  */
 
+#![feature(drain_filter)]
+
 /* crate declaration */
 extern crate bio;
 extern crate clap;
 extern crate pcon;
 extern crate bv;
-
-#[macro_use] extern crate enum_primitive;
 
 /* crate use */
 use clap::{App, Arg};
@@ -77,8 +77,6 @@ fn main() {
     
     let (k, data) = crate::io::read_existance(exist_path);
 
-    println!("k {}", k);
-    
     let reader = bio::io::fasta::Reader::new(std::io::BufReader::new(std::fs::File::open(input_path).unwrap()));
     let mut write = bio::io::fasta::Writer::new(std::io::BufWriter::new(std::fs::File::create(output_path).unwrap()));
 

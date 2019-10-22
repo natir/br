@@ -21,19 +21,14 @@ SOFTWARE.
 
  */
 
-enum_from_primitive!{
-    #[derive(Debug, PartialEq)]
-    pub enum ErrorType {
-        None = 0,
-        Subs = 1,
-        Dele = 2,
-        SubsDele = 3,
-        Inse = 4,
-        SubsInse = 5,
-        DeleInse = 6,
-        SubsDeleInse = 7,
-    }
+#[derive(Debug, PartialEq)]
+pub enum ErrorType {
+    None = 0,
+    Sub = 1,
+    Del = 2,
+    Ins = 4,
 }
+
 
 pub fn correct_read(seq: &[u8], k: u8, s: u8, data: &bv::BitVec<u8>) -> Vec<u8> {
     let mut corrected_seq: Vec<u8> = Vec::with_capacity(seq.len());
@@ -46,131 +41,105 @@ pub fn correct_read(seq: &[u8], k: u8, s: u8, data: &bv::BitVec<u8>) -> Vec<u8> 
         corrected_seq.push(seq[i as usize]);
     }
 
-    let mut prev_is_solid = true;
-    
     let mut kmer = pcon::convert::seq2bit(&seq[0..(k-1) as usize]);
 
-    println!("kmer {:?} bit {:010b}", &seq[0..(k-1) as usize], kmer);
-    
     if seq.len() == k as usize { return corrected_seq; }
     
     for i in ((k - 1) as usize)..(seq.len()) {
-
         let nuc = seq[i];
         kmer = ((kmer << 2) & kmer_mask) | pcon::convert::nuc2bit(nuc);
-        print!(" kmer {:010b}", kmer);
-        if !this_kmer_is_true(data, kmer, k) && prev_is_solid {
-            if let Some(kmer) = correct_kmer(data, kmer, k, s, seq, &mut corrected_seq, i) {
-                prev_is_solid = true;
+
+        if !this_kmer_is_true(data, kmer, k) {
+            println!("kmer {} is not present", pcon::convert::kmer2seq(kmer, k));
+            if let Some((corrected_kmer, correct_seq)) = correct_kmer(data, kmer, k, s, seq, i) {
+                println!("correct seq {:?}", correct_seq);
+                kmer = corrected_kmer;
+                for c_nuc in &correct_seq {
+                    corrected_seq.push(*c_nuc);
+                }
+                println!("new version of kmer {}", pcon::convert::kmer2seq(kmer, k));
             } else {
-                prev_is_solid = false;
+                corrected_seq.push(nuc);
             }
         } else {
+            println!("kmer {} is present", pcon::convert::kmer2seq(kmer, k));
             // If kmer is present we didn't do anything
-            print!(" not error");
             corrected_seq.push(nuc);
-            prev_is_solid = true;
         }
-
-        println!("");
     }
 
     return corrected_seq;
 }
 
-fn correct_kmer(data: &bv::BitVec<u8>, mut kmer: u64, k: u8, s: u8, seq: &[u8], corrected_seq: &mut Vec<u8>, i: usize) -> Option<u64> {
-    let mut error_type = 1;
+fn correct_kmer(data: &bv::BitVec<u8>, kmer: u64, k: u8, s: u8, seq: &[u8], i: usize) -> Option<(u64, Vec<u8>)> {
     let nuc = seq[i];
     let kmer_mask = (1 << k * 2) - 1;
 
-    print!(" {}", nuc as char);
+    let mut scenario: Vec<(u8, u8, ErrorType, u64)> = Vec::new();
 
-    // This kmer didn't exist in solid kmer
-    print!(" error");
-    if let Some(alt_nuc) = get_good_kmer(data, kmer, k) {
-        // If we replace last nuc by another one we found a solid kmer
-        print!(" alt_nuc {:02b}", alt_nuc);
-        let alt_kmer = ((kmer >> 2) << 2) | (alt_nuc as u64);
-        print!(" alt_kmer {:010b}", alt_kmer);                
-
-        // We try to see if by replace the nuc by the new one in next s kmer, there kmer was solid two 
-        if let Some(limit) = get_end_of_subseq(i+1, s as usize, seq.len()) {
-            // Substitution
-            if next_kmer_was_true(data, alt_kmer, k, &seq[(i+1)..limit], kmer_mask) {
-                error_type += 2;
-            }
-        }
-
-        // If the next nuc was equal to the alt_nuc this is a deletion we try to validate s next kmer with this correction
-        // TODO check
-        if let Some(limit) = get_end_of_subseq(i+2, s as usize, seq.len()) {
-            // Insertition
-            if alt_nuc as u64 == pcon::convert::nuc2bit(seq[i+1]) {
-                if next_kmer_was_true(data, alt_kmer, k, &seq[(i+2)..limit], kmer_mask) {
-                    error_type += 4;
-                }
-            }
-        }
-
-        // We try to see if by consider this error was an insertion the next s kmer, there kmer was solid two 
-        if let Some(limit) = get_end_of_subseq(i, s as usize, seq.len()) {
-            // Deletion
-            if next_kmer_was_true(data, alt_kmer, k, &seq[(i)..limit], kmer_mask) {
-                error_type += 8;
-            }
-        }
-
-        // If it's only a Substitution a Deletion or a Insertion we perform correction
-        print!(" error type {}", error_type);
-        print!(" kmer {:010b}", kmer);
-        match error_type {
-            3 => {
-                corrected_seq.push(pcon::convert::bit2nuc(alt_nuc as u64));
-                kmer = alt_kmer;
-            }
-            5 => {
-                kmer = alt_kmer >> 2;
-            }
-            9 => {
-                corrected_seq.push(pcon::convert::bit2nuc(alt_nuc as u64));
-                corrected_seq.push(pcon::convert::bit2nuc(nuc as u64));
-                kmer = (alt_kmer << 2) | nuc as u64;
-            },
-            _ => (),
-        }
-        print!(" new kmer {:010b}", kmer);
-
-        return Some(kmer);
+    let alt_nucs = get_alt_nucs(data, kmer, k);
+    if alt_nucs.len() != 1 {
+        println!("multiple alternative kmer or no alternative {}", alt_nucs.len());
+        return None;
     }
-    else {
-        // If we have some possiblity to correcte kmer we didn't do anything
-        corrected_seq.push(nuc);
+    
+    for alt_nuc in alt_nucs {
+        let alt_kmer = ((kmer >> 2) << 2) | (alt_nuc as u64);
+        println!("alt_kmer {}", pcon::convert::kmer2seq(alt_kmer, k));
 
+        if let Some(limit) = get_end_of_subseq(i+1, s as usize, seq.len()) {
+            scenario.push((get_kmer_score(data, alt_kmer, k, &seq[i+1..limit], kmer_mask), alt_nuc, ErrorType::Sub, alt_kmer));
+        }
+
+        if let Some(limit) = get_end_of_subseq(i+2, s as usize, seq.len()) {
+            scenario.push((get_kmer_score(data, alt_kmer, k, &seq[i+2..limit], kmer_mask), alt_nuc, ErrorType::Ins, alt_kmer));
+        }
+        
+        if let Some(limit) = get_end_of_subseq(i, s as usize, seq.len()) {
+            scenario.push((get_kmer_score(data, alt_kmer, k, &seq[i..limit], kmer_mask), alt_nuc, ErrorType::Del, alt_kmer));
+            println!("alt_kmer {}", pcon::convert::kmer2seq(alt_kmer, k));
+        }
+    }
+    
+    scenario.drain_filter(|x| x.0 != s);
+    scenario.sort_by(|a, b| a.0.cmp(&b.0));
+    println!("scenario {:?}", scenario);
+    
+    if let Some((score, alt_nuc, error_type, alt_kmer)) = scenario.pop(){
+        println!("nuc {} alt_nuc {} error_type {:?} alt_kmer {}", nuc as char,pcon::convert::bit2nuc(alt_nuc as u64) as char, error_type, pcon::convert::kmer2seq(alt_kmer, k));
+
+        return match error_type {
+            ErrorType::Sub => Some((alt_kmer, vec![pcon::convert::bit2nuc(alt_nuc as u64)])),
+            ErrorType::Ins => Some((alt_kmer >> 2, vec![])),
+            ErrorType::Del => Some(((alt_kmer << 2) | pcon::convert::nuc2bit(nuc) as u64, vec![pcon::convert::bit2nuc(alt_nuc as u64), nuc])),
+            _ => None,
+        };
+    } else {
+        println!("No valid scenario");
         return None;
     }
 }
 
 
-
 fn get_end_of_subseq(begin: usize, offset: usize, max_length: usize) -> Option<usize> {
-    println!("\n\tbegin {} offset {} begin + offset {} max_length {}", begin, offset, begin + offset, max_length);
     return match begin + offset > max_length {
         false => Some(begin + offset),
         true  => None // we are at end of sequence
     };
 }
 
-fn next_kmer_was_true(data: &bv::BitVec<u8>, mut alt_kmer: u64, k: u8, nucs: &[u8], kmer_mask: u64) -> bool {
-    print!(" next nucs {:?}", nucs);
+fn get_kmer_score(data: &bv::BitVec<u8>, mut alt_kmer: u64, k: u8, nucs: &[u8], kmer_mask: u64) -> u8 {
+    let mut score = 0;
+
     for nuc in nucs {
         alt_kmer = ((alt_kmer << 2) & kmer_mask) | pcon::convert::nuc2bit(*nuc);
 
-        if !this_kmer_is_true(data, alt_kmer, k) {
-            return false;
+        if this_kmer_is_true(data, alt_kmer, k) {
+            score += 1
         }
     }
 
-    return true;
+    return score;
 }
 
 
@@ -178,23 +147,17 @@ fn this_kmer_is_true(data: &bv::BitVec<u8>, kmer: u64, k: u8) -> bool {
     return data.get(pcon::convert::remove_first_bit(pcon::convert::cannonical(kmer, k)));
 }
 
-fn get_good_kmer(data: &bv::BitVec<u8>, kmer: u64, k: u8) -> Option<u8> {
-    let mut correct_kmer: Vec<u8> = Vec::with_capacity(4);
+fn get_alt_nucs(data: &bv::BitVec<u8>, kmer: u64, k: u8) -> Vec<u8> {
+    let mut correct_nuc: Vec<u8> = Vec::with_capacity(3);
     let kme = (kmer >> 2) << 2;
 
-    println!("");
     for alt_nuc in (0..4).filter(|x| *x != (kmer & 0b11) as u8) {
-        println!("\tpossible alt_nuc {}", alt_nuc);
-        println!("\tsubk {:010b} new kmer {:010b}", kme, kme ^ alt_nuc as u64);
         if this_kmer_is_true(data, kme ^ alt_nuc as u64, k) {
-            correct_kmer.push(alt_nuc);
+            correct_nuc.push(alt_nuc);
         }
     }
-    println!("\t{:?}", correct_kmer);
-    return match correct_kmer.len() {
-        1 => Some(correct_kmer.pop().expect("Impossible error 1 contact author")),
-        _ => None,
-    };
+
+    return correct_nuc;
 }
 
 #[cfg(test)]
@@ -213,20 +176,6 @@ mod tests {
         data.set(pcon::convert::hash(b"CTGAC", 5), true);
         data.set(pcon::convert::hash(b"TGACG", 5), true);
         data.set(pcon::convert::hash(b"GACGA", 5), true);
-
-        println!("ACTGA val {:010b}", pcon::convert::seq2bit(b"ACTGA"));
-        println!("CTGAC val {:010b}", pcon::convert::seq2bit(b"CTGAC"));
-        println!("CTGAT val {:010b}", pcon::convert::seq2bit(b"CTGAT"));
-        println!("TGACG val {:010b}", pcon::convert::seq2bit(b"TGACG"));
-        println!("GACGA val {:010b}", pcon::convert::seq2bit(b"GACGA"));
-
-
-        println!("ACTGA exist {}", this_kmer_is_true(&data, pcon::convert::seq2bit(b"ACTGA"), 5));
-        println!("CTGAC exist {}", this_kmer_is_true(&data, pcon::convert::seq2bit(b"CTGAC"), 5));
-        println!("TGACG exist {}", this_kmer_is_true(&data, pcon::convert::seq2bit(b"TGACG"), 5));
-        println!("GACGA exist {}", this_kmer_is_true(&data, pcon::convert::seq2bit(b"GACGA"), 5));
-        println!("CTGAT exist {}", this_kmer_is_true(&data, pcon::convert::seq2bit(b"CTGAT"), 5));
-        
         
         assert_eq!(correct, correct_read(noisy, 5, 2, &data).as_slice());
     }
@@ -243,20 +192,6 @@ mod tests {
         data.set(pcon::convert::hash(b"CTGAG", 5), true);
         data.set(pcon::convert::hash(b"TGACG", 5), true);
         data.set(pcon::convert::hash(b"GACGA", 5), true);
-
-        println!("ACTGA val {:010b}", pcon::convert::seq2bit(b"ACTGA"));
-        println!("CTGAC val {:010b}", pcon::convert::seq2bit(b"CTGAC"));
-        println!("CTGAT val {:010b}", pcon::convert::seq2bit(b"CTGAT"));
-        println!("TGACG val {:010b}", pcon::convert::seq2bit(b"TGACG"));
-        println!("GACGA val {:010b}", pcon::convert::seq2bit(b"GACGA"));
-
-
-        println!("ACTGA exist {}", this_kmer_is_true(&data, pcon::convert::seq2bit(b"ACTGA"), 5));
-        println!("CTGAC exist {}", this_kmer_is_true(&data, pcon::convert::seq2bit(b"CTGAC"), 5));
-        println!("TGACG exist {}", this_kmer_is_true(&data, pcon::convert::seq2bit(b"TGACG"), 5));
-        println!("GACGA exist {}", this_kmer_is_true(&data, pcon::convert::seq2bit(b"GACGA"), 5));
-        println!("CTGAT exist {}", this_kmer_is_true(&data, pcon::convert::seq2bit(b"CTGAT"), 5));
-        
         
         assert_eq!(noisy, correct_read(noisy, 5, 2, &data).as_slice());
     }
@@ -272,20 +207,6 @@ mod tests {
         data.set(pcon::convert::hash(b"CTGAC", 5), true);
         data.set(pcon::convert::hash(b"TGACG", 5), true);
         data.set(pcon::convert::hash(b"GACGA", 5), true);
-
-        println!("ACTGA val {:010b}", pcon::convert::seq2bit(b"ACTGA"));
-        println!("CTGAC val {:010b}", pcon::convert::seq2bit(b"CTGAC"));
-        println!("CTGAT val {:010b}", pcon::convert::seq2bit(b"CTGAT"));
-        println!("TGACG val {:010b}", pcon::convert::seq2bit(b"TGACG"));
-        println!("GACGA val {:010b}", pcon::convert::seq2bit(b"GACGA"));
-
-
-        println!("ACTGA exist {}", this_kmer_is_true(&data, pcon::convert::seq2bit(b"ACTGA"), 5));
-        println!("CTGAC exist {}", this_kmer_is_true(&data, pcon::convert::seq2bit(b"CTGAC"), 5));
-        println!("TGACG exist {}", this_kmer_is_true(&data, pcon::convert::seq2bit(b"TGACG"), 5));
-        println!("GACGA exist {}", this_kmer_is_true(&data, pcon::convert::seq2bit(b"GACGA"), 5));
-        println!("CTGAT exist {}", this_kmer_is_true(&data, pcon::convert::seq2bit(b"CTGAT"), 5));
-        
         
         assert_eq!(correct, correct_read(noisy, 5, 2, &data).as_slice());
     }
@@ -302,20 +223,6 @@ mod tests {
         data.set(pcon::convert::hash(b"CTGAG", 5), true);
         data.set(pcon::convert::hash(b"TGACG", 5), true);
         data.set(pcon::convert::hash(b"GACGA", 5), true);
-
-        println!("ACTGA val {:010b}", pcon::convert::seq2bit(b"ACTGA"));
-        println!("CTGAC val {:010b}", pcon::convert::seq2bit(b"CTGAC"));
-        println!("CTGAT val {:010b}", pcon::convert::seq2bit(b"CTGAT"));
-        println!("TGACG val {:010b}", pcon::convert::seq2bit(b"TGACG"));
-        println!("GACGA val {:010b}", pcon::convert::seq2bit(b"GACGA"));
-
-
-        println!("ACTGA exist {}", this_kmer_is_true(&data, pcon::convert::seq2bit(b"ACTGA"), 5));
-        println!("CTGAC exist {}", this_kmer_is_true(&data, pcon::convert::seq2bit(b"CTGAC"), 5));
-        println!("TGACG exist {}", this_kmer_is_true(&data, pcon::convert::seq2bit(b"TGACG"), 5));
-        println!("GACGA exist {}", this_kmer_is_true(&data, pcon::convert::seq2bit(b"GACGA"), 5));
-        println!("CTGAT exist {}", this_kmer_is_true(&data, pcon::convert::seq2bit(b"CTGAT"), 5));
-        
         
         assert_eq!(noisy, correct_read(noisy, 5, 2, &data).as_slice());
     }
@@ -331,20 +238,6 @@ mod tests {
         data.set(pcon::convert::hash(b"CTGAC", 5), true);
         data.set(pcon::convert::hash(b"TGACG", 5), true);
         data.set(pcon::convert::hash(b"GACGA", 5), true);
-
-        println!("ACTGA val {:010b}", pcon::convert::seq2bit(b"ACTGA"));
-        println!("CTGAC val {:010b}", pcon::convert::seq2bit(b"CTGAC"));
-        println!("CTGAG val {:010b}", pcon::convert::seq2bit(b"CTGAG"));
-        println!("TGACG val {:010b}", pcon::convert::seq2bit(b"TGACG"));
-        println!("GACGA val {:010b}", pcon::convert::seq2bit(b"GACGA"));
-
-
-        println!("ACTGA exist {}", this_kmer_is_true(&data, pcon::convert::seq2bit(b"ACTGA"), 5));
-        println!("CTGAC exist {}", this_kmer_is_true(&data, pcon::convert::seq2bit(b"CTGAC"), 5));
-        println!("TGACG exist {}", this_kmer_is_true(&data, pcon::convert::seq2bit(b"TGACG"), 5));
-        println!("GACGA exist {}", this_kmer_is_true(&data, pcon::convert::seq2bit(b"GACGA"), 5));
-        println!("CTGAT exist {}", this_kmer_is_true(&data, pcon::convert::seq2bit(b"CTGAT"), 5));
-        
         
         assert_eq!(correct, correct_read(noisy, 5, 2, &data).as_slice());
     }
@@ -355,26 +248,6 @@ mod tests {
         let noisy   = b"ACTGAGA";
 
         let mut data: bv::BitVec<u8> = bv::BitVec::new_fill(false, 1 << 9);
-
-        data.set(pcon::convert::hash(b"ACTGA", 5), true);
-        data.set(pcon::convert::hash(b"CTGAC", 5), true);
-        data.set(pcon::convert::hash(b"CTGAT", 5), true);
-        data.set(pcon::convert::hash(b"TGACG", 5), true);
-        data.set(pcon::convert::hash(b"GACGA", 5), true);
-
-        println!("ACTGA val {:010b}", pcon::convert::seq2bit(b"ACTGA"));
-        println!("CTGAC val {:010b}", pcon::convert::seq2bit(b"CTGAC"));
-        println!("CTGAG val {:010b}", pcon::convert::seq2bit(b"CTGAG"));
-        println!("TGACG val {:010b}", pcon::convert::seq2bit(b"TGACG"));
-        println!("GACGA val {:010b}", pcon::convert::seq2bit(b"GACGA"));
-
-
-        println!("ACTGA exist {}", this_kmer_is_true(&data, pcon::convert::seq2bit(b"ACTGA"), 5));
-        println!("CTGAC exist {}", this_kmer_is_true(&data, pcon::convert::seq2bit(b"CTGAC"), 5));
-        println!("TGACG exist {}", this_kmer_is_true(&data, pcon::convert::seq2bit(b"TGACG"), 5));
-        println!("GACGA exist {}", this_kmer_is_true(&data, pcon::convert::seq2bit(b"GACGA"), 5));
-        println!("CTGAT exist {}", this_kmer_is_true(&data, pcon::convert::seq2bit(b"CTGAT"), 5));
-        
         
         assert_eq!(noisy, correct_read(noisy, 5, 2, &data).as_slice());
     }
