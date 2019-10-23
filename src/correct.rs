@@ -50,19 +50,19 @@ pub fn correct_read(seq: &[u8], k: u8, s: u8, data: &bv::BitVec<u8>) -> Vec<u8> 
         kmer = ((kmer << 2) & kmer_mask) | pcon::convert::nuc2bit(nuc);
 
         if !this_kmer_is_true(data, kmer, k) {
-            println!("kmer {} is not present", pcon::convert::kmer2seq(kmer, k));
+            //println!("kmer {} is not present", pcon::convert::kmer2seq(kmer, k));
             if let Some((corrected_kmer, correct_seq)) = correct_kmer(data, kmer, k, s, seq, i) {
-                println!("correct seq {:?}", correct_seq);
+                //println!("correct seq {:?}", correct_seq);
                 kmer = corrected_kmer;
                 for c_nuc in &correct_seq {
                     corrected_seq.push(*c_nuc);
                 }
-                println!("new version of kmer {}", pcon::convert::kmer2seq(kmer, k));
+                //println!("new version of kmer {}", pcon::convert::kmer2seq(kmer, k));
             } else {
                 corrected_seq.push(nuc);
             }
         } else {
-            println!("kmer {} is present", pcon::convert::kmer2seq(kmer, k));
+            //println!("kmer {} is present", pcon::convert::kmer2seq(kmer, k));
             // If kmer is present we didn't do anything
             corrected_seq.push(nuc);
         }
@@ -79,13 +79,13 @@ fn correct_kmer(data: &bv::BitVec<u8>, kmer: u64, k: u8, s: u8, seq: &[u8], i: u
 
     let alt_nucs = get_alt_nucs(data, kmer, k);
     if alt_nucs.len() != 1 {
-        println!("multiple alternative kmer or no alternative {}", alt_nucs.len());
+        //println!("multiple alternative kmer or no alternative {}", alt_nucs.len());
         return None;
     }
     
     for alt_nuc in alt_nucs {
         let alt_kmer = ((kmer >> 2) << 2) | (alt_nuc as u64);
-        println!("alt_kmer {}", pcon::convert::kmer2seq(alt_kmer, k));
+        //println!("alt_kmer {}", pcon::convert::kmer2seq(alt_kmer, k));
 
         if let Some(limit) = get_end_of_subseq(i+1, s as usize, seq.len()) {
             scenario.push((get_kmer_score(data, alt_kmer, k, &seq[i+1..limit], kmer_mask), alt_nuc, ErrorType::Sub, alt_kmer));
@@ -97,16 +97,16 @@ fn correct_kmer(data: &bv::BitVec<u8>, kmer: u64, k: u8, s: u8, seq: &[u8], i: u
         
         if let Some(limit) = get_end_of_subseq(i, s as usize, seq.len()) {
             scenario.push((get_kmer_score(data, alt_kmer, k, &seq[i..limit], kmer_mask), alt_nuc, ErrorType::Del, alt_kmer));
-            println!("alt_kmer {}", pcon::convert::kmer2seq(alt_kmer, k));
+            //println!("alt_kmer {}", pcon::convert::kmer2seq(alt_kmer, k));
         }
     }
     
     scenario.drain_filter(|x| x.0 != s);
     scenario.sort_by(|a, b| a.0.cmp(&b.0));
-    println!("scenario {:?}", scenario);
+    //println!("scenario {:?}", scenario);
     
     if let Some((score, alt_nuc, error_type, alt_kmer)) = scenario.pop(){
-        println!("nuc {} alt_nuc {} error_type {:?} alt_kmer {}", nuc as char,pcon::convert::bit2nuc(alt_nuc as u64) as char, error_type, pcon::convert::kmer2seq(alt_kmer, k));
+        //println!("nuc {} alt_nuc {} error_type {:?} alt_kmer {}", nuc as char,pcon::convert::bit2nuc(alt_nuc as u64) as char, error_type, pcon::convert::kmer2seq(alt_kmer, k));
 
         return match error_type {
             ErrorType::Sub => Some((alt_kmer, vec![pcon::convert::bit2nuc(alt_nuc as u64)])),
@@ -115,7 +115,7 @@ fn correct_kmer(data: &bv::BitVec<u8>, kmer: u64, k: u8, s: u8, seq: &[u8], i: u
             _ => None,
         };
     } else {
-        println!("No valid scenario");
+        //println!("No valid scenario");
         return None;
     }
 }
