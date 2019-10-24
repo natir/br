@@ -52,6 +52,7 @@ fn main() {
              .long("input")
              .required(true)
              .takes_value(true)
+             .multiple(true)
              .help("fasta file to be correct")
         )
         .arg(Arg::with_name("output")
@@ -59,6 +60,7 @@ fn main() {
              .long("output")
              .required(true)
              .takes_value(true)
+             .multiple(true)
              .help("path where corrected read was write")
         )
         .arg(Arg::with_name("solidity")
@@ -70,28 +72,35 @@ fn main() {
         )
         .get_matches();
 
-    let input_path = matches.value_of("input").unwrap();
     let exist_path = matches.value_of("exist").unwrap();
-    let output_path = matches.value_of("output").unwrap();
+    let inputs_path: Vec<&str> = matches.values_of("input").unwrap().collect();
+    let outputs_path: Vec<&str> = matches.values_of("output").unwrap().collect();
     let solidity = matches.value_of("solidity").unwrap().parse::<u8>().expect("We can't parse the parameter solidity");
     
     let (k, data) = crate::io::read_existance(exist_path);
 
-    let reader = bio::io::fasta::Reader::new(std::io::BufReader::new(std::fs::File::open(input_path).unwrap()));
-    let mut write = bio::io::fasta::Writer::new(std::io::BufWriter::new(std::fs::File::create(output_path).unwrap()));
+    if inputs_path.len() != outputs_path.len() {
+        eprintln!("number of inputs isn't equal to number of outputs.");
+        return ();
+    }
 
-    for record in reader.records() {
-        let result = record.unwrap();
-        let seq = result.seq();
+    for (input_path, output_path) in inputs_path.iter().zip(outputs_path) {
+        let reader = bio::io::fasta::Reader::new(std::io::BufReader::new(std::fs::File::open(input_path).unwrap()));
+        let mut write = bio::io::fasta::Writer::new(std::io::BufWriter::new(std::fs::File::create(output_path).unwrap()));
 
-        let mut right_left = correct::correct_read(seq, k, solidity, &data);
+        for record in reader.records() {
+            let result = record.unwrap();
+            let seq = result.seq();
+            
+            let mut right_left = correct::correct_read(seq, k, solidity, &data);
 
-        //right_left.reverse();
-        //let mut left_right = correct::correct_read(&right_left, k, solidity, &data);
-        //left_right.reverse();
-
-        let left_right = right_left;
-        
-        write.write_record(&bio::io::fasta::Record::with_attrs(result.id(), result.desc(), &left_right)).expect("Error when we try to write corrected sequence");
+            //right_left.reverse();
+            //let mut left_right = correct::correct_read(&right_left, k, solidity, &data);
+            //left_right.reverse();
+            
+            let left_right = right_left;
+            
+            write.write_record(&bio::io::fasta::Record::with_attrs(result.id(), result.desc(), &left_right)).expect("Error when we try to write corrected sequence");
+        }
     }
 }
