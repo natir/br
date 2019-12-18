@@ -25,27 +25,31 @@ SOFTWARE.
 /* crate declaration */
 extern crate bio;
 extern crate clap;
-extern crate pcon;
 extern crate bv;
+extern crate cocktail;
+#[macro_use] extern crate log;
 
 /* crate use */
 use clap::{App, Arg};
 
 /* local mod */
-mod io;
 mod correct;
 
 fn main() {
+    env_logger::builder()
+	.format_timestamp(None)
+	.init();
+    
     let matches = App::new("br")
         .version("0.1")
         .author("Pierre Marijon <pmarijon@mmci.uni-saarland.de>")
         .about("A simple long read correcteur based on kmer spectrum method")
-        .arg(Arg::with_name("exist")
-             .short("e")
-             .long("exist")
+        .arg(Arg::with_name("solidity")
+             .short("s")
+             .long("solidity")
              .required(true)
              .takes_value(true)
-             .help("existance bitfield produce by Pcon")
+             .help("solidity bitfield produce by Pcon")
         )
         .arg(Arg::with_name("input")
              .short("i")
@@ -63,21 +67,24 @@ fn main() {
              .multiple(true)
              .help("path where corrected read was write")
         )
-        .arg(Arg::with_name("solidity")
-             .short("s")
-             .long("solidity")
+        .arg(Arg::with_name("confirm")
+             .short("c")
+             .long("confirm")
              .default_value("2")
              .takes_value(true)
-             .help("number of kmer need to be solid to validate a correction")
+             .help("number of kmer need to be solid after correction to validate it")
         )
         .get_matches();
 
-    let exist_path = matches.value_of("exist").unwrap();
+
     let inputs_path: Vec<&str> = matches.values_of("input").unwrap().collect();
     let outputs_path: Vec<&str> = matches.values_of("output").unwrap().collect();
     let solidity = matches.value_of("solidity").unwrap().parse::<u8>().expect("We can't parse the parameter solidity");
-    
-    let (k, data) = crate::io::read_existance(exist_path);
+
+    let solidity_path = matches.value_of("solidity").unwrap();    
+    let solidity_file = std::fs::File::open(solidity_path).expect("Error when we try to open solidity file");
+    let file_size = solidity_file.metadata().expect("Error we can't access to metadat").len();
+    let (k, data) = cocktail::io::read_solidity_bitfield(std::io::BufReader::new(solidity_file), file_size);
 
     if inputs_path.len() != outputs_path.len() {
         eprintln!("number of inputs isn't equal to number of outputs.");

@@ -35,39 +35,35 @@ pub fn correct_read(seq: &[u8], k: u8, s: u8, data: &bv::BitVec<u8>) -> Vec<u8> 
     
     if seq.len() < k as usize { return corrected_seq; } // if seq is lower than k we can't do anything
 
-    let kmer_mask = (1 << k * 2) - 1;
-
     for i in 0..(k-1) {
         corrected_seq.push(seq[i as usize]);
     }
 
-    let mut kmer = pcon::convert::seq2bit(&seq[0..(k-1) as usize]);
-
     if seq.len() == k as usize { return corrected_seq; }
 
     let mut previous = false;
-    for i in ((k - 1) as usize)..(seq.len()) {
-        let nuc = seq[i];
-        kmer = ((kmer << 2) & kmer_mask) | pcon::convert::nuc2bit(nuc);
-
-        if !this_kmer_is_true(data, kmer, k) && previous {
-            //println!("kmer {} is not present", pcon::convert::kmer2seq(kmer, k));
-            if let Some((corrected_kmer, correct_seq)) = correct_kmer(data, kmer, k, s, seq, i) {
-                //println!("correct seq {:?}", correct_seq);
+    for (i, mut kmer) in cocktail::tokenizer::Tokenizer::new(seq, k).map(|x| cocktail::kmer::cannonical(x, k)).enumerate() {
+	debug!("position {}", i + k as usize);
+	let nuc = seq[i + k as usize];
+	
+	let kmer_solidity = this_kmer_is_true(data, kmer, k);
+        if !kmer_solidity && previous {
+            debug!("kmer {} is not present", cocktail::kmer::kmer2seq(kmer, k));
+	    if let Some((corrected_kmer, correct_seq)) = correct_kmer(data, kmer, k, s, seq, i + k as usize) {
+                debug!("base write in correct read {:?}", correct_seq);
                 kmer = corrected_kmer;
                 for c_nuc in &correct_seq {
                     corrected_seq.push(*c_nuc);
                 }
 		previous = true;
-                //println!("new version of kmer {}", pcon::convert::kmer2seq(kmer, k));
             } else {
 		previous = false;
                 corrected_seq.push(nuc);
             }
         } else {
-	    previous = this_kmer_is_true(data, kmer, k);
-            //println!("kmer {} is present", pcon::convert::kmer2seq(kmer, k));
-            // If kmer is present we didn't do anything
+            // If kmer is present or if previous kmer isn't solid we didn't do anything
+            debug!("kmer {} is present {} ", cocktail::kmer::kmer2seq(kmer, k), kmer_solidity);
+	    previous = kmer_solidity;
             corrected_seq.push(nuc);
         }
     }
@@ -83,25 +79,27 @@ fn correct_kmer(data: &bv::BitVec<u8>, kmer: u64, k: u8, s: u8, seq: &[u8], i: u
 
     let alt_nucs = get_alt_nucs(data, kmer, k);
     if alt_nucs.len() != 1 {
-        //println!("multiple alternative kmer or no alternative {}", alt_nucs.len());
+        debug!("multiple alternative kmer or no alternative {}", alt_nucs.len());
         return None;
     }
     
     for alt_nuc in alt_nucs {
         let alt_kmer = ((kmer >> 2) << 2) | (alt_nuc as u64);
-        //println!("alt_kmer {}", pcon::convert::kmer2seq(alt_kmer, k));
+	debug!("alt_kmer {}", cocktail::kmer::kmer2seq(alt_kmer, k));
 
         if let Some(limit) = get_end_of_subseq(i+1, s as usize, seq.len()) {
+	    debug!("Test substitution");
             scenario.push((get_kmer_score(data, alt_kmer, k, &seq[i+1..limit], kmer_mask), alt_nuc, ErrorType::Sub, alt_kmer));
         }
 
         if let Some(limit) = get_end_of_subseq(i+2, s as usize, seq.len()) {
+	    debug!("Test insertion");
             scenario.push((get_kmer_score(data, alt_kmer, k, &seq[i+2..limit], kmer_mask), alt_nuc, ErrorType::Ins, alt_kmer));
         }
         
         if let Some(limit) = get_end_of_subseq(i, s as usize, seq.len()) {
+	    debug!("Test deletion");
             scenario.push((get_kmer_score(data, alt_kmer, k, &seq[i..limit], kmer_mask), alt_nuc, ErrorType::Del, alt_kmer));
-            //println!("alt_kmer {}", pcon::convert::kmer2seq(alt_kmer, k));
         }
     }
     
@@ -109,17 +107,16 @@ fn correct_kmer(data: &bv::BitVec<u8>, kmer: u64, k: u8, s: u8, seq: &[u8], i: u
     scenario.sort_by(|a, b| a.0.cmp(&b.0));
     
     if scenario.len() != 1 {
-        println!("No valid scenario or to many {:?}", scenario);
+        debug!("No valid scenario or to many {:?}", scenario);
 	return None;
     }
     
     let (score, alt_nuc, error_type, alt_kmer) = &scenario[0];
-    //println!("nuc {} alt_nuc {} error_type {:?} alt_kmer {}", nuc as char,pcon::convert::bit2nuc(alt_nuc as u64) as char, error_type, pcon::convert::kmer2seq(alt_kmer, k));
-
+    
     return match error_type {
-	ErrorType::Sub => Some((*alt_kmer, vec![pcon::convert::bit2nuc(*alt_nuc as u64)])),
+	ErrorType::Sub => Some((*alt_kmer, vec![cocktail::kmer::bit2nuc(*alt_nuc as u64)])),
         ErrorType::Ins => Some((alt_kmer >> 2, vec![])),
-        ErrorType::Del => Some(((alt_kmer << 2) | pcon::convert::nuc2bit(nuc) as u64, vec![pcon::convert::bit2nuc(*alt_nuc as u64), nuc])),
+        ErrorType::Del => Some(((alt_kmer << 2) | cocktail::kmer::nuc2bit(nuc) as u64, vec![cocktail::kmer::bit2nuc(*alt_nuc as u64), nuc])),
         _ => None,
     };
 }
@@ -134,9 +131,11 @@ fn get_end_of_subseq(begin: usize, offset: usize, max_length: usize) -> Option<u
 fn get_kmer_score(data: &bv::BitVec<u8>, mut alt_kmer: u64, k: u8, nucs: &[u8], kmer_mask: u64) -> u8 {
     let mut score = 0;
 
+    debug!("\t nucs to test {:?}", nucs);
     for nuc in nucs {
-        alt_kmer = ((alt_kmer << 2) & kmer_mask) | pcon::convert::nuc2bit(*nuc);
+        alt_kmer = ((alt_kmer << 2) & kmer_mask) | cocktail::kmer::nuc2bit(*nuc);
 
+	debug!("\t alt_kmer {} is present {}", cocktail::kmer::kmer2seq(alt_kmer, k), this_kmer_is_true(data, alt_kmer, k));
         if this_kmer_is_true(data, alt_kmer, k) {
             score += 1
         }
@@ -147,7 +146,7 @@ fn get_kmer_score(data: &bv::BitVec<u8>, mut alt_kmer: u64, k: u8, nucs: &[u8], 
 
 
 fn this_kmer_is_true(data: &bv::BitVec<u8>, kmer: u64, k: u8) -> bool {
-    return data.get(pcon::convert::remove_first_bit(pcon::convert::cannonical(kmer, k)));
+    return data.get(cocktail::kmer::remove_first_bit(cocktail::kmer::cannonical(kmer, k)));
 }
 
 fn get_alt_nucs(data: &bv::BitVec<u8>, kmer: u64, k: u8) -> Vec<u8> {
