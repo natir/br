@@ -21,142 +21,129 @@ SOFTWARE.
 
  */
 
-#[derive(Debug, PartialEq)]
-pub enum ErrorType {
-    None = 0,
-    Sub = 1,
-    Del = 2,
-    Ins = 4,
+use log::{debug, info};
+
+static KMER_MASK: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+pub fn init_masks(k: u8) {
+    KMER_MASK.store((1 << (2 * k)) - 1, std::sync::atomic::Ordering::SeqCst);
 }
 
+pub fn mask() -> u64 {
+    KMER_MASK.load(std::sync::atomic::Ordering::SeqCst)
+}
 
-pub fn correct_read(seq: &[u8], k: u8, s: u8, data: &bv::BitVec<u8>) -> Vec<u8> {
-    let mut corrected_seq: Vec<u8> = Vec::with_capacity(seq.len());
+pub fn correct_seq(seq: &[u8], c: u8, valid_kmer: &pcon::solid::Solid) -> Vec<u8> {
+    let mut correct: Vec<u8> = Vec::with_capacity((seq.len() as f64 * 1.1) as usize);
     
-    if seq.len() < k as usize { return corrected_seq; } // if seq is lower than k we can't do anything
+    let mut i = valid_kmer.k as usize;
+    let mut kmer = cocktail::kmer::seq2bit(&seq[0..i]);
 
-    for i in 0..(k-1) {
-        corrected_seq.push(seq[i as usize]);
+    for n in &seq[0..i] {
+	correct.push(*n);
     }
+    
+    while i < seq.len() {
+	let nuc = seq[i];
 
-    if seq.len() == k as usize { return corrected_seq; }
-
-    let mut previous = false;
-    for (i, mut kmer) in cocktail::tokenizer::Tokenizer::new(seq, k).map(|x| cocktail::kmer::cannonical(x, k)).enumerate() {
-	debug!("position {}", i + k as usize);
-	let nuc = seq[i + k as usize];
+	kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(nuc));
 	
-	let kmer_solidity = this_kmer_is_true(data, kmer, k);
-        if !kmer_solidity && previous {
-            debug!("kmer {} is not present", cocktail::kmer::kmer2seq(kmer, k));
-	    if let Some((corrected_kmer, correct_seq)) = correct_kmer(data, kmer, k, s, seq, i + k as usize) {
-                debug!("base write in correct read {:?}", correct_seq);
-                kmer = corrected_kmer;
-                for c_nuc in &correct_seq {
-                    corrected_seq.push(*c_nuc);
-                }
-		previous = true;
-            } else {
-		previous = false;
-                corrected_seq.push(nuc);
-            }
-        } else {
-            // If kmer is present or if previous kmer isn't solid we didn't do anything
-            debug!("kmer {} is present {} ", cocktail::kmer::kmer2seq(kmer, k), kmer_solidity);
-	    previous = kmer_solidity;
-            corrected_seq.push(nuc);
-        }
-    }
+	if !valid_kmer.get(kmer) {
+	    let (error_len, first_correct_kmer) = error_len(&seq[i..], kmer, valid_kmer);
 
-    return corrected_seq;
-}
-
-fn correct_kmer(data: &bv::BitVec<u8>, kmer: u64, k: u8, s: u8, seq: &[u8], i: usize) -> Option<(u64, Vec<u8>)> {
-    let nuc = seq[i];
-    let kmer_mask = (1 << k * 2) - 1;
-
-    let mut scenario: Vec<(u8, u8, ErrorType, u64)> = Vec::new();
-
-    let alt_nucs = get_alt_nucs(data, kmer, k);
-    if alt_nucs.len() != 1 {
-        debug!("multiple alternative kmer or no alternative {}", alt_nucs.len());
-        return None;
+	    if let Some(local_correct) = correct_error(kmer, first_correct_kmer, valid_kmer) {
+		println!("{}", String::from_utf8(local_correct.clone()).unwrap());
+		correct.extend(local_correct.iter());
+		info!("error at position {} of length {} has been corrected", i, error_len);
+	    } else {
+		correct.extend(&seq[i..i+error_len]);
+		info!("error at position {} of length {} hasn't been corrected", i, error_len);
+	    }
+	    
+	    kmer = first_correct_kmer;
+	    i += error_len + 1;
+	    println!("i: {}", i);
+	} else {
+	    println!("add nuc {}", nuc as char);
+	    correct.push(nuc);
+	    
+	    i += 1;
+	    println!("i: {}", i);
+	} 
     }
     
-    for alt_nuc in alt_nucs {
-        let alt_kmer = ((kmer >> 2) << 2) | (alt_nuc as u64);
-	debug!("alt_kmer {}", cocktail::kmer::kmer2seq(alt_kmer, k));
+    correct
+}
 
-        if let Some(limit) = get_end_of_subseq(i+1, s as usize, seq.len()) {
-	    debug!("Test substitution");
-            scenario.push((get_kmer_score(data, alt_kmer, k, &seq[i+1..limit], kmer_mask), alt_nuc, ErrorType::Sub, alt_kmer));
-        }
+fn correct_error(mut kmer: u64, first_correct_kmer: u64, valid_kmer: &pcon::solid::Solid) -> Option<Vec<u8>> {
+    //println!("erroneous kmer {:010b} {}", kmer, cocktail::kmer::kmer2seq(kmer, valid_kmer.k));
+    let mut j = 0;
+    let mut local_corr = Vec::new();
 
-        if let Some(limit) = get_end_of_subseq(i+2, s as usize, seq.len()) {
-	    debug!("Test insertion");
-            scenario.push((get_kmer_score(data, alt_kmer, k, &seq[i+2..limit], kmer_mask), alt_nuc, ErrorType::Ins, alt_kmer));
-        }
-        
-        if let Some(limit) = get_end_of_subseq(i, s as usize, seq.len()) {
-	    debug!("Test deletion");
-            scenario.push((get_kmer_score(data, alt_kmer, k, &seq[i..limit], kmer_mask), alt_nuc, ErrorType::Del, alt_kmer));
-        }
+    let mut succs = alt_nucs(valid_kmer, kmer);
+    if succs.len() != 1 {
+	//println!("\tcorrect_error\terrorenous kmer have many corrections {} {:?}", cocktail::kmer::kmer2seq(kmer, valid_kmer.k), succs);
+	return None
     }
     
-    scenario.drain_filter(|x| x.0 != s);
-    scenario.sort_by(|a, b| a.0.cmp(&b.0));
+    kmer = add_nuc_to_end(kmer >> 2, succs[0]); // correct kmer
+    local_corr.push(cocktail::kmer::bit2nuc(succs[0]));
+    //println!("corr kmer {:010b} {}", kmer, cocktail::kmer::kmer2seq(kmer, valid_kmer.k));
     
-    if scenario.len() != 1 {
-        debug!("No valid scenario or to many {:?}", scenario);
-	return None;
-    }
-    
-    let (score, alt_nuc, error_type, alt_kmer) = &scenario[0];
-    
-    return match error_type {
-	ErrorType::Sub => Some((*alt_kmer, vec![cocktail::kmer::bit2nuc(*alt_nuc as u64)])),
-        ErrorType::Ins => Some((alt_kmer >> 2, vec![])),
-        ErrorType::Del => Some(((alt_kmer << 2) | cocktail::kmer::nuc2bit(nuc) as u64, vec![cocktail::kmer::bit2nuc(*alt_nuc as u64), nuc])),
-        _ => None,
-    };
-}
+    while valid_kmer.get(kmer) {
+	let succs = next_nucs(valid_kmer, kmer);
+	
+	if succs.len() != 1 {
+	    //println!("\tcorrect_error\tcorrected kmer have many successors {} {:?}", cocktail::kmer::kmer2seq(kmer, valid_kmer.k), succs);
+	    return None;
+	}
 
-fn get_end_of_subseq(begin: usize, offset: usize, max_length: usize) -> Option<usize> {
-    return match begin + offset > max_length {
-        false => Some(begin + offset),
-        true  => None // we are at end of sequence
-    };
-}
-
-fn get_kmer_score(data: &bv::BitVec<u8>, mut alt_kmer: u64, k: u8, nucs: &[u8], kmer_mask: u64) -> u8 {
-    let mut score = 0;
-
-    debug!("\t nucs to test {:?}", nucs);
-    for nuc in nucs {
-        alt_kmer = ((alt_kmer << 2) & kmer_mask) | cocktail::kmer::nuc2bit(*nuc);
-
-	debug!("\t alt_kmer {} is present {}", cocktail::kmer::kmer2seq(alt_kmer, k), this_kmer_is_true(data, alt_kmer, k));
-        if this_kmer_is_true(data, alt_kmer, k) {
-            score += 1
-        }
+	kmer = add_nuc_to_end(kmer, succs[0]);
+	//println!("corr kmer {:010b} {}", kmer, cocktail::kmer::kmer2seq(kmer, valid_kmer.k));
+	
+	local_corr.push(cocktail::kmer::bit2nuc(succs[0]));
+	
+	if kmer == first_correct_kmer {
+	    //println!("\tcorrect_error\treach first correct kmer");
+	    break;
+	}
     }
 
-    return score;
+    Some(local_corr)
 }
 
+fn error_len(subseq: &[u8], mut kmer: u64, valid_kmer: &pcon::solid::Solid) -> (usize, u64) {
+    let mut j = 0;
+    
+    loop {
+	j += 1;
+	//println!("\terror_len\tkmer {}", cocktail::kmer::kmer2seq(kmer, valid_kmer.k));
+	kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(subseq[j]));
 
-fn this_kmer_is_true(data: &bv::BitVec<u8>, kmer: u64, k: u8) -> bool {
-    return data.get(cocktail::kmer::remove_first_bit(cocktail::kmer::cannonical(kmer, k)));
+	if valid_kmer.get(kmer) {
+	    //println!("\terror_len\tkmer {} is valid", cocktail::kmer::kmer2seq(kmer, valid_kmer.k));
+	    break;
+	}
+    }
+
+    (j, kmer)
 }
 
-fn get_alt_nucs(data: &bv::BitVec<u8>, kmer: u64, k: u8) -> Vec<u8> {
-    let mut correct_nuc: Vec<u8> = Vec::with_capacity(3);
-    let kme = (kmer >> 2) << 2;
+fn add_nuc_to_end(kmer: u64, nuc: u64) -> u64 {
+    (((kmer << 2) & mask()) ^ nuc)
+}
 
-    for alt_nuc in (0..4).filter(|x| *x != (kmer & 0b11) as u8) {
-        if this_kmer_is_true(data, kme ^ alt_nuc as u64, k) {
+fn alt_nucs(valid_kmer: &pcon::solid::Solid, ori: u64) -> Vec<u64> {
+    return next_nucs(valid_kmer, ori >> 2);
+}
+
+fn next_nucs(valid_kmer: &pcon::solid::Solid, kmer: u64) -> Vec<u64> {
+    let mut correct_nuc: Vec<u64> = Vec::with_capacity(4);
+
+    for alt_nuc in (0..4) {
+        if valid_kmer.get(add_nuc_to_end(kmer, alt_nuc)) {
             correct_nuc.push(alt_nuc);
-        }
+	}
     }
 
     return correct_nuc;
@@ -167,90 +154,202 @@ mod tests {
     
     use super::*;
 
-    #[test]
-    fn substitution() {
-        let correct = b"ACTGACGA";
-        let noisy   = b"ACTGATGA";
+     fn init() {
+	 let _ = env_logger::builder().is_test(true).try_init();
 
-        let mut data: bv::BitVec<u8> = bv::BitVec::new_fill(false, 1 << 9);
-
-        data.set(pcon::convert::hash(b"ACTGA", 5), true);
-        data.set(pcon::convert::hash(b"CTGAC", 5), true);
-        data.set(pcon::convert::hash(b"TGACG", 5), true);
-        data.set(pcon::convert::hash(b"GACGA", 5), true);
-        
-        assert_eq!(correct, correct_read(noisy, 5, 2, &data).as_slice());
+	 init_masks(5);
     }
 
     #[test]
-    fn substitution_multiple_alternative_k() {
-        let correct = b"ACTGACGA";
-        let noisy   = b"ACTGATGA";
+    fn found_alt_kmer() {
+	init();
+	
+	let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
 
-        let mut data: bv::BitVec<u8> = bv::BitVec::new_fill(false, 1 << 9);
+        data.set(cocktail::kmer::seq2bit(b"ACTGA"), true);
+        data.set(cocktail::kmer::seq2bit(b"ACTGT"), true);
 
-        data.set(pcon::convert::hash(b"ACTGA", 5), true);
-        data.set(pcon::convert::hash(b"CTGAC", 5), true);
-        data.set(pcon::convert::hash(b"CTGAG", 5), true);
-        data.set(pcon::convert::hash(b"TGACG", 5), true);
-        data.set(pcon::convert::hash(b"GACGA", 5), true);
-        
-        assert_eq!(noisy, correct_read(noisy, 5, 2, &data).as_slice());
+	let kmer = cocktail::kmer::seq2bit(b"ACTGC");
+	
+        assert_eq!(alt_nucs(&data, kmer), vec![0, 2]);
+    }
+
+    
+    #[test]
+    fn csc() {
+	init();
+
+	let refe = b"TCTTTATTTTC";
+	//           ||||| |||||
+	let read = b"TCTTTGTTTTC";
+
+	//println!("0    5    5");
+	//println!("{}", String::from_utf8(refe.to_vec()).unwrap());
+	//println!("{}", String::from_utf8(read.to_vec()).unwrap());
+	
+        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
+
+	for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+            data.set(kmer, true);
+	}
+
+	
+	////println!("{}", String::from_utf8(correct_seq(read, 2, &data)).unwrap());
+	
+	
+	assert_eq!(refe, correct_seq(read, 2, &data).as_slice()); // test correction work
+	assert_eq!(refe, correct_seq(refe, 2, &data).as_slice()); // test not overcorrection
+    }
+
+    
+    #[test]
+    fn cssc() {
+	init();
+
+	let refe = b"TCTCTAATCTTC";
+	//           |||||  |||||
+	let read = b"TCTCTGGTCTTC";
+
+	//println!("{}", String::from_utf8(refe.to_vec()).unwrap());
+	//println!("{}", String::from_utf8(read.to_vec()).unwrap());
+	
+        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
+
+	for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+            data.set(kmer, true);
+	}
+
+	assert_eq!(refe, correct_seq(read, 2, &data).as_slice()); // test correction work
+	assert_eq!(refe, correct_seq(refe, 2, &data).as_slice()); // test not overcorrection
+    }
+
+    
+    #[test]
+    fn csssc() {
+	init();
+	
+	let refe = b"TCTCTAAATCTTC";
+	//           |||||  |||||
+	let read = b"TCTCTGGGTCTTC";
+	
+	//println!("{}", String::from_utf8(refe.to_vec()).unwrap());
+	//println!("{}", String::from_utf8(read.to_vec()).unwrap());
+	
+        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
+
+	for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+            data.set(kmer, true);
+	}
+
+	assert_eq!(refe, correct_seq(read, 2, &data).as_slice()); // test correction work
+	assert_eq!(refe, correct_seq(refe, 2, &data).as_slice()); // test not overcorrect
+    }
+
+    
+    #[test]
+    fn cscsc() {
+	init();
+	
+	let refe = b"TCTTTACATTTTT";
+	//           ||||| | |||||
+	let read = b"TCTTTGCGTTTTT";
+	
+	//println!("{}", String::from_utf8(refe.to_vec()).unwrap());
+	//println!("{}", String::from_utf8(read.to_vec()).unwrap());
+	
+        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
+
+	for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+            data.set(kmer, true);
+	}
+
+	assert_eq!(refe, correct_seq(read, 2, &data).as_slice()); // test correction work
+	assert_eq!(refe, correct_seq(refe, 2, &data).as_slice()); // test not overcorrection
+    }
+
+    
+    #[test]
+    fn cdc() {
+	init();
+	
+	let refe = b"GATACATGGACACTAGTATG";
+	//           |||||||||| 
+	let read = b"GATACATGGAACTAGTATG";
+	
+	//println!("{}", String::from_utf8(refe.to_vec()).unwrap());
+	//println!("{}", String::from_utf8(read.to_vec()).unwrap());
+
+	let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
+
+	for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+            data.set(kmer, true);
+	}
+	
+	assert_eq!(refe, correct_seq(read, 2, &data).as_slice());
+    }
+
+    #[test]
+    fn cddc() {
+	init();
+	
+	let refe = b"CAAAGCATTTTT";
+	//           |||||
+	let read = b"CAAAGTTTTT";
+
+	//println!("     |    |    |    |    |");
+	//println!("{}", String::from_utf8(refe.to_vec()).unwrap());
+	//println!("{}", String::from_utf8(read.to_vec()).unwrap());
+
+	let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
+
+	for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+            data.set(kmer, true);
+	}
+	
+	assert_eq!(refe, correct_seq(read, 2, &data).as_slice());
     }
     
     #[test]
-    fn insertion() {
-        let correct = b"ACTGACGA";
-        let noisy   = b"ACTGATCGA";
+    fn cic() {
+	init();
+	
+	let refe = b"GATACATGGACACTAGTATG";
+	//           |||||||||| 
+	let read = b"GATACATGGATCACTAGTATG";
 
-        let mut data: bv::BitVec<u8> = bv::BitVec::new_fill(false, 1 << 9);
+	//println!("{}", String::from_utf8(refe.to_vec()).unwrap());
+	//println!("{}", String::from_utf8(read.to_vec()).unwrap());
+	
+        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
 
-        data.set(pcon::convert::hash(b"ACTGA", 5), true);
-        data.set(pcon::convert::hash(b"CTGAC", 5), true);
-        data.set(pcon::convert::hash(b"TGACG", 5), true);
-        data.set(pcon::convert::hash(b"GACGA", 5), true);
-        
-        assert_eq!(correct, correct_read(noisy, 5, 2, &data).as_slice());
+	for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+            data.set(kmer, true);
+	}
+	
+	assert_eq!(refe, correct_seq(read, 2, &data).as_slice()); // test correction work 
+	assert_eq!(refe, correct_seq(refe, 2, &data).as_slice()); // test not overcorrection
     }
 
-    #[test]
-    fn insertion_multiple_alternative_k() {
-        let correct = b"ACTGACGA";
-        let noisy   = b"ACTGATCGA";
-
-        let mut data: bv::BitVec<u8> = bv::BitVec::new_fill(false, 1 << 9);
-
-        data.set(pcon::convert::hash(b"ACTGA", 5), true);
-        data.set(pcon::convert::hash(b"CTGAC", 5), true);
-        data.set(pcon::convert::hash(b"CTGAG", 5), true);
-        data.set(pcon::convert::hash(b"TGACG", 5), true);
-        data.set(pcon::convert::hash(b"GACGA", 5), true);
-        
-        assert_eq!(noisy, correct_read(noisy, 5, 2, &data).as_slice());
-    }
     
     #[test]
-    fn deletion() {
-        let correct = b"ACTGACGA";
-        let noisy   = b"ACTGAGA";
+    fn ciic() {
+	init();
+	
+	let refe = b"GATACATGGACACTAGTATG";
+	//           |||||||||| 
+	let read = b"GATACATGGATTCACTAGTATG";
 
-        let mut data: bv::BitVec<u8> = bv::BitVec::new_fill(false, 1 << 9);
+	//println!("{}", String::from_utf8(refe.to_vec()).unwrap());
+	//println!("{}", String::from_utf8(read.to_vec()).unwrap());
+	
+        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
 
-        data.set(pcon::convert::hash(b"ACTGA", 5), true);
-        data.set(pcon::convert::hash(b"CTGAC", 5), true);
-        data.set(pcon::convert::hash(b"TGACG", 5), true);
-        data.set(pcon::convert::hash(b"GACGA", 5), true);
-        
-        assert_eq!(correct, correct_read(noisy, 5, 2, &data).as_slice());
-    }
-
-    #[test]
-    fn deletion_multiple_alternative_k() {
-        let correct = b"ACTGACGA";
-        let noisy   = b"ACTGAGA";
-
-        let mut data: bv::BitVec<u8> = bv::BitVec::new_fill(false, 1 << 9);
-        
-        assert_eq!(noisy, correct_read(noisy, 5, 2, &data).as_slice());
+	for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+            data.set(kmer, true);
+	}
+	
+	assert_eq!(refe, correct_seq(read, 2, &data).as_slice()); // test correction work 
+	assert_eq!(refe, correct_seq(refe, 2, &data).as_slice()); // test not overcorrection
     }
 }
+
