@@ -20,8 +20,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
  */
 
-#![feature(drain_filter)]
-
 /* local mod */
 pub mod cli;
 pub mod error;

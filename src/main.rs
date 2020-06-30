@@ -21,74 +21,72 @@ SOFTWARE.
  */
 
 /* crate use */
-use structopt::StructOpt;
-use anyhow::{anyhow, Result, Context};
+use anyhow::{anyhow, Context, Result};
+use clap::Clap;
 
-use br::*;
-use br::error::*;
+use log::{debug, error, info, trace, warn};
+
 use br::error::IO::*;
+use br::error::*;
+use br::*;
 
 fn main() -> Result<()> {
-    env_logger::builder()
-	.format_timestamp(None)
-	.init();
-    
-    let mut params = cli::Command::from_args();
+    let mut params = cli::Command::parse();
 
     params = cli::check_params(params)?;
 
+    if let Some(level) = cli::i82level(params.verbosity) {
+        env_logger::builder()
+            .format_timestamp(None)
+            .filter_level(level.to_level_filter())
+            .init();
+    } else {
+        env_logger::Builder::from_env("BR_LOG")
+            .format_timestamp(None)
+            .init();
+    }
+
     let solidity_reader = std::io::BufReader::new(
-	std::fs::File::open(&params.solidity)
-	    .with_context(|| {
-		Error::IO(CantOpenFile)
-	    })
-	    .with_context(|| {
-		anyhow!("File {}", params.solidity.clone())
-	    })?
+        std::fs::File::open(&params.solidity)
+            .with_context(|| Error::IO(CantOpenFile))
+            .with_context(|| anyhow!("File {}", params.solidity.clone()))?,
     );
     let solid = pcon::solid::Solid::deserialize(solidity_reader)?;
     let k = solid.k;
 
     correct::init_masks(k);
-    
+
     for (input, output) in params.inputs.iter().zip(params.outputs) {
-        let reader = bio::io::fasta::Reader::new(
-	    std::io::BufReader::new(
-		std::fs::File::open(input)
-		    .with_context(|| {
-			Error::IO(CantOpenFile)
-		    })
-		    .with_context(|| {
-			anyhow!("File {}", input.clone())
-		    })?
-	    )
-	);
-	
-        let mut write = bio::io::fasta::Writer::new(
-	    std::io::BufWriter::new(
-		std::fs::File::create(&output)
-		    .with_context(|| {
-			Error::IO(CantCreateFile)
-		    })
-		    .with_context(|| {
-			anyhow!("File {}", output.clone())
-		    })?
-	    )
-	);
+        info!("Read file {} write in {}", input, output);
 
-        for record in reader.records() {
-            let result = record.unwrap();
-            let seq = result.seq();
-            
-            let correct = correct::correct_seq(seq, params.confirm, &solid);
+        let reader = bio::io::fasta::Reader::new(std::io::BufReader::new(
+            std::fs::File::open(input)
+                .with_context(|| Error::IO(CantOpenFile))
+                .with_context(|| anyhow!("File {}", input.clone()))?,
+        ));
 
-            write.write_record(&bio::io::fasta::Record::with_attrs(result.id(), result.desc(), &correct))
-		.with_context(|| {
-		    Error::IO(IO::ErrorDurringWrite)
-		})
-		.with_context(|| {
-		    anyhow!("File {}", input.clone())
-		})?;
+        let mut write = bio::io::fasta::Writer::new(std::io::BufWriter::new(
+            std::fs::File::create(&output)
+                .with_context(|| Error::IO(CantCreateFile))
+                .with_context(|| anyhow!("File {}", output.clone()))?,
+        ));
+
+        let mut records = reader.records();
+        while let Some(Ok(record)) = records.next() {
+            log::info!("correct read {}", record.id());
+
+            let seq = record.seq();
+
+            let correct = correct::graph::correct(seq, &solid);
+
+            write
+                .write_record(&bio::io::fasta::Record::with_attrs(
+                    record.id(),
+                    record.desc(),
+                    &correct,
+                ))
+                .with_context(|| Error::IO(IO::ErrorDurringWrite))
+                .with_context(|| anyhow!("File {}", input.clone()))?;
         }
     }
 

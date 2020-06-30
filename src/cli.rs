@@ -21,26 +21,47 @@ SOFTWARE.
  */
 
 /* crate use */
-use structopt::StructOpt;
+use clap::Clap;
+use log::Level;
 
-#[derive(StructOpt, Debug)]
-#[structopt(
+#[derive(Clap, Debug)]
+#[clap(
     version = "0.1",
     author = "Pierre Marijon <pmarijon@mpi-inf.mpg.de>",
     about = "Br: Brutal rewrite a simple long read corrector based on kmer spectrum methode"
 )]
 pub struct Command {
-    #[structopt(short = "s", long = "solidity", help = "solidity bitfield produce by pcon")]
+    #[clap(
+        short = "s",
+        long = "solidity",
+        about = "solidity bitfield produce by pcon"
+    )]
     pub solidity: String,
 
-    #[structopt(short = "i", long = "inputs", help = "fasta file to be correct")]
+    #[clap(short = "i", long = "inputs", about = "fasta file to be correct")]
     pub inputs: Vec<String>,
 
-    #[structopt(short = "o", long = "outputs", help = "path where corrected read was write")]
+    #[clap(
+        short = "o",
+        long = "outputs",
+        about = "path where corrected read was write"
+    )]
     pub outputs: Vec<String>,
 
-    #[structopt(short = "c", long = "confirm", help = "number of kmer need to be solid after correction to validate it")]
+    #[clap(
+        short = "c",
+        long = "confirm",
+        about = "number of kmer need to be solid after correction to validate it"
+    )]
     pub confirm: u8,
+
+    #[clap(
+        short = "v",
+        long = "verbosity",
+        parse(from_occurrences),
+        about = "verbosity level also control by environment variable BR_LOG if flag is set BR_LOG value is ignored"
+    )]
+    pub verbosity: i8,
 }
 
 use crate::error::{Cli, Error};
@@ -48,8 +69,19 @@ use Cli::*;
 
 pub fn check_params(params: Command) -> Result<Command, Error> {
     if params.inputs.len() != params.outputs.len() {
-	return Err(Error::Cli(NotSameNumberOfInAndOut));
+        return Err(Error::Cli(NotSameNumberOfInAndOut));
     }
 
     Ok(params)
+}
+
+pub fn i82level(level: i8) -> Option<Level> {
+    match level {
+        std::i8::MIN..=0 => None,
+        1 => Some(log::Level::Error),
+        2 => Some(log::Level::Warn),
+        3 => Some(log::Level::Info),
+        4 => Some(log::Level::Debug),
+        5..=std::i8::MAX => Some(log::Level::Trace),
+    }
 }

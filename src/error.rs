@@ -38,18 +38,15 @@ pub enum Error {
 /// Error emmit durring Cli parsing
 #[derive(Debug, Error)]
 pub enum Cli {
-
-    /// Number of inputs and outputs must be the same 
+    /// Number of inputs and outputs must be the same
     #[error("Kmer size must be odd")]
     NotSameNumberOfInAndOut,
 }
-
 
 /// Error emmit when pcon try to work with file
 #[repr(C)]
 #[derive(Debug, Error)]
 pub enum IO {
-
     /// We can't create file. In C binding it's equal to 0
     #[error("We can't create file")]
     CantCreateFile,

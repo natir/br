@@ -22,7 +22,7 @@ pcon	       = { git = "https://github.com/natir/pcon.git" }
 niffler	       = "2"
 
 # CLI management
-structopt      = "0.3"
+clap           = "3.0.0-beta.1"
 
 # Logging and error management
 log 	       = "0.4"
