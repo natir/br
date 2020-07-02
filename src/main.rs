@@ -77,7 +77,9 @@ fn main() -> Result<()> {
 
             let seq = record.seq();
 
-            let correct = correct::graph::correct(seq, &solid);
+	    let greedy = correct::greedy::correct(seq, &solid, params.confirm);
+	    
+            let correct = correct::graph::correct(greedy.as_slice(), &solid);
 
             write
                 .write_record(&bio::io::fasta::Record::with_attrs(
