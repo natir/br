@@ -77,11 +77,13 @@ fn main() -> Result<()> {
 
             let seq = record.seq();
 
-            let post_greedy = correct::greedy::correct(seq, &solid, params.confirm);
-            //seq.to_vec();
+            let post_greedy =
+                correct::greedy::correct(seq, &solid, params.confirm);
+		//seq.to_vec();
 
-            let post_graph = correct::graph::correct(post_greedy.as_slice(), &solid);
-            //post_greedpy
+            let post_graph =
+		correct::graph::correct(post_greedy.as_slice(), &solid);
+		//post_greedy;
 
             let correct = post_graph;
             write

@@ -51,10 +51,18 @@ pub struct Command {
     #[clap(
         short = "c",
         long = "confirm",
-        about = "number of kmer need to be solid after correction to validate it"
+        about = "number of kmer need to be solid after greedy correction to validate it, default value is '2'"
     )]
     pub confirm: u8,
 
+    #[clap(
+	short = "m",
+	long = "method",
+	possible_values = &["greedy", "graph", "gap_size"],
+	about = "correction method used, method are apply in order greedy, graph, gap_size, default value is 'gap_size'"
+    )]
+    pub methods: Option<Vec<String>>,
+    
     #[clap(
         short = "v",
         long = "verbosity",
