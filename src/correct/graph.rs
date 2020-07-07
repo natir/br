@@ -47,7 +47,7 @@ pub fn correct(seq: &[u8], valid_kmer: &pcon::solid::Solid) -> Vec<u8> {
         kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(nuc));
 
         if !valid_kmer.get(kmer) {
-            trace!("kmer {} isn't exist", kmer);
+            debug!("kmer {} isn't exist", kmer);
 
             let (error_len, first_correct_kmer) = error_len(&seq[i..], kmer, valid_kmer);
 
@@ -156,6 +156,65 @@ mod tests {
         let kmer = cocktail::kmer::seq2bit(b"ACTGC");
 
         assert_eq!(alt_nucs(&data, kmer), vec![0, 2]);
+    }
+
+    #[test]
+    fn branching_path_csc() {
+        init();
+
+        let refe = b"TCTTTATTTTC";
+        //           ||||| |||||
+        let read = b"TCTTTGTTTTC";
+
+        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
+
+        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+            data.set(kmer, true);
+        }
+
+	data.set(cocktail::kmer::seq2bit(b"TTTTT"), true);
+
+        assert_eq!(read, correct(read, &data).as_slice()); // test correction work
+        assert_eq!(refe, correct(refe, &data).as_slice()); // test not overcorrection
+    }
+
+    #[test]
+    fn branching_path_cdc() {
+        init();
+
+        let refe = b"GATACATGGACACTAGTATG";
+        //           ||||||||||
+        let read = b"GATACATGGAACTAGTATG";
+
+        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
+
+        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+            data.set(kmer, true);
+        }
+
+	data.set(cocktail::kmer::seq2bit(b"GGACT"), true);
+
+        assert_eq!(read, correct(read, &data).as_slice());
+    }
+
+    #[test]
+    fn branching_path_cic() {
+        init();
+
+        let refe = b"GATACATGGACACTAGTATG";
+        //           ||||||||||
+        let read = b"GATACATGGATCACTAGTATG";
+
+        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
+
+        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+            data.set(kmer, true);
+        }
+
+	data.set(cocktail::kmer::seq2bit(b"GGACT"), true);
+	
+        assert_eq!(read, correct(read, &data).as_slice()); // test correction work
+        assert_eq!(refe, correct(refe, &data).as_slice()); // test not overcorrection
     }
 
     #[test]
