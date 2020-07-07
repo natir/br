@@ -31,15 +31,15 @@ pub fn correct(seq: &[u8], valid_kmer: &pcon::solid::Solid) -> Vec<u8> {
     let mut correct;
     let mut i;
     let mut kmer;
-    
+
     if let Some(res) = init_correction(seq, valid_kmer.k) {
-	correct = res.0;
-	i = res.1;
-	kmer = res.2;
+        correct = res.0;
+        i = res.1;
+        kmer = res.2;
     } else {
-	return seq.to_vec();
+        return seq.to_vec();
     }
-    
+
     while i < seq.len() {
         let nuc = seq[i];
 
@@ -54,19 +54,17 @@ pub fn correct(seq: &[u8], valid_kmer: &pcon::solid::Solid) -> Vec<u8> {
                 correct.extend(local_correct.iter());
                 info!(
                     "error at position {} of length {} has been corrected",
-                    i,
-                    error_len
+                    i, error_len
                 );
             } else {
-		if i + error_len + 1 < seq.len() {
+                if i + error_len + 1 < seq.len() {
                     correct.extend(&seq[i..i + error_len + 1]);
-		} else {
-		    correct.extend(&seq[i..]);
-		}
+                } else {
+                    correct.extend(&seq[i..]);
+                }
                 info!(
                     "error at position {} of length {} hasn't been corrected",
-                    i,
-                    error_len
+                    i, error_len
                 );
             }
 
@@ -89,25 +87,26 @@ pub(crate) fn correct_error(
 ) -> Option<Vec<u8>> {
     let mut local_corr = Vec::new();
 
-    let succs = alt_nucs(valid_kmer, kmer);
-    if succs.len() != 1 {
+    let alts = alt_nucs(valid_kmer, kmer);
+    if alts.len() != 1 {
+        debug!("failled multiple successor {:?}", alts);
         return None;
     }
 
-    kmer = add_nuc_to_end(kmer >> 2, succs[0]);
-    local_corr.push(cocktail::kmer::bit2nuc(succs[0]));
+    kmer = add_nuc_to_end(kmer >> 2, alts[0]);
+    local_corr.push(cocktail::kmer::bit2nuc(alts[0]));
 
     while valid_kmer.get(kmer) {
-        let succs = next_nucs(valid_kmer, kmer);
+        let alts = next_nucs(valid_kmer, kmer);
 
-        if succs.len() != 1 {
-	    debug!("failled branching node {:?}", succs);
+        if alts.len() != 1 {
+            debug!("failled branching node {:?}", alts);
             return None;
         }
 
-        kmer = add_nuc_to_end(kmer, succs[0]);
+        kmer = add_nuc_to_end(kmer, alts[0]);
 
-        local_corr.push(cocktail::kmer::bit2nuc(succs[0]));
+        local_corr.push(cocktail::kmer::bit2nuc(alts[0]));
 
         if kmer == first_correct_kmer {
             break;
@@ -124,9 +123,9 @@ mod tests {
 
     fn init() {
         let _ = env_logger::builder()
-	    .is_test(true)
-	    .filter_level(log::LevelFilter::Trace)
-	    .try_init();
+            .is_test(true)
+            .filter_level(log::LevelFilter::Trace)
+            .try_init();
 
         init_masks(5);
     }
@@ -159,7 +158,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-	data.set(cocktail::kmer::seq2bit(b"TTTTT"), true);
+        data.set(cocktail::kmer::seq2bit(b"TTTTT"), true);
 
         assert_eq!(read, correct(read, &data).as_slice()); // test correction work
         assert_eq!(refe, correct(refe, &data).as_slice()); // test not overcorrection
@@ -179,7 +178,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-	data.set(cocktail::kmer::seq2bit(b"GGACT"), true);
+        data.set(cocktail::kmer::seq2bit(b"GGACT"), true);
 
         assert_eq!(read, correct(read, &data).as_slice());
     }
@@ -198,8 +197,8 @@ mod tests {
             data.set(kmer, true);
         }
 
-	data.set(cocktail::kmer::seq2bit(b"GGACT"), true);
-	
+        data.set(cocktail::kmer::seq2bit(b"GGACT"), true);
+
         assert_eq!(read, correct(read, &data).as_slice()); // test correction work
         assert_eq!(refe, correct(refe, &data).as_slice()); // test not overcorrection
     }

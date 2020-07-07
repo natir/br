@@ -77,8 +77,13 @@ fn main() -> Result<()> {
 
             let seq = record.seq();
 
-	    let correct = correct::graph::correct(seq, &solid);
-	    
+            let post_greedy = correct::greedy::correct(seq, &solid, params.confirm);
+            //seq.to_vec();
+
+            let post_graph = correct::graph::correct(post_greedy.as_slice(), &solid);
+            //post_greedpy
+
+            let correct = post_graph;
             write
                 .write_record(&bio::io::fasta::Record::with_attrs(
                     record.id(),

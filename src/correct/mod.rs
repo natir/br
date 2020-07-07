@@ -51,11 +51,11 @@ pub(crate) fn next_nucs(valid_kmer: &pcon::solid::Solid, kmer: u64) -> Vec<u64> 
     correct_nuc
 }
 
-pub(crate) fn init_correction(seq: &[u8], k: u8) -> Option<(Vec<u8>, usize, u64)> { 
+pub(crate) fn init_correction(seq: &[u8], k: u8) -> Option<(Vec<u8>, usize, u64)> {
     let mut correct: Vec<u8> = Vec::with_capacity(seq.len());
 
     if seq.len() < k as usize {
-	return None
+        return None;
     }
 
     let i = k as usize;
@@ -68,7 +68,11 @@ pub(crate) fn init_correction(seq: &[u8], k: u8) -> Option<(Vec<u8>, usize, u64)
     Some((correct, i, kmer))
 }
 
-pub(crate) fn error_len(subseq: &[u8], mut kmer: u64, valid_kmer: &pcon::solid::Solid) -> (usize, u64) {
+pub(crate) fn error_len(
+    subseq: &[u8],
+    mut kmer: u64,
+    valid_kmer: &pcon::solid::Solid,
+) -> (usize, u64) {
     let mut j = 0;
 
     loop {
@@ -88,7 +92,6 @@ pub(crate) fn error_len(subseq: &[u8], mut kmer: u64, valid_kmer: &pcon::solid::
     (j, kmer)
 }
 
-
+//pub mod gap_size;
 pub mod graph;
 pub mod greedy;
-pub mod gap_size;

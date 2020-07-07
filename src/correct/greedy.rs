@@ -30,15 +30,15 @@ pub fn correct(seq: &[u8], valid_kmer: &pcon::solid::Solid, c: u8) -> Vec<u8> {
     let mut correct;
     let mut i;
     let mut kmer;
-    
+
     if let Some(res) = init_correction(seq, valid_kmer.k) {
-	correct = res.0;
-	i = res.1;
-	kmer = res.2;
+        correct = res.0;
+        i = res.1;
+        kmer = res.2;
     } else {
-	return seq.to_vec();
+        return seq.to_vec();
     }
-    
+
     let mut previous = true;
     while i < seq.len() {
         let nuc = seq[i];
@@ -51,7 +51,7 @@ pub fn correct(seq: &[u8], valid_kmer: &pcon::solid::Solid, c: u8) -> Vec<u8> {
             if let Some((corr, offset)) = correct_error(kmer, &seq[i..], c, valid_kmer) {
                 previous = true;
 
-		kmer >>= 2;
+                kmer >>= 2;
                 for nuc in corr {
                     kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(nuc));
 
@@ -89,11 +89,11 @@ pub(crate) fn correct_error(
     let alts = alt_nucs(valid_kmer, kmer);
 
     if alts.len() != 1 {
-	debug!("not one alts {:?}", alts);
+        debug!("not one alts {:?}", alts);
         return None;
     }
     debug!("one alts {:?}", alts);
-    
+
     let corr = add_nuc_to_end(kmer >> 2, alts[0]);
 
     let mut scenario: Vec<(Vec<u8>, usize)> = Vec::new();
@@ -101,7 +101,7 @@ pub(crate) fn correct_error(
     if let Some(limit) = get_end_of_subseq(th as usize + 1, seq.len()) {
         // Substitution
         if get_kmer_score(valid_kmer, corr, &seq[1..limit]) == th {
-	    debug!("it's a substitution {}", alts[0]);
+            debug!("it's a substitution {}", alts[0]);
             scenario.push((vec![cocktail::kmer::bit2nuc(alts[0])], 1));
         }
     }
@@ -109,7 +109,7 @@ pub(crate) fn correct_error(
     if let Some(limit) = get_end_of_subseq(th as usize + 2, seq.len()) {
         // Insertion
         if get_kmer_score(valid_kmer, corr, &seq[2..limit]) == th {
-	    debug!("it's a insertion");
+            debug!("it's a insertion");
             scenario.push((Vec::new(), 1));
         }
     }
@@ -117,23 +117,23 @@ pub(crate) fn correct_error(
     if let Some(limit) = get_end_of_subseq(th as usize, seq.len()) {
         // Deletion
         if get_kmer_score(valid_kmer, corr, &seq[0..limit]) == th {
-	    debug!("it's a deletion {}", alts[0]);
+            debug!("it's a deletion {}", alts[0]);
             scenario.push((vec![cocktail::kmer::bit2nuc(alts[0])], 0));
         }
     }
 
     if scenario.len() == 1 {
-	debug!("one scenario");
+        debug!("one scenario");
         scenario.pop()
     } else {
-	debug!("multi scenario {:?}", scenario);
+        debug!("multi scenario {:?}", scenario);
         None
     }
 }
 
 fn get_end_of_subseq(offset: usize, max_length: usize) -> Option<usize> {
     if offset > max_length {
-	None	    
+        None
     } else {
         Some(offset)
     }
@@ -198,7 +198,6 @@ mod tests {
         assert_eq!(refe, correct(refe, &data, 2).as_slice());
     }
 
-    
     #[test]
     fn cic() {
         init();
@@ -232,7 +231,7 @@ mod tests {
         assert_eq!(read, correct(read, &data, 2).as_slice()); // don't correct
         assert_eq!(refe, correct(refe, &data, 2).as_slice());
     }
-    
+
     #[test]
     fn cdc() {
         init();
