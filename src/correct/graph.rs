@@ -58,7 +58,11 @@ pub fn correct(seq: &[u8], valid_kmer: &pcon::solid::Solid) -> Vec<u8> {
                     error_len
                 );
             } else {
-                correct.extend(&seq[i..i + error_len + 1]);
+		if i + error_len + 1 < seq.len() {
+                    correct.extend(&seq[i..i + error_len + 1]);
+		} else {
+		    correct.extend(&seq[i..]);
+		}
                 info!(
                     "error at position {} of length {} hasn't been corrected",
                     i,
