@@ -51,5 +51,44 @@ pub(crate) fn next_nucs(valid_kmer: &pcon::solid::Solid, kmer: u64) -> Vec<u64> 
     correct_nuc
 }
 
+pub(crate) fn init_correction(seq: &[u8], k: u8) -> Option<(Vec<u8>, usize, u64)> { 
+    let mut correct: Vec<u8> = Vec::with_capacity(seq.len());
+
+    if seq.len() < k as usize {
+	return None
+    }
+
+    let i = k as usize;
+    let kmer = cocktail::kmer::seq2bit(&seq[0..i]);
+
+    for n in &seq[0..i] {
+        correct.push(*n);
+    }
+
+    Some((correct, i, kmer))
+}
+
+pub(crate) fn error_len(subseq: &[u8], mut kmer: u64, valid_kmer: &pcon::solid::Solid) -> (usize, u64) {
+    let mut j = 0;
+
+    loop {
+        j += 1;
+
+        if j >= subseq.len() {
+            break;
+        }
+
+        kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(subseq[j]));
+
+        if valid_kmer.get(kmer) {
+            break;
+        }
+    }
+
+    (j, kmer)
+}
+
+
 pub mod graph;
 pub mod greedy;
+pub mod gap_size;

@@ -24,7 +24,7 @@ SOFTWARE.
 use anyhow::{anyhow, Context, Result};
 use clap::Clap;
 
-use log::{debug, error, info, trace, warn};
+use log::info;
 
 use br::error::IO::*;
 use br::error::*;
@@ -73,14 +73,12 @@ fn main() -> Result<()> {
 
         let mut records = reader.records();
         while let Some(Ok(record)) = records.next() {
-            log::info!("correct read {}", record.id());
+            info!("correct read {}", record.id());
 
             let seq = record.seq();
 
-	    let greedy = correct::greedy::correct(seq, &solid, params.confirm);
+	    let correct = correct::graph::correct(seq, &solid);
 	    
-            let correct = correct::graph::correct(greedy.as_slice(), &solid);
-
             write
                 .write_record(&bio::io::fasta::Record::with_attrs(
                     record.id(),

@@ -21,34 +21,32 @@ SOFTWARE.
  */
 
 /* crate use */
-use log::{debug, trace};
+use log::{debug, info};
 
 /* local use */
 use crate::correct::*;
 
 pub fn correct(seq: &[u8], valid_kmer: &pcon::solid::Solid, c: u8) -> Vec<u8> {
-    let mut correct: Vec<u8> = Vec::with_capacity(seq.len());
-
-    if seq.len() < valid_kmer.k as usize {
-        return seq.to_vec();
+    let mut correct;
+    let mut i;
+    let mut kmer;
+    
+    if let Some(res) = init_correction(seq, valid_kmer.k) {
+	correct = res.0;
+	i = res.1;
+	kmer = res.2;
+    } else {
+	return seq.to_vec();
     }
-
-    let mut i = valid_kmer.k as usize;
-    let mut kmer = cocktail::kmer::seq2bit(&seq[0..i]);
-
-    for n in &seq[0..i] {
-        correct.push(*n);
-    }
-
+    
     let mut previous = true;
     while i < seq.len() {
         let nuc = seq[i];
-	trace!("nucleotide {}", nuc);
 
         kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(nuc));
 
         if !valid_kmer.get(kmer) && previous {
-            debug!("kmer {} isn't exist", cocktail::kmer::kmer2seq(kmer, valid_kmer.k));
+            debug!("kmer {} isn't exist", kmer);
 
             if let Some((corr, offset)) = correct_error(kmer, &seq[i..], c, valid_kmer) {
                 previous = true;
@@ -62,14 +60,14 @@ pub fn correct(seq: &[u8], valid_kmer: &pcon::solid::Solid, c: u8) -> Vec<u8> {
 
                 i += offset;
 
-                debug!("error at position {} has been corrected", i);
+                info!("error at position {} has been corrected", i);
             } else {
                 previous = false;
                 correct.push(nuc);
 
                 i += 1;
 
-                debug!("error at position {} hasn't been corrected", i);
+                info!("error at position {} hasn't been corrected", i);
             }
         } else {
             previous = valid_kmer.get(kmer);
@@ -82,34 +80,36 @@ pub fn correct(seq: &[u8], valid_kmer: &pcon::solid::Solid, c: u8) -> Vec<u8> {
     correct
 }
 
-fn correct_error(
+pub(crate) fn correct_error(
     kmer: u64,
     seq: &[u8],
     th: u8,
     valid_kmer: &pcon::solid::Solid,
 ) -> Option<(Vec<u8>, usize)> {
-    let succs = alt_nucs(valid_kmer, kmer);
+    let alts = alt_nucs(valid_kmer, kmer);
 
-    if succs.len() != 1 {
+    if alts.len() != 1 {
+	debug!("not one alts {:?}", alts);
         return None;
     }
-
-    let corr = add_nuc_to_end(kmer >> 2, succs[0]);
+    debug!("one alts {:?}", alts);
+    
+    let corr = add_nuc_to_end(kmer >> 2, alts[0]);
 
     let mut scenario: Vec<(Vec<u8>, usize)> = Vec::new();
 
     if let Some(limit) = get_end_of_subseq(th as usize + 1, seq.len()) {
         // Substitution
         if get_kmer_score(valid_kmer, corr, &seq[1..limit]) == th {
-	    trace!("it's a substitution {}", succs[0]);
-            scenario.push((vec![cocktail::kmer::bit2nuc(succs[0])], 1));
+	    debug!("it's a substitution {}", alts[0]);
+            scenario.push((vec![cocktail::kmer::bit2nuc(alts[0])], 1));
         }
     }
 
     if let Some(limit) = get_end_of_subseq(th as usize + 2, seq.len()) {
         // Insertion
         if get_kmer_score(valid_kmer, corr, &seq[2..limit]) == th {
-	    trace!("it's a insertion");
+	    debug!("it's a insertion");
             scenario.push((Vec::new(), 1));
         }
     }
@@ -117,16 +117,16 @@ fn correct_error(
     if let Some(limit) = get_end_of_subseq(th as usize, seq.len()) {
         // Deletion
         if get_kmer_score(valid_kmer, corr, &seq[0..limit]) == th {
-	    trace!("it's a deletion {}", succs[0]);
-            scenario.push((vec![cocktail::kmer::bit2nuc(succs[0])], 0));
+	    debug!("it's a deletion {}", alts[0]);
+            scenario.push((vec![cocktail::kmer::bit2nuc(alts[0])], 0));
         }
     }
 
     if scenario.len() == 1 {
-	trace!("one scenario");
+	debug!("one scenario");
         scenario.pop()
     } else {
-	trace!("multi scenario {}", scenario.len());
+	debug!("multi scenario {:?}", scenario);
         None
     }
 }

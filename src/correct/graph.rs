@@ -22,25 +22,24 @@ SOFTWARE.
  */
 
 /* crate use */
-use log::{debug, trace};
+use log::{debug, info};
 
 /* local use */
 use crate::correct::*;
 
 pub fn correct(seq: &[u8], valid_kmer: &pcon::solid::Solid) -> Vec<u8> {
-    let mut correct: Vec<u8> = Vec::with_capacity(seq.len());
-
-    if seq.len() < valid_kmer.k as usize {
-        return seq.to_vec();
+    let mut correct;
+    let mut i;
+    let mut kmer;
+    
+    if let Some(res) = init_correction(seq, valid_kmer.k) {
+	correct = res.0;
+	i = res.1;
+	kmer = res.2;
+    } else {
+	return seq.to_vec();
     }
-
-    let mut i = valid_kmer.k as usize;
-    let mut kmer = cocktail::kmer::seq2bit(&seq[0..i]);
-
-    for n in &seq[0..i] {
-        correct.push(*n);
-    }
-
+    
     while i < seq.len() {
         let nuc = seq[i];
 
@@ -53,14 +52,14 @@ pub fn correct(seq: &[u8], valid_kmer: &pcon::solid::Solid) -> Vec<u8> {
 
             if let Some(local_correct) = correct_error(kmer, first_correct_kmer, valid_kmer) {
                 correct.extend(local_correct.iter());
-                trace!(
+                info!(
                     "error at position {} of length {} has been corrected",
                     i,
                     error_len
                 );
             } else {
-                correct.extend(&seq[i..i + error_len]);
-                trace!(
+                correct.extend(&seq[i..i + error_len + 1]);
+                info!(
                     "error at position {} of length {} hasn't been corrected",
                     i,
                     error_len
@@ -79,7 +78,7 @@ pub fn correct(seq: &[u8], valid_kmer: &pcon::solid::Solid) -> Vec<u8> {
     correct
 }
 
-fn correct_error(
+pub(crate) fn correct_error(
     mut kmer: u64,
     first_correct_kmer: u64,
     valid_kmer: &pcon::solid::Solid,
@@ -98,6 +97,7 @@ fn correct_error(
         let succs = next_nucs(valid_kmer, kmer);
 
         if succs.len() != 1 {
+	    debug!("failled branching node {:?}", succs);
             return None;
         }
 
@@ -113,33 +113,16 @@ fn correct_error(
     Some(local_corr)
 }
 
-fn error_len(subseq: &[u8], mut kmer: u64, valid_kmer: &pcon::solid::Solid) -> (usize, u64) {
-    let mut j = 0;
-
-    loop {
-        j += 1;
-
-        if j >= subseq.len() {
-            break;
-        }
-
-        kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(subseq[j]));
-
-        if valid_kmer.get(kmer) {
-            break;
-        }
-    }
-
-    (j, kmer)
-}
-
 #[cfg(test)]
 mod tests {
 
     use super::*;
 
     fn init() {
-        let _ = env_logger::builder().is_test(true).try_init();
+        let _ = env_logger::builder()
+	    .is_test(true)
+	    .filter_level(log::LevelFilter::Trace)
+	    .try_init();
 
         init_masks(5);
     }
@@ -304,6 +287,7 @@ mod tests {
         }
 
         assert_eq!(refe, correct(read, &data).as_slice());
+        assert_eq!(refe, correct(refe, &data).as_slice());
     }
 
     #[test]
@@ -321,6 +305,7 @@ mod tests {
         }
 
         assert_eq!(refe, correct(read, &data).as_slice());
+        assert_eq!(refe, correct(refe, &data).as_slice());
     }
 
     #[test]
