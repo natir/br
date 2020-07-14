@@ -92,6 +92,6 @@ pub(crate) fn error_len(
     (j, kmer)
 }
 
-//pub mod gap_size;
+pub mod gap_size;
 pub mod graph;
 pub mod greedy;
