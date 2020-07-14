@@ -56,6 +56,12 @@ fn main() -> Result<()> {
 
     correct::init_masks(k);
 
+    let confirm = if let Some(val) = params.confirm {
+        val
+    } else {
+        2
+    };
+
     for (input, output) in params.inputs.iter().zip(params.outputs) {
         info!("Read file {} write in {}", input, output);
 
@@ -77,15 +83,26 @@ fn main() -> Result<()> {
 
             let seq = record.seq();
 
-            let post_greedy =
-                correct::greedy::correct(seq, &solid, params.confirm);
-		//seq.to_vec();
+            let correct = if let Some(methods) = &params.methods {
+                let mut tmp = seq.to_vec();
 
-            let post_graph =
-		correct::graph::correct(post_greedy.as_slice(), &solid);
-		//post_greedy;
+                if methods.contains(&"greedy".to_string()) {
+                    tmp = correct::greedy::correct(tmp.as_slice(), &solid, confirm);
+                }
 
-            let correct = post_graph;
+                if methods.contains(&"graph".to_string()) {
+                    tmp = correct::graph::correct(tmp.as_slice(), &solid);
+                }
+
+                if methods.contains(&"gap_size".to_string()) {
+                    tmp = correct::gap_size::correct(tmp.as_slice(), &solid, confirm);
+                }
+
+                tmp
+            } else {
+                correct::gap_size::correct(seq, &solid, confirm)
+            };
+
             write
                 .write_record(&bio::io::fasta::Record::with_attrs(
                     record.id(),
