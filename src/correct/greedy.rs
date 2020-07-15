@@ -26,58 +26,74 @@ use log::{debug, info};
 /* local use */
 use crate::correct::*;
 
-pub fn correct(seq: &[u8], valid_kmer: &pcon::solid::Solid, c: u8) -> Vec<u8> {
-    let mut correct;
-    let mut i;
-    let mut kmer;
+pub struct Greedy<'a> {
+    valid_kmer: &'a pcon::solid::Solid,
+    c: u8,
+}
 
-    if let Some(res) = init_correction(seq, valid_kmer.k) {
-        correct = res.0;
-        i = res.1;
-        kmer = res.2;
-    } else {
-        return seq.to_vec();
+impl<'a> Greedy<'a> {
+    pub fn new(valid_kmer: &'a pcon::solid::Solid, c: u8) -> Self {
+        Self { valid_kmer, c }
     }
+}
 
-    let mut previous = true;
-    while i < seq.len() {
-        let nuc = seq[i];
+impl<'a> Corrector for Greedy<'a> {
+    fn correct(&self, seq: &[u8]) -> Vec<u8> {
+        let mut correct;
+        let mut i;
+        let mut kmer;
 
-        kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(nuc), valid_kmer.k);
+        if let Some(res) = init_correction(seq, self.valid_kmer.k) {
+            correct = res.0;
+            i = res.1;
+            kmer = res.2;
+        } else {
+            return seq.to_vec();
+        }
 
-        if !valid_kmer.get(kmer) && previous {
-            debug!("kmer {} isn't exist", kmer);
+        let mut previous = true;
+        while i < seq.len() {
+            let nuc = seq[i];
 
-            if let Some((corr, offset)) = correct_error(kmer, &seq[i..], c, valid_kmer) {
-                previous = true;
+            kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(nuc), self.valid_kmer.k);
 
-                kmer >>= 2;
-                for nuc in corr {
-                    kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(nuc), valid_kmer.k);
+            if !self.valid_kmer.get(kmer) && previous {
+                debug!("kmer {} isn't exist", kmer);
 
+                if let Some((corr, offset)) =
+                    correct_error(kmer, &seq[i..], self.c, self.valid_kmer)
+                {
+                    previous = true;
+
+                    kmer >>= 2;
+                    for nuc in corr {
+                        kmer =
+                            add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(nuc), self.valid_kmer.k);
+
+                        correct.push(nuc);
+                    }
+
+                    i += offset;
+
+                    info!("error at position {} cor", i);
+                } else {
+                    previous = false;
                     correct.push(nuc);
+
+                    i += 1;
+
+                    info!("error at position {} not", i);
                 }
-
-                i += offset;
-
-                info!("error at position {} cor", i);
             } else {
-                previous = false;
+                previous = self.valid_kmer.get(kmer);
                 correct.push(nuc);
 
                 i += 1;
-
-                info!("error at position {} not", i);
             }
-        } else {
-            previous = valid_kmer.get(kmer);
-            correct.push(nuc);
-
-            i += 1;
         }
-    }
 
-    correct
+        correct
+    }
 }
 
 pub(crate) fn correct_error(
@@ -175,8 +191,10 @@ mod tests {
             data.set(kmer, true);
         }
 
-        assert_eq!(refe, correct(read, &data, 2).as_slice());
-        assert_eq!(refe, correct(refe, &data, 2).as_slice());
+        let corrector = Greedy::new(&data, 2);
+
+        assert_eq!(refe, corrector.correct(read).as_slice());
+        assert_eq!(refe, corrector.correct(refe).as_slice());
     }
 
     #[test]
@@ -192,8 +210,10 @@ mod tests {
             data.set(kmer, true);
         }
 
-        assert_eq!(read, correct(read, &data, 2).as_slice()); // don't correct
-        assert_eq!(refe, correct(refe, &data, 2).as_slice());
+        let corrector = Greedy::new(&data, 2);
+
+        assert_eq!(read, corrector.correct(read).as_slice()); // don't correct
+        assert_eq!(refe, corrector.correct(refe).as_slice());
     }
 
     #[test]
@@ -209,8 +229,10 @@ mod tests {
             data.set(kmer, true);
         }
 
-        assert_eq!(refe, correct(read, &data, 2).as_slice());
-        assert_eq!(refe, correct(refe, &data, 2).as_slice());
+        let corrector = Greedy::new(&data, 2);
+
+        assert_eq!(refe, corrector.correct(read).as_slice());
+        assert_eq!(refe, corrector.correct(refe).as_slice());
     }
 
     #[test]
@@ -226,8 +248,10 @@ mod tests {
             data.set(kmer, true);
         }
 
-        assert_eq!(read, correct(read, &data, 2).as_slice()); // don't correct
-        assert_eq!(refe, correct(refe, &data, 2).as_slice());
+        let corrector = Greedy::new(&data, 2);
+
+        assert_eq!(read, corrector.correct(read).as_slice()); // don't correct
+        assert_eq!(refe, corrector.correct(refe).as_slice());
     }
 
     #[test]
@@ -243,8 +267,10 @@ mod tests {
             data.set(kmer, true);
         }
 
-        assert_eq!(refe, correct(read, &data, 2).as_slice());
-        assert_eq!(refe, correct(refe, &data, 2).as_slice());
+        let corrector = Greedy::new(&data, 2);
+
+        assert_eq!(refe, corrector.correct(read).as_slice());
+        assert_eq!(refe, corrector.correct(refe).as_slice());
     }
 
     #[test]
@@ -260,7 +286,9 @@ mod tests {
             data.set(kmer, true);
         }
 
-        assert_eq!(read, correct(read, &data, 2).as_slice()); // don't correct
-        assert_eq!(refe, correct(refe, &data, 2).as_slice());
+        let corrector = Greedy::new(&data, 2);
+
+        assert_eq!(read, corrector.correct(read).as_slice()); // don't correct
+        assert_eq!(refe, corrector.correct(refe).as_slice());
     }
 }

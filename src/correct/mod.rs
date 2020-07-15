@@ -27,7 +27,7 @@ const MASK_LOOKUP: [u64; 32] = {
     while k < 32 {
         lookup[k] = (1 << (2 * k)) - 1;
 
-	k += 1;
+        k += 1;
     }
 
     lookup
@@ -36,6 +36,10 @@ const MASK_LOOKUP: [u64; 32] = {
 #[inline(always)]
 pub(crate) fn mask(k: u8) -> u64 {
     MASK_LOOKUP[k as usize]
+}
+
+pub trait Corrector {
+    fn correct(&self, seq: &[u8]) -> Vec<u8>;
 }
 
 pub(crate) fn add_nuc_to_end(kmer: u64, nuc: u64, k: u8) -> u64 {
@@ -102,3 +106,7 @@ pub(crate) fn error_len(
 pub mod gap_size;
 pub mod graph;
 pub mod greedy;
+
+pub use gap_size::GapSize;
+pub use graph::Graph;
+pub use greedy::Greedy;

@@ -30,6 +30,8 @@ use br::error::IO::*;
 use br::error::*;
 use br::*;
 
+use br::correct::Corrector;
+
 fn main() -> Result<()> {
     let mut params = cli::Command::parse();
 
@@ -59,6 +61,10 @@ fn main() -> Result<()> {
         2
     };
 
+    let greedy = correct::Greedy::new(&solid, confirm);
+    let graph = correct::Graph::new(&solid);
+    let gap_size = correct::GapSize::new(&solid, confirm);
+
     for (input, output) in params.inputs.iter().zip(params.outputs) {
         info!("Read file {} write in {}", input, output);
 
@@ -84,20 +90,20 @@ fn main() -> Result<()> {
                 let mut tmp = seq.to_vec();
 
                 if methods.contains(&"greedy".to_string()) {
-                    tmp = correct::greedy::correct(tmp.as_slice(), &solid, confirm);
+                    tmp = greedy.correct(tmp.as_slice());
                 }
 
                 if methods.contains(&"graph".to_string()) {
-                    tmp = correct::graph::correct(tmp.as_slice(), &solid);
+                    tmp = graph.correct(tmp.as_slice());
                 }
 
                 if methods.contains(&"gap_size".to_string()) {
-                    tmp = correct::gap_size::correct(tmp.as_slice(), &solid, confirm);
+                    tmp = gap_size.correct(tmp.as_slice());
                 }
 
                 tmp
             } else {
-                correct::gap_size::correct(seq, &solid, confirm)
+                gap_size.correct(seq)
             };
 
             write
