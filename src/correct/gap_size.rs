@@ -39,28 +39,32 @@ pub fn correct(seq: &[u8], valid_kmer: &pcon::solid::Solid, c: u8) -> Vec<u8> {
         return seq.to_vec();
     }
 
+    let mut previous = valid_kmer.get(kmer);
     while i < seq.len() {
         let nuc = seq[i];
 
         kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(nuc));
 
-        if !valid_kmer.get(kmer) {
+        if previous && !valid_kmer.get(kmer) {
             let (error_len, first_correct_kmer) = error_len(&seq[i..], kmer, valid_kmer);
 
-            if error_len == valid_kmer.k as usize - 1 {
+            if error_len < valid_kmer.k as usize {
                 // Delettion
                 if let Some(local_correct) =
                     graph::correct_error(kmer, first_correct_kmer, valid_kmer)
                 {
                     correct.extend(local_correct.iter());
+                    previous = true;
+
                     info!(
-                        "error at position {} of length {} deletion corrected",
+                        "error at position {} of length {} deletion cor",
                         i, error_len
                     );
                 } else {
                     correct.extend(&seq[i..i + error_len]);
+                    previous = false;
                     info!(
-                        "error at position {} of length {} deletion not corrected",
+                        "error at position {} of length {} deletion not",
                         i, error_len
                     );
                 }
@@ -73,7 +77,7 @@ pub fn correct(seq: &[u8], valid_kmer: &pcon::solid::Solid, c: u8) -> Vec<u8> {
                     correct_error(kmer, valid_kmer, error_len - valid_kmer.k as usize)
                 {
                     info!(
-                        "error at position {} of length {} sub/ins large corrected",
+                        "error at position {} of length {} sub/ins large cor",
                         i, error_len
                     );
 
@@ -93,16 +97,19 @@ pub fn correct(seq: &[u8], valid_kmer: &pcon::solid::Solid, c: u8) -> Vec<u8> {
                             i += local_corr.len();
                         }
                     }
+                    previous = true;
                 } else {
-                    info!(
-                        "error at position {} of length {} sub/ins large not corrected",
-                        i, error_len
-                    );
                     for nuc in &seq[i..(i + error_len)] {
                         correct.push(*nuc);
                         kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(*nuc));
                         i += 1;
                     }
+                    previous = false;
+
+                    info!(
+                        "error at position {} of length {} sub/ins large not",
+                        i, error_len
+                    );
                 }
             } else if error_len == valid_kmer.k as usize {
                 // insertion substitution 1
@@ -118,8 +125,10 @@ pub fn correct(seq: &[u8], valid_kmer: &pcon::solid::Solid, c: u8) -> Vec<u8> {
 
                     i += offset;
 
+                    previous = true;
+
                     info!(
-                        "error at position {} of length {} ins/sub 1 corrected",
+                        "error at position {} of length {} ins/sub 1 cor",
                         i, error_len
                     );
                 } else {
@@ -127,18 +136,17 @@ pub fn correct(seq: &[u8], valid_kmer: &pcon::solid::Solid, c: u8) -> Vec<u8> {
 
                     i += 1;
 
+                    previous = false;
+
                     info!(
-                        "error at position {} of length {} ins/sub 1 not corrected",
+                        "error at position {} of length {} ins/sub 1 not",
                         i, error_len
                     );
                 }
-            } else {
-                info!("error at position {} of length {} weired", i, error_len);
-                //strange
-                kmer = first_correct_kmer;
-                i += error_len + 1;
             }
         } else {
+            previous = valid_kmer.get(kmer);
+
             correct.push(nuc);
 
             i += 1;

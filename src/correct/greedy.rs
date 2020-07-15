@@ -60,14 +60,14 @@ pub fn correct(seq: &[u8], valid_kmer: &pcon::solid::Solid, c: u8) -> Vec<u8> {
 
                 i += offset;
 
-                info!("error at position {} has been corrected", i);
+                info!("error at position {} cor", i);
             } else {
                 previous = false;
                 correct.push(nuc);
 
                 i += 1;
 
-                info!("error at position {} hasn't been corrected", i);
+                info!("error at position {} not", i);
             }
         } else {
             previous = valid_kmer.get(kmer);

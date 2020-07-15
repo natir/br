@@ -52,20 +52,14 @@ pub fn correct(seq: &[u8], valid_kmer: &pcon::solid::Solid) -> Vec<u8> {
 
             if let Some(local_correct) = correct_error(kmer, first_correct_kmer, valid_kmer) {
                 correct.extend(local_correct.iter());
-                info!(
-                    "error at position {} of length {} has been corrected",
-                    i, error_len
-                );
+                info!("error at position {} of length {} cor", i, error_len);
             } else {
                 if i + error_len + 1 < seq.len() {
                     correct.extend(&seq[i..i + error_len + 1]);
                 } else {
                     correct.extend(&seq[i..]);
                 }
-                info!(
-                    "error at position {} of length {} hasn't been corrected",
-                    i, error_len
-                );
+                info!("error at position {} of length {} not", i, error_len);
             }
 
             kmer = first_correct_kmer;
