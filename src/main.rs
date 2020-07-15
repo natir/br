@@ -52,9 +52,6 @@ fn main() -> Result<()> {
             .with_context(|| anyhow!("File {}", params.solidity.clone()))?,
     );
     let solid = pcon::solid::Solid::deserialize(solidity_reader)?;
-    let k = solid.k;
-
-    correct::init_masks(k);
 
     let confirm = if let Some(val) = params.confirm {
         val

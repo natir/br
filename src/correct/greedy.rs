@@ -43,7 +43,7 @@ pub fn correct(seq: &[u8], valid_kmer: &pcon::solid::Solid, c: u8) -> Vec<u8> {
     while i < seq.len() {
         let nuc = seq[i];
 
-        kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(nuc));
+        kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(nuc), valid_kmer.k);
 
         if !valid_kmer.get(kmer) && previous {
             debug!("kmer {} isn't exist", kmer);
@@ -53,7 +53,7 @@ pub fn correct(seq: &[u8], valid_kmer: &pcon::solid::Solid, c: u8) -> Vec<u8> {
 
                 kmer >>= 2;
                 for nuc in corr {
-                    kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(nuc));
+                    kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(nuc), valid_kmer.k);
 
                     correct.push(nuc);
                 }
@@ -94,7 +94,7 @@ pub(crate) fn correct_error(
     }
     debug!("one alts {:?}", alts);
 
-    let corr = add_nuc_to_end(kmer >> 2, alts[0]);
+    let corr = add_nuc_to_end(kmer >> 2, alts[0], valid_kmer.k);
 
     let mut scenario: Vec<(Vec<u8>, usize)> = Vec::new();
 
@@ -143,7 +143,7 @@ fn get_kmer_score(valid_kmer: &pcon::solid::Solid, mut kmer: u64, nucs: &[u8]) -
     let mut score = 0;
 
     for nuc in nucs {
-        kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(*nuc));
+        kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(*nuc), valid_kmer.k);
 
         if valid_kmer.get(kmer) {
             score += 1
@@ -160,8 +160,6 @@ mod tests {
 
     fn init() {
         let _ = env_logger::builder().is_test(true).try_init();
-
-        init_masks(5);
     }
 
     #[test]

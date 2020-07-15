@@ -20,19 +20,26 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
  */
 
-static KMER_MASK: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+const MASK_LOOKUP: [u64; 32] = {
+    let mut lookup = [0; 32];
 
-pub fn init_masks(k: u8) {
-    KMER_MASK.store((1 << (2 * k)) - 1, std::sync::atomic::Ordering::SeqCst);
-}
+    let mut k = 1;
+    while k < 32 {
+        lookup[k] = (1 << (2 * k)) - 1;
+
+	k += 1;
+    }
+
+    lookup
+};
 
 #[inline(always)]
-pub(crate) fn mask() -> u64 {
-    KMER_MASK.load(std::sync::atomic::Ordering::SeqCst)
+pub(crate) fn mask(k: u8) -> u64 {
+    MASK_LOOKUP[k as usize]
 }
 
-pub(crate) fn add_nuc_to_end(kmer: u64, nuc: u64) -> u64 {
-    ((kmer << 2) & mask()) ^ nuc
+pub(crate) fn add_nuc_to_end(kmer: u64, nuc: u64, k: u8) -> u64 {
+    ((kmer << 2) & mask(k)) ^ nuc
 }
 
 pub(crate) fn alt_nucs(valid_kmer: &pcon::solid::Solid, ori: u64) -> Vec<u64> {
@@ -43,7 +50,7 @@ pub(crate) fn next_nucs(valid_kmer: &pcon::solid::Solid, kmer: u64) -> Vec<u64> 
     let mut correct_nuc: Vec<u64> = Vec::with_capacity(4);
 
     for alt_nuc in 0..4 {
-        if valid_kmer.get(add_nuc_to_end(kmer, alt_nuc)) {
+        if valid_kmer.get(add_nuc_to_end(kmer, alt_nuc, valid_kmer.k)) {
             correct_nuc.push(alt_nuc);
         }
     }
@@ -82,7 +89,7 @@ pub(crate) fn error_len(
             break;
         }
 
-        kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(subseq[j]));
+        kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(subseq[j]), valid_kmer.k);
 
         if valid_kmer.get(kmer) {
             break;

@@ -64,6 +64,13 @@ pub struct Command {
     pub methods: Option<Vec<String>>,
 
     #[clap(
+        short = "n",
+        long = "not-two-side",
+        about = "if this flag is set br correct only in forward orientation"
+    )]
+    pub two_side: bool,
+
+    #[clap(
         short = "v",
         long = "verbosity",
         parse(from_occurrences),

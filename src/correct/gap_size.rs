@@ -43,7 +43,7 @@ pub fn correct(seq: &[u8], valid_kmer: &pcon::solid::Solid, c: u8) -> Vec<u8> {
     while i < seq.len() {
         let nuc = seq[i];
 
-        kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(nuc));
+        kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(nuc), valid_kmer.k);
 
         if previous && !valid_kmer.get(kmer) {
             let (error_len, first_correct_kmer) = error_len(&seq[i..], kmer, valid_kmer);
@@ -85,7 +85,7 @@ pub fn correct(seq: &[u8], valid_kmer: &pcon::solid::Solid, c: u8) -> Vec<u8> {
 
                     for nuc in local_corr.iter() {
                         correct.push(*nuc);
-                        kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(*nuc));
+                        kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(*nuc), valid_kmer.k);
                         i += 1;
                     }
 
@@ -101,7 +101,7 @@ pub fn correct(seq: &[u8], valid_kmer: &pcon::solid::Solid, c: u8) -> Vec<u8> {
                 } else {
                     for nuc in &seq[i..(i + error_len)] {
                         correct.push(*nuc);
-                        kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(*nuc));
+                        kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(*nuc), valid_kmer.k);
                         i += 1;
                     }
                     previous = false;
@@ -118,7 +118,7 @@ pub fn correct(seq: &[u8], valid_kmer: &pcon::solid::Solid, c: u8) -> Vec<u8> {
                 {
                     kmer >>= 2;
                     for nuc in corr {
-                        kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(nuc));
+                        kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(nuc), valid_kmer.k);
 
                         correct.push(nuc);
                     }
@@ -168,7 +168,7 @@ pub(crate) fn correct_error(
         return None;
     }
 
-    let mut corr = add_nuc_to_end(kmer >> 2, alts[0]);
+    let mut corr = add_nuc_to_end(kmer >> 2, alts[0], valid_kmer.k);
     let mut local_corr = vec![cocktail::kmer::bit2nuc(alts[0])];
 
     for _ in 0..gap_size {
@@ -181,7 +181,7 @@ pub(crate) fn correct_error(
             return None;
         }
 
-        corr = add_nuc_to_end(corr, alts[0]);
+        corr = add_nuc_to_end(corr, alts[0], valid_kmer.k);
 
         local_corr.push(cocktail::kmer::bit2nuc(alts[0]));
     }
@@ -199,8 +199,6 @@ mod tests {
             .is_test(true)
             .filter_level(log::LevelFilter::Trace)
             .try_init();
-
-        init_masks(5);
     }
 
     #[test]

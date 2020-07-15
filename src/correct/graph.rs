@@ -43,7 +43,7 @@ pub fn correct(seq: &[u8], valid_kmer: &pcon::solid::Solid) -> Vec<u8> {
     while i < seq.len() {
         let nuc = seq[i];
 
-        kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(nuc));
+        kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(nuc), valid_kmer.k);
 
         if !valid_kmer.get(kmer) {
             debug!("kmer {} isn't exist", kmer);
@@ -87,7 +87,7 @@ pub(crate) fn correct_error(
         return None;
     }
 
-    kmer = add_nuc_to_end(kmer >> 2, alts[0]);
+    kmer = add_nuc_to_end(kmer >> 2, alts[0], valid_kmer.k);
     local_corr.push(cocktail::kmer::bit2nuc(alts[0]));
 
     while valid_kmer.get(kmer) {
@@ -98,7 +98,7 @@ pub(crate) fn correct_error(
             return None;
         }
 
-        kmer = add_nuc_to_end(kmer, alts[0]);
+        kmer = add_nuc_to_end(kmer, alts[0], valid_kmer.k);
 
         local_corr.push(cocktail::kmer::bit2nuc(alts[0]));
 
@@ -120,8 +120,6 @@ mod tests {
             .is_test(true)
             .filter_level(log::LevelFilter::Trace)
             .try_init();
-
-        init_masks(5);
     }
 
     #[test]
