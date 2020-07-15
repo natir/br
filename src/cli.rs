@@ -59,7 +59,7 @@ pub struct Command {
 	short = "m",
 	long = "method",
 	possible_values = &["greedy", "graph", "gap_size"],
-	about = "correction method used, method are apply in order greedy, graph, gap_size, default value is 'gap_size'"
+	about = "correction method used, methods are applied in the order you specify, default value is 'gap_size'"
     )]
     pub methods: Option<Vec<String>>,
 

@@ -30,8 +30,6 @@ use br::error::IO::*;
 use br::error::*;
 use br::*;
 
-use br::correct::Corrector;
-
 fn main() -> Result<()> {
     let mut params = cli::Command::parse();
 
@@ -61,9 +59,19 @@ fn main() -> Result<()> {
         2
     };
 
-    let greedy = correct::Greedy::new(&solid, confirm);
-    let graph = correct::Graph::new(&solid);
-    let gap_size = correct::GapSize::new(&solid, confirm);
+    let mut methods: Vec<Box<dyn correct::Corrector>> = Vec::new();
+    if let Some(ms) = &params.methods {
+        for method in ms {
+            match &method[..] {
+                "greedy" => methods.push(Box::new(correct::Greedy::new(&solid, confirm))),
+                "graph" => methods.push(Box::new(correct::Graph::new(&solid))),
+                "gap_size" => methods.push(Box::new(correct::GapSize::new(&solid, confirm))),
+                _ => unreachable!(),
+            }
+        }
+    } else {
+        methods.push(Box::new(correct::GapSize::new(&solid, confirm)));
+    }
 
     for (input, output) in params.inputs.iter().zip(params.outputs) {
         info!("Read file {} write in {}", input, output);
@@ -86,25 +94,10 @@ fn main() -> Result<()> {
 
             let seq = record.seq();
 
-            let correct = if let Some(methods) = &params.methods {
-                let mut tmp = seq.to_vec();
-
-                if methods.contains(&"greedy".to_string()) {
-                    tmp = greedy.correct(tmp.as_slice());
-                }
-
-                if methods.contains(&"graph".to_string()) {
-                    tmp = graph.correct(tmp.as_slice());
-                }
-
-                if methods.contains(&"gap_size".to_string()) {
-                    tmp = gap_size.correct(tmp.as_slice());
-                }
-
-                tmp
-            } else {
-                gap_size.correct(seq)
-            };
+            let mut correct = seq.to_vec();
+            methods
+                .iter()
+                .for_each(|x| correct = x.correct(correct.as_slice()));
 
             write
                 .write_record(&bio::io::fasta::Record::with_attrs(

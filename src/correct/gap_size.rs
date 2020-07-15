@@ -33,7 +33,7 @@ pub struct GapSize<'a> {
 
 impl<'a> GapSize<'a> {
     pub fn new(valid_kmer: &'a pcon::solid::Solid, c: u8) -> Self {
-        Self { valid_kmer, c }
+	Self { valid_kmer, c }
     }
 }
 
