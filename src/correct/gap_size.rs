@@ -137,7 +137,7 @@ impl<'a> Corrector for GapSize<'a> {
                     // insertion substitution 1
 
                     if let Some((corr, offset)) =
-                        greedy::correct_error(kmer, &seq[i..], self.c, self.valid_kmer)
+                        one::correct_error(kmer, &seq[i..], self.c, self.valid_kmer)
                     {
                         kmer >>= 2;
                         for nuc in corr {

@@ -20,6 +20,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
  */
 
+use log::{debug, info};
+
 const MASK_LOOKUP: [u64; 32] = {
     let mut lookup = [0; 32];
 
@@ -39,8 +41,67 @@ pub(crate) fn mask(k: u8) -> u64 {
 }
 
 pub trait Corrector {
-    fn correct(&self, seq: &[u8]) -> Vec<u8>;
+    fn valid_kmer(&self) -> &pcon::solid::Solid;
+    
+    fn correct_error(&self, kmer: u64, seq: &[u8]) -> Option<(Vec<u8>, usize)>;
+
+    fn k(&self) -> u8 {
+	self.valid_kmer().k
+    }
+    
+    fn correct(&self, seq: &[u8]) -> Vec<u8> {
+	let mut correct: Vec<u8> = Vec::with_capacity(seq.len());
+
+	if seq.len() < self.k() as usize {
+            return seq.to_vec();
+	}
+
+	let mut i = self.k() as usize;
+	let mut kmer = cocktail::kmer::seq2bit(&seq[0..i]);
+	
+	for n in &seq[0..i] {
+            correct.push(*n);
+	}
+
+	let mut previous = self.valid_kmer().get(kmer);
+	while i < seq.len() {
+	    let nuc = seq[i];
+
+	    kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(nuc), self.k());
+
+	    if !self.valid_kmer().get(kmer) && previous {
+		if let Some((local_correct, offset)) = self.correct_error(kmer, &seq[i..]) {
+		    kmer >>= 2;
+
+		    for nuc in local_correct {
+                        kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(nuc), self.valid_kmer().k);
+                        correct.push(nuc);
+                    }
+
+		    i += offset;
+		    
+		    previous = true;
+		    info!("error at position {} cor", i);
+		} else {
+		    correct.push(nuc);
+       
+		    i += 1;
+		    
+		    previous = false;
+		    info!("error at position {} not", i);   
+		}
+	    } else {
+		previous = self.valid_kmer().get(kmer);
+		correct.push(nuc);
+
+		i += 1;
+	    }
+	}
+
+	correct
+    }    
 }
+
 
 pub(crate) fn add_nuc_to_end(kmer: u64, nuc: u64, k: u8) -> u64 {
     ((kmer << 2) & mask(k)) ^ nuc
@@ -60,23 +121,6 @@ pub(crate) fn next_nucs(valid_kmer: &pcon::solid::Solid, kmer: u64) -> Vec<u64> 
     }
 
     correct_nuc
-}
-
-pub(crate) fn init_correction(seq: &[u8], k: u8) -> Option<(Vec<u8>, usize, u64)> {
-    let mut correct: Vec<u8> = Vec::with_capacity(seq.len());
-
-    if seq.len() < k as usize {
-        return None;
-    }
-
-    let i = k as usize;
-    let kmer = cocktail::kmer::seq2bit(&seq[0..i]);
-
-    for n in &seq[0..i] {
-        correct.push(*n);
-    }
-
-    Some((correct, i, kmer))
 }
 
 pub(crate) fn error_len(
@@ -103,10 +147,12 @@ pub(crate) fn error_len(
     (j, kmer)
 }
 
-pub mod gap_size;
-pub mod graph;
+//pub mod gap_size;
 pub mod greedy;
+pub mod graph;
+pub mod one;
 
-pub use gap_size::GapSize;
-pub use graph::Graph;
+//pub use gap_size::GapSize;
 pub use greedy::Greedy;
+pub use graph::Graph;
+pub use one::One;

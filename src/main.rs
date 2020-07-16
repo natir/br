@@ -63,14 +63,14 @@ fn main() -> Result<()> {
     if let Some(ms) = &params.methods {
         for method in ms {
             match &method[..] {
-                "greedy" => methods.push(Box::new(correct::Greedy::new(&solid, confirm))),
+                "one" => methods.push(Box::new(correct::One::new(&solid, confirm))),
                 "graph" => methods.push(Box::new(correct::Graph::new(&solid))),
-                "gap_size" => methods.push(Box::new(correct::GapSize::new(&solid, confirm))),
+                //"gap_size" => methods.push(Box::new(correct::GapSize::new(&solid, confirm))),
                 _ => unreachable!(),
             }
         }
     } else {
-        methods.push(Box::new(correct::GapSize::new(&solid, confirm)));
+        methods.push(Box::new(correct::One::new(&solid, confirm)));
     }
 
     for (input, output) in params.inputs.iter().zip(params.outputs) {

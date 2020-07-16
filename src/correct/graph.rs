@@ -38,91 +38,46 @@ impl<'a> Graph<'a> {
 }
 
 impl<'a> Corrector for Graph<'a> {
-    fn correct(&self, seq: &[u8]) -> Vec<u8> {
-        let mut correct;
-        let mut i;
-        let mut kmer;
 
-        if let Some(res) = init_correction(seq, self.valid_kmer.k) {
-            correct = res.0;
-            i = res.1;
-            kmer = res.2;
-        } else {
-            return seq.to_vec();
-        }
-
-        while i < seq.len() {
-            let nuc = seq[i];
-
-            kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(nuc), self.valid_kmer.k);
-
-            if !self.valid_kmer.get(kmer) {
-                debug!("kmer {} isn't exist", kmer);
-
-                let (error_len, first_correct_kmer) = error_len(&seq[i..], kmer, self.valid_kmer);
-
-                if let Some(local_correct) =
-                    correct_error(kmer, first_correct_kmer, self.valid_kmer)
-                {
-                    correct.extend(local_correct.iter());
-                    info!("error at position {} of length {} cor", i, error_len);
-                } else {
-                    if i + error_len + 1 < seq.len() {
-                        correct.extend(&seq[i..i + error_len + 1]);
-                    } else {
-                        correct.extend(&seq[i..]);
-                    }
-                    info!("error at position {} of length {} not", i, error_len);
-                }
-
-                kmer = first_correct_kmer;
-                i += error_len + 1;
-            } else {
-                correct.push(nuc);
-
-                i += 1;
-            }
-        }
-
-        correct
+    fn valid_kmer(&self) -> &pcon::solid::Solid {
+	self.valid_kmer
     }
-}
+    
+    fn correct_error(&self, mut kmer: u64, seq: &[u8]) -> Option<(Vec<u8>, usize)> {
+        let (error_len, first_correct_kmer) = error_len(&seq, kmer, self.valid_kmer());
 
-pub(crate) fn correct_error(
-    mut kmer: u64,
-    first_correct_kmer: u64,
-    valid_kmer: &pcon::solid::Solid,
-) -> Option<Vec<u8>> {
-    let mut local_corr = Vec::new();
+	let mut local_corr = Vec::new();
 
-    let alts = alt_nucs(valid_kmer, kmer);
-    if alts.len() != 1 {
-        debug!("failled multiple successor {:?}", alts);
-        return None;
-    }
-
-    kmer = add_nuc_to_end(kmer >> 2, alts[0], valid_kmer.k);
-    local_corr.push(cocktail::kmer::bit2nuc(alts[0]));
-
-    while valid_kmer.get(kmer) {
-        let alts = next_nucs(valid_kmer, kmer);
-
-        if alts.len() != 1 {
-            debug!("failled branching node {:?}", alts);
+	let alts = alt_nucs(self.valid_kmer(), kmer);
+	if alts.len() != 1 {
+            debug!("failled multiple successor {:?}", alts);
             return None;
-        }
+	}
 
-        kmer = add_nuc_to_end(kmer, alts[0], valid_kmer.k);
+	kmer = add_nuc_to_end(kmer >> 2, alts[0], self.k());
+	local_corr.push(cocktail::kmer::bit2nuc(alts[0]));
 
-        local_corr.push(cocktail::kmer::bit2nuc(alts[0]));
+	while self.valid_kmer().get(kmer) {
+            let alts = next_nucs(self.valid_kmer(), kmer);
 
-        if kmer == first_correct_kmer {
-            break;
-        }
+            if alts.len() != 1 {
+		debug!("failled branching node {:?}", alts);
+		return None;
+            }
+
+            kmer = add_nuc_to_end(kmer, alts[0], self.k());
+
+            local_corr.push(cocktail::kmer::bit2nuc(alts[0]));
+
+            if kmer == first_correct_kmer {
+		break;
+            }
+	}
+
+	Some((local_corr, error_len + 1))
     }
-
-    Some(local_corr)
 }
+
 
 #[cfg(test)]
 mod tests {
