@@ -21,7 +21,7 @@ SOFTWARE.
  */
 
 /* crate use */
-use log::{debug, info};
+use log::debug;
 
 /* local use */
 use crate::correct::*;
@@ -39,55 +39,54 @@ impl<'a> One<'a> {
 
 impl<'a> Corrector for One<'a> {
     fn valid_kmer(&self) -> &pcon::solid::Solid {
-	self.valid_kmer
+        self.valid_kmer
     }
-    
-    fn correct_error(&self, mut kmer: u64, seq: &[u8]) -> Option<(Vec<u8>, usize)> {
-	let alts = alt_nucs(self.valid_kmer(), kmer);
 
-	if alts.len() != 1 {
+    fn correct_error(&mut self, kmer: u64, seq: &[u8]) -> Option<(Vec<u8>, usize)> {
+        let alts = alt_nucs(self.valid_kmer(), kmer);
+
+        if alts.len() != 1 {
             debug!("not one alts {:?}", alts);
             return None;
-	}
-	debug!("one alts {:?}", alts);
+        }
+        debug!("one alts {:?}", alts);
 
-	let corr = add_nuc_to_end(kmer >> 2, alts[0], self.k());
+        let corr = add_nuc_to_end(kmer >> 2, alts[0], self.k());
 
-	let mut scenario: Vec<(Vec<u8>, usize)> = Vec::new();
+        let mut scenario: Vec<(Vec<u8>, usize)> = Vec::new();
 
-	if let Some(limit) = get_end_of_subseq(self.c as usize + 1, seq.len()) {
+        if let Some(limit) = get_end_of_subseq(self.c as usize + 1, seq.len()) {
             // Substitution
             if get_kmer_score(self.valid_kmer(), corr, &seq[1..limit]) == self.c {
-		debug!("it's a substitution {}", alts[0]);
-		scenario.push((vec![cocktail::kmer::bit2nuc(alts[0])], 1));
+                debug!("it's a substitution {}", alts[0]);
+                scenario.push((vec![cocktail::kmer::bit2nuc(alts[0])], 1));
             }
-	}
+        }
 
-	if let Some(limit) = get_end_of_subseq(self.c as usize + 2, seq.len()) {
+        if let Some(limit) = get_end_of_subseq(self.c as usize + 2, seq.len()) {
             // Insertion
             if get_kmer_score(self.valid_kmer(), corr, &seq[2..limit]) == self.c {
-		debug!("it's a insertion");
-		scenario.push((Vec::new(), 1));
+                debug!("it's a insertion");
+                scenario.push((Vec::new(), 1));
             }
-	}
+        }
 
-	if let Some(limit) = get_end_of_subseq(self.c as usize, seq.len()) {
+        if let Some(limit) = get_end_of_subseq(self.c as usize, seq.len()) {
             // Deletion
             if get_kmer_score(self.valid_kmer(), corr, &seq[0..limit]) == self.c {
-		debug!("it's a deletion {}", alts[0]);
-		scenario.push((vec![cocktail::kmer::bit2nuc(alts[0])], 0));
+                debug!("it's a deletion {}", alts[0]);
+                scenario.push((vec![cocktail::kmer::bit2nuc(alts[0])], 0));
             }
-	}
+        }
 
-	if scenario.len() == 1 {
+        if scenario.len() == 1 {
             debug!("one scenario");
             scenario.pop()
-	} else {
+        } else {
             debug!("multi scenario {:?}", scenario);
             None
-	}
-
-    }    
+        }
+    }
 }
 
 fn get_end_of_subseq(offset: usize, max_length: usize) -> Option<usize> {
@@ -134,7 +133,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = One::new(&data, 2);
+        let mut corrector = One::new(&data, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -153,7 +152,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = One::new(&data, 2);
+        let mut corrector = One::new(&data, 2);
 
         assert_eq!(read, corrector.correct(read).as_slice()); // don't correct
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -172,7 +171,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = One::new(&data, 2);
+        let mut corrector = One::new(&data, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -191,7 +190,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = One::new(&data, 2);
+        let mut corrector = One::new(&data, 2);
 
         assert_eq!(read, corrector.correct(read).as_slice()); // don't correct
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -210,7 +209,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = One::new(&data, 2);
+        let mut corrector = One::new(&data, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -229,7 +228,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = One::new(&data, 2);
+        let mut corrector = One::new(&data, 2);
 
         assert_eq!(read, corrector.correct(read).as_slice()); // don't correct
         assert_eq!(refe, corrector.correct(refe).as_slice());

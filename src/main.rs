@@ -96,7 +96,7 @@ fn main() -> Result<()> {
 
             let mut correct = seq.to_vec();
             methods
-                .iter()
+                .iter_mut()
                 .for_each(|x| correct = x.correct(correct.as_slice()));
 
             write

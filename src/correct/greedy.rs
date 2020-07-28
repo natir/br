@@ -21,152 +21,116 @@ SOFTWARE.
  */
 
 /* crate use */
-use log::{debug, info};
+use log::debug;
 
 /* local use */
 use crate::correct::*;
 
+struct Score;
+
+impl bio::alignment::pairwise::MatchFunc for Score {
+    fn score(&self, a: u8, b: u8) -> i32 {
+        if a == b {
+            1
+        } else {
+            -1
+        }
+    }
+}
+
 pub struct Greedy<'a> {
     valid_kmer: &'a pcon::solid::Solid,
-    c: u8,
+    max_search: usize,
+    aligner: bio::alignment::pairwise::Aligner<Score>,
 }
 
 impl<'a> Greedy<'a> {
-    pub fn new(valid_kmer: &'a pcon::solid::Solid, c: u8) -> Self {
-        Self { valid_kmer, c }
+    pub fn new(valid_kmer: &'a pcon::solid::Solid, max_search: usize) -> Self {
+        let score = Score {};
+
+        Self {
+            valid_kmer,
+            max_search,
+            aligner: bio::alignment::pairwise::Aligner::with_capacity(10, 10, -1, 0, score),
+        }
+    }
+
+    fn match_alignement(&mut self, read: &[u8], corr: &[u8]) -> Option<i64> {
+        let alignment = self.aligner.global(read, corr);
+
+        let mut dist_to_end = 0;
+
+        let mut offset: i64 = 0;
+        let mut nb_match = 0;
+        for op in alignment.operations {
+            match op {
+                bio::alignment::AlignmentOperation::Match => nb_match += 1,
+                bio::alignment::AlignmentOperation::Del => offset -= 1,
+                bio::alignment::AlignmentOperation::Ins => offset += 1,
+                _ => (),
+            }
+
+            if nb_match == 2 {
+                return Some(offset);
+            }
+        }
+
+        None
+    }
+
+    fn follow_graph(&self, mut kmer: u64) -> Option<(u8, u64)> {
+        let alts = next_nucs(self.valid_kmer(), kmer);
+
+        if alts.len() != 1 {
+            debug!("failled branching node {:?}", alts);
+            return None;
+        }
+
+        kmer = add_nuc_to_end(kmer, alts[0], self.k());
+
+        Some((cocktail::kmer::bit2nuc(alts[0]), kmer))
     }
 }
 
 impl<'a> Corrector for Greedy<'a> {
-    fn correct(&self, seq: &[u8]) -> Vec<u8> {
-        let mut correct;
-        let mut i;
-        let mut kmer;
+    fn k(&self) -> u8 {
+        self.valid_kmer.k
+    }
 
-        if let Some(res) = init_correction(seq, self.valid_kmer.k) {
-            correct = res.0;
-            i = res.1;
-            kmer = res.2;
-        } else {
-            return seq.to_vec();
+    fn valid_kmer(&self) -> &pcon::solid::Solid {
+        self.valid_kmer
+    }
+
+    fn correct_error(&mut self, mut kmer: u64, seq: &[u8]) -> Option<(Vec<u8>, usize)> {
+        let mut local_corr = Vec::new();
+
+        println!("kmer {}", cocktail::kmer::kmer2seq(kmer, 5));
+        let alts = alt_nucs(self.valid_kmer(), kmer);
+        if alts.len() != 1 {
+            debug!("failled multiple successor {:?}", alts);
+            return None;
         }
 
-        let mut previous = true;
-        while i < seq.len() {
-            let nuc = seq[i];
+        kmer = add_nuc_to_end(kmer >> 2, alts[0], self.k());
 
-            kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(nuc), self.valid_kmer.k);
+        local_corr.push(cocktail::kmer::bit2nuc(alts[0]));
 
-            if !self.valid_kmer.get(kmer) && previous {
-                debug!("kmer {} isn't exist", kmer);
+        for i in 2..(self.max_search + 2) {
+            if let Some((base, new_kmer)) = self.follow_graph(kmer) {
+                local_corr.push(base);
+                kmer = new_kmer;
+            }
 
-                if let Some((corr, offset)) =
-                    correct_error(kmer, &seq[i..], self.c, self.valid_kmer)
-                {
-                    previous = true;
-
-                    kmer >>= 2;
-                    for nuc in corr {
-                        kmer =
-                            add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(nuc), self.valid_kmer.k);
-
-                        correct.push(nuc);
-                    }
-
-                    i += offset;
-
-                    info!("error at position {} cor", i);
-                } else {
-                    previous = false;
-                    correct.push(nuc);
-
-                    i += 1;
-
-                    info!("error at position {} not", i);
+            for j in 0..2 {
+                if let Some(off) = self.match_alignement(&seq[..i + j], &local_corr) {
+                    let offset: usize = (local_corr.len() as i64 + off) as usize;
+                    return Some((local_corr, offset));
                 }
-            } else {
-                previous = self.valid_kmer.get(kmer);
-                correct.push(nuc);
-
-                i += 1;
             }
         }
 
-        correct
-    }
-}
-
-pub(crate) fn correct_error(
-    kmer: u64,
-    seq: &[u8],
-    th: u8,
-    valid_kmer: &pcon::solid::Solid,
-) -> Option<(Vec<u8>, usize)> {
-    let alts = alt_nucs(valid_kmer, kmer);
-
-    if alts.len() != 1 {
-        debug!("not one alts {:?}", alts);
-        return None;
-    }
-    debug!("one alts {:?}", alts);
-
-    let corr = add_nuc_to_end(kmer >> 2, alts[0], valid_kmer.k);
-
-    let mut scenario: Vec<(Vec<u8>, usize)> = Vec::new();
-
-    if let Some(limit) = get_end_of_subseq(th as usize + 1, seq.len()) {
-        // Substitution
-        if get_kmer_score(valid_kmer, corr, &seq[1..limit]) == th {
-            debug!("it's a substitution {}", alts[0]);
-            scenario.push((vec![cocktail::kmer::bit2nuc(alts[0])], 1));
-        }
-    }
-
-    if let Some(limit) = get_end_of_subseq(th as usize + 2, seq.len()) {
-        // Insertion
-        if get_kmer_score(valid_kmer, corr, &seq[2..limit]) == th {
-            debug!("it's a insertion");
-            scenario.push((Vec::new(), 1));
-        }
-    }
-
-    if let Some(limit) = get_end_of_subseq(th as usize, seq.len()) {
-        // Deletion
-        if get_kmer_score(valid_kmer, corr, &seq[0..limit]) == th {
-            debug!("it's a deletion {}", alts[0]);
-            scenario.push((vec![cocktail::kmer::bit2nuc(alts[0])], 0));
-        }
-    }
-
-    if scenario.len() == 1 {
-        debug!("one scenario");
-        scenario.pop()
-    } else {
-        debug!("multi scenario {:?}", scenario);
         None
     }
-}
-
-fn get_end_of_subseq(offset: usize, max_length: usize) -> Option<usize> {
-    if offset > max_length {
-        None
-    } else {
-        Some(offset)
-    }
-}
-
-fn get_kmer_score(valid_kmer: &pcon::solid::Solid, mut kmer: u64, nucs: &[u8]) -> u8 {
-    let mut score = 0;
-
-    for nuc in nucs {
-        kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(*nuc), valid_kmer.k);
-
-        if valid_kmer.get(kmer) {
-            score += 1
-        }
-    }
-
-    score
 }
 
 #[cfg(test)]
@@ -175,99 +139,173 @@ mod tests {
     use super::*;
 
     fn init() {
-        let _ = env_logger::builder().is_test(true).try_init();
+        let _ = env_logger::builder()
+            .is_test(true)
+            .filter_level(log::LevelFilter::Trace)
+            .try_init();
+    }
+
+    #[test]
+    fn branching_path_csc() {
+        init();
+
+        let refe = b"TCTTTATTTTC";
+        //           ||||| |||||
+        let read = b"TCTTTGTTTTC";
+
+        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
+
+        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+            data.set(kmer, true);
+        }
+
+        data.set(cocktail::kmer::seq2bit(b"CTTTT"), true);
+
+        let mut corrector = Greedy::new(&data, 3);
+
+        assert_eq!(read, corrector.correct(read).as_slice()); // test correction work
+        assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
+    }
+
+    #[test]
+    fn branching_path_cdc() {
+        init();
+
+        let refe = b"GATACATGGACACTAGTATG";
+        //           ||||||||||
+        let read = b"GATACATGGAACTAGTATG";
+
+        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
+
+        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+            data.set(kmer, true);
+        }
+
+        data.set(cocktail::kmer::seq2bit(b"GGACT"), true);
+
+        let mut corrector = Greedy::new(&data, 5);
+
+        assert_eq!(read, corrector.correct(read).as_slice());
+        assert_eq!(refe, corrector.correct(refe).as_slice());
+    }
+
+    #[test]
+    fn branching_path_cic() {
+        init();
+
+        let refe = b"GATACATGGACACTAGTATG";
+        //           ||||||||||
+        let read = b"GATACATGGATCACTAGTATG";
+
+        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
+
+        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+            data.set(kmer, true);
+        }
+
+        data.set(cocktail::kmer::seq2bit(b"GGACT"), true);
+
+        let mut corrector = Greedy::new(&data, 5);
+
+        assert_eq!(read, corrector.correct(read).as_slice()); // test correction work
+        assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
     }
 
     #[test]
     fn csc() {
         init();
 
-        let refe = b"ACTGACGA";
-        let read = b"ACTGATGA";
+        let refe = b"TCTTTATTTTC";
+        //           ||||| |||||
+        let read = b"TCTTTGTTTTC";
 
-        let mut data = pcon::solid::Solid::new(5);
+        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
 
         for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
             data.set(kmer, true);
         }
 
-        let corrector = Greedy::new(&data, 2);
+        let mut corrector = Greedy::new(&data, 3);
 
-        assert_eq!(refe, corrector.correct(read).as_slice());
-        assert_eq!(refe, corrector.correct(refe).as_slice());
+        assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
+        assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
     }
 
     #[test]
     fn cssc() {
         init();
 
-        let refe = b"ACTGACGAG";
-        let read = b"ACTGATAAG";
+        let refe = b"TCTCTAATCTTC";
+        //           |||||  |||||
+        let read = b"TCTCTGGTCTTC";
 
-        let mut data = pcon::solid::Solid::new(5);
+        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
 
         for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
             data.set(kmer, true);
         }
 
-        let corrector = Greedy::new(&data, 2);
+        let mut corrector = Greedy::new(&data, 5);
 
-        assert_eq!(read, corrector.correct(read).as_slice()); // don't correct
-        assert_eq!(refe, corrector.correct(refe).as_slice());
+        assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
+        assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
     }
 
     #[test]
-    fn cic() {
+    fn csssc() {
         init();
 
-        let refe = b"ACTGACGA";
-        let read = b"ACTGATCGA";
+        let refe = b"TCTCTAAATCTTC";
+        //           |||||  |||||
+        let read = b"TCTCTGGGTCTTC";
 
-        let mut data = pcon::solid::Solid::new(5);
+        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
 
         for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
             data.set(kmer, true);
         }
 
-        let corrector = Greedy::new(&data, 2);
+        let mut corrector = Greedy::new(&data, 5);
 
-        assert_eq!(refe, corrector.correct(read).as_slice());
-        assert_eq!(refe, corrector.correct(refe).as_slice());
+        assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
+        assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrect
     }
 
     #[test]
-    fn ciic() {
+    fn cscsc() {
         init();
 
-        let refe = b"ACTGACGA";
-        let read = b"ACTGATTCGA";
+        let refe = b"TCTTTACATTTTT";
+        //           ||||| | |||||
+        let read = b"TCTTTGCGTTTTT";
 
-        let mut data = pcon::solid::Solid::new(5);
+        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
 
         for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
             data.set(kmer, true);
         }
 
-        let corrector = Greedy::new(&data, 2);
+        let mut corrector = Greedy::new(&data, 5);
 
-        assert_eq!(read, corrector.correct(read).as_slice()); // don't correct
-        assert_eq!(refe, corrector.correct(refe).as_slice());
+        assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
+        assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
     }
 
     #[test]
     fn cdc() {
         init();
 
-        let refe = b"ACTGACGA";
-        let read = b"ACTGAGA";
+        let refe = b"GATACATGGACACTAGTATG";
+        //           ||||||||||
+        let read = b"GATACATGGAACTAGTATG";
 
-        let mut data = pcon::solid::Solid::new(5);
+        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
 
         for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
             data.set(kmer, true);
         }
 
-        let corrector = Greedy::new(&data, 2);
+        let mut corrector = Greedy::new(&data, 5);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -277,18 +315,64 @@ mod tests {
     fn cddc() {
         init();
 
-        let refe = b"ACTGACGAG";
-        let read = b"ACTGAAG";
+        let refe = b"CAAAGCATTTTTT";
+        //           |||||
+        let read = b"CAAAGTTTTTT";
 
-        let mut data = pcon::solid::Solid::new(5);
+        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
 
         for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
             data.set(kmer, true);
         }
 
-        let corrector = Greedy::new(&data, 2);
+        let mut corrector = Greedy::new(&data, 5);
 
-        assert_eq!(read, corrector.correct(read).as_slice()); // don't correct
+        assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
+    }
+
+    #[test]
+    fn cic() {
+        init();
+
+        let refe = b"GATACATGGACACTAGTATG";
+        //           ||||||||||
+        let read = b"GATACATGGATCACTAGTATG";
+
+        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
+
+        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+            data.set(kmer, true);
+        }
+
+        let mut corrector = Greedy::new(&data, 5);
+
+        unsafe {
+            println!("{}", String::from_utf8_unchecked(refe.to_vec()));
+            println!("{}", String::from_utf8_unchecked(read.to_vec()));
+        }
+
+        assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
+        assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
+    }
+
+    #[test]
+    fn ciic() {
+        init();
+
+        let refe = b"GATACATGGACACTAGTATG";
+        //           ||||||||||
+        let read = b"GATACATGGATTCACTAGTATG";
+
+        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
+
+        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+            data.set(kmer, true);
+        }
+
+        let mut corrector = Greedy::new(&data, 5);
+
+        assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
+        assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
     }
 }
