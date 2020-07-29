@@ -59,13 +59,21 @@ fn main() -> Result<()> {
         2
     };
 
+    let max_search = if let Some(val) = params.max_search {
+        val
+    } else {
+        7
+    };
+
     let mut methods: Vec<Box<dyn correct::Corrector>> = Vec::new();
     if let Some(ms) = &params.methods {
         for method in ms {
             match &method[..] {
                 "one" => methods.push(Box::new(correct::One::new(&solid, confirm))),
                 "graph" => methods.push(Box::new(correct::Graph::new(&solid))),
-		"greedy" => methods.push(Box::new(correct::Greedy::new(&solid, 2usize))),
+                "greedy" => {
+                    methods.push(Box::new(correct::Greedy::new(&solid, max_search, confirm)))
+                }
                 "gap_size" => methods.push(Box::new(correct::GapSize::new(&solid, confirm))),
                 _ => unreachable!(),
             }

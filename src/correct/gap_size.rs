@@ -21,7 +21,7 @@ SOFTWARE.
  */
 
 /* crate use */
-use log::{debug};
+use log::debug;
 
 /* local use */
 use crate::correct::*;
@@ -34,61 +34,60 @@ pub struct GapSize<'a> {
 
 impl<'a> GapSize<'a> {
     pub fn new(valid_kmer: &'a pcon::solid::Solid, c: u8) -> Self {
-	Self {
-	    valid_kmer,
-	    graph: graph::Graph::new(valid_kmer),
-	    one: one::One::new(valid_kmer, c),
-	}
+        Self {
+            valid_kmer,
+            graph: graph::Graph::new(valid_kmer),
+            one: one::One::new(valid_kmer, c),
+        }
     }
 
     pub fn ins_sub_correction(&mut self, kmer: u64, gap_size: usize) -> Option<(Vec<u8>, usize)> {
-	
-	let mut alts = alt_nucs(self.valid_kmer, kmer);
+        let mut alts = alt_nucs(self.valid_kmer, kmer);
 
-	if alts.len() != 1 {
+        if alts.len() != 1 {
             debug!("not one alts {:?}", alts);
             return None;
-	}
-	
-	let mut corr = add_nuc_to_end(kmer >> 2, alts[0], self.k());
-	let mut local_corr = vec![cocktail::kmer::bit2nuc(alts[0])];
+        }
 
-	for i in 0..gap_size {
+        let mut corr = add_nuc_to_end(kmer >> 2, alts[0], self.k());
+        let mut local_corr = vec![cocktail::kmer::bit2nuc(alts[0])];
+
+        for i in 0..gap_size {
             debug!("kmer {:?}", cocktail::kmer::kmer2seq(corr, self.k()));
 
             alts = next_nucs(self.valid_kmer, corr);
 
             if alts.len() != 1 {
-		debug!("failled multiple successor {:?} i: {}", alts, i);
-		return None;
+                debug!("failled multiple successor {:?} i: {}", alts, i);
+                return None;
             }
 
             corr = add_nuc_to_end(corr, alts[0], self.k());
 
             local_corr.push(cocktail::kmer::bit2nuc(alts[0]));
-	}
+        }
 
-	let offset = local_corr.len();
-	Some((local_corr, offset))
+        let offset = local_corr.len();
+        Some((local_corr, offset))
     }
 }
 
 impl<'a> Corrector for GapSize<'a> {
     fn valid_kmer(&self) -> &pcon::solid::Solid {
-	self.valid_kmer
+        self.valid_kmer
     }
-    
+
     fn correct_error(&mut self, kmer: u64, seq: &[u8]) -> Option<(Vec<u8>, usize)> {
         let (error_len, _first_correct_kmer) = error_len(&seq, kmer, self.valid_kmer());
 
-	debug!("error_len {}", error_len);
-	if error_len < self.k() as usize {
-	    self.graph.correct_error(kmer, seq) // we can avoid a second compute of error_len 
-	} else if error_len == self.k() as usize {
-	     self.one.correct_error(kmer, seq)
-	} else {
-	    self.ins_sub_correction(kmer, error_len - self.k() as usize)
-	}
+        debug!("error_len {}", error_len);
+        if error_len < self.k() as usize {
+            self.graph.correct_error(kmer, seq) // we can avoid a second compute of error_len
+        } else if error_len == self.k() as usize {
+            self.one.correct_error(kmer, seq)
+        } else {
+            self.ins_sub_correction(kmer, error_len - self.k() as usize)
+        }
     }
 }
 
@@ -247,12 +246,12 @@ mod tests {
     #[test]
     fn ciic() {
         init();
-	
+
         let refe = b"GCGTAAATGGAT";
         //           ||||||
         let read = b"GCGTAATTATGGAT";
 
-	let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
+        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
 
         for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
             data.set(kmer, true);

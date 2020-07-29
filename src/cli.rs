@@ -51,9 +51,16 @@ pub struct Command {
     #[clap(
         short = "c",
         long = "confirm",
-        about = "number of kmer need to be solid after greedy correction to validate it, default value is '2'"
+        about = "number of kmer need to be solid after one, greedy correction to validate it, default value is '2'"
     )]
     pub confirm: Option<u8>,
+
+    #[clap(
+        short = "M",
+        long = "max-search",
+        about = "number of base we use to try correct error, default value is '7'"
+    )]
+    pub max_search: Option<u8>,
 
     #[clap(
 	short = "m",
