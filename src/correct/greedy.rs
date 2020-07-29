@@ -51,14 +51,12 @@ impl<'a> Greedy<'a> {
         Self {
             valid_kmer,
             max_search,
-            aligner: bio::alignment::pairwise::Aligner::with_capacity(10, 10, -1, 0, score),
+            aligner: bio::alignment::pairwise::Aligner::with_capacity(10, 10, -1, -1, score),
         }
     }
 
     fn match_alignement(&mut self, read: &[u8], corr: &[u8]) -> Option<i64> {
         let alignment = self.aligner.global(read, corr);
-
-        let mut dist_to_end = 0;
 
         let mut offset: i64 = 0;
         let mut nb_match = 0;
@@ -104,7 +102,6 @@ impl<'a> Corrector for Greedy<'a> {
     fn correct_error(&mut self, mut kmer: u64, seq: &[u8]) -> Option<(Vec<u8>, usize)> {
         let mut local_corr = Vec::new();
 
-        println!("kmer {}", cocktail::kmer::kmer2seq(kmer, 5));
         let alts = alt_nucs(self.valid_kmer(), kmer);
         if alts.len() != 1 {
             debug!("failled multiple successor {:?}", alts);
@@ -122,6 +119,9 @@ impl<'a> Corrector for Greedy<'a> {
             }
 
             for j in 0..2 {
+		if i + j > seq.len() {
+		    return None;
+		}
                 if let Some(off) = self.match_alignement(&seq[..i + j], &local_corr) {
                     let offset: usize = (local_corr.len() as i64 + off) as usize;
                     return Some((local_corr, offset));
@@ -346,11 +346,6 @@ mod tests {
         }
 
         let mut corrector = Greedy::new(&data, 5);
-
-        unsafe {
-            println!("{}", String::from_utf8_unchecked(refe.to_vec()));
-            println!("{}", String::from_utf8_unchecked(read.to_vec()));
-        }
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection

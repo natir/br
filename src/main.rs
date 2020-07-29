@@ -65,7 +65,8 @@ fn main() -> Result<()> {
             match &method[..] {
                 "one" => methods.push(Box::new(correct::One::new(&solid, confirm))),
                 "graph" => methods.push(Box::new(correct::Graph::new(&solid))),
-                //"gap_size" => methods.push(Box::new(correct::GapSize::new(&solid, confirm))),
+		"greedy" => methods.push(Box::new(correct::Greedy::new(&solid, 2usize))),
+                "gap_size" => methods.push(Box::new(correct::GapSize::new(&solid, confirm))),
                 _ => unreachable!(),
             }
         }

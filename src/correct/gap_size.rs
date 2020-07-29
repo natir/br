@@ -21,200 +21,75 @@ SOFTWARE.
  */
 
 /* crate use */
-use log::{debug, info};
+use log::{debug};
 
 /* local use */
 use crate::correct::*;
 
 pub struct GapSize<'a> {
     valid_kmer: &'a pcon::solid::Solid,
-    c: u8,
+    graph: graph::Graph<'a>,
+    one: one::One<'a>,
 }
 
 impl<'a> GapSize<'a> {
     pub fn new(valid_kmer: &'a pcon::solid::Solid, c: u8) -> Self {
-	Self { valid_kmer, c }
+	Self {
+	    valid_kmer,
+	    graph: graph::Graph::new(valid_kmer),
+	    one: one::One::new(valid_kmer, c),
+	}
+    }
+
+    pub fn ins_sub_correction(&mut self, kmer: u64, gap_size: usize) -> Option<(Vec<u8>, usize)> {
+	
+	let mut alts = alt_nucs(self.valid_kmer, kmer);
+
+	if alts.len() != 1 {
+            debug!("not one alts {:?}", alts);
+            return None;
+	}
+	
+	let mut corr = add_nuc_to_end(kmer >> 2, alts[0], self.k());
+	let mut local_corr = vec![cocktail::kmer::bit2nuc(alts[0])];
+
+	for i in 0..gap_size {
+            debug!("kmer {:?}", cocktail::kmer::kmer2seq(corr, self.k()));
+
+            alts = next_nucs(self.valid_kmer, corr);
+
+            if alts.len() != 1 {
+		debug!("failled multiple successor {:?} i: {}", alts, i);
+		return None;
+            }
+
+            corr = add_nuc_to_end(corr, alts[0], self.k());
+
+            local_corr.push(cocktail::kmer::bit2nuc(alts[0]));
+	}
+
+	let offset = local_corr.len();
+	Some((local_corr, offset))
     }
 }
 
 impl<'a> Corrector for GapSize<'a> {
-    fn correct(&self, seq: &[u8]) -> Vec<u8> {
-        let mut correct;
-        let mut i;
-        let mut kmer;
-
-        if let Some(res) = init_correction(seq, self.valid_kmer.k) {
-            correct = res.0;
-            i = res.1;
-            kmer = res.2;
-        } else {
-            return seq.to_vec();
-        }
-
-        let mut previous = self.valid_kmer.get(kmer);
-        while i < seq.len() {
-            let nuc = seq[i];
-
-            kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(nuc), self.valid_kmer.k);
-
-            if previous && !self.valid_kmer.get(kmer) {
-                let (error_len, first_correct_kmer) = error_len(&seq[i..], kmer, self.valid_kmer);
-
-                if error_len < self.valid_kmer.k as usize {
-                    // Delettion
-                    if let Some(local_correct) =
-                        graph::correct_error(kmer, first_correct_kmer, self.valid_kmer)
-                    {
-                        correct.extend(local_correct.iter());
-                        previous = true;
-
-                        info!(
-                            "error at position {} of length {} deletion cor",
-                            i, error_len
-                        );
-                    } else {
-                        correct.extend(&seq[i..i + error_len]);
-                        previous = false;
-                        info!(
-                            "error at position {} of length {} deletion not",
-                            i, error_len
-                        );
-                    }
-                    kmer = first_correct_kmer;
-                    i += error_len + 1;
-                } else if error_len > self.valid_kmer.k as usize {
-                    // insertion substitution large
-
-                    if let Some(local_corr) = correct_error(
-                        kmer,
-                        self.valid_kmer,
-                        error_len - self.valid_kmer.k as usize,
-                    ) {
-                        info!(
-                            "error at position {} of length {} sub/ins large cor",
-                            i, error_len
-                        );
-
-                        kmer >>= 2;
-
-                        for nuc in local_corr.iter() {
-                            correct.push(*nuc);
-                            kmer = add_nuc_to_end(
-                                kmer,
-                                cocktail::kmer::nuc2bit(*nuc),
-                                self.valid_kmer.k,
-                            );
-                            i += 1;
-                        }
-
-                        // TODO: side effect can't detect insertion at end of reads check it
-                        if i + local_corr.len() <= seq[i..].len() {
-                            if local_corr == &seq[i..(i + local_corr.len())] {
-                                debug!("It's an insertion");
-
-                                i += local_corr.len();
-                            }
-                        }
-                        previous = true;
-                    } else {
-                        for nuc in &seq[i..(i + error_len)] {
-                            correct.push(*nuc);
-                            kmer = add_nuc_to_end(
-                                kmer,
-                                cocktail::kmer::nuc2bit(*nuc),
-                                self.valid_kmer.k,
-                            );
-                            i += 1;
-                        }
-                        previous = false;
-
-                        info!(
-                            "error at position {} of length {} sub/ins large not",
-                            i, error_len
-                        );
-                    }
-                } else if error_len == self.valid_kmer.k as usize {
-                    // insertion substitution 1
-
-                    if let Some((corr, offset)) =
-                        one::correct_error(kmer, &seq[i..], self.c, self.valid_kmer)
-                    {
-                        kmer >>= 2;
-                        for nuc in corr {
-                            kmer = add_nuc_to_end(
-                                kmer,
-                                cocktail::kmer::nuc2bit(nuc),
-                                self.valid_kmer.k,
-                            );
-
-                            correct.push(nuc);
-                        }
-
-                        i += offset;
-
-                        previous = true;
-
-                        info!(
-                            "error at position {} of length {} ins/sub 1 cor",
-                            i, error_len
-                        );
-                    } else {
-                        correct.push(nuc);
-
-                        i += 1;
-
-                        previous = false;
-
-                        info!(
-                            "error at position {} of length {} ins/sub 1 not",
-                            i, error_len
-                        );
-                    }
-                }
-            } else {
-                previous = self.valid_kmer.get(kmer);
-
-                correct.push(nuc);
-
-                i += 1;
-            }
-        }
-
-        correct
+    fn valid_kmer(&self) -> &pcon::solid::Solid {
+	self.valid_kmer
     }
-}
+    
+    fn correct_error(&mut self, kmer: u64, seq: &[u8]) -> Option<(Vec<u8>, usize)> {
+        let (error_len, _first_correct_kmer) = error_len(&seq, kmer, self.valid_kmer());
 
-pub(crate) fn correct_error(
-    kmer: u64,
-    valid_kmer: &pcon::solid::Solid,
-    gap_size: usize,
-) -> Option<Vec<u8>> {
-    let mut alts = alt_nucs(valid_kmer, kmer);
-
-    if alts.len() != 1 {
-        debug!("not one alts {:?}", alts);
-        return None;
+	debug!("error_len {}", error_len);
+	if error_len < self.k() as usize {
+	    self.graph.correct_error(kmer, seq) // we can avoid a second compute of error_len 
+	} else if error_len == self.k() as usize {
+	     self.one.correct_error(kmer, seq)
+	} else {
+	    self.ins_sub_correction(kmer, error_len - self.k() as usize)
+	}
     }
-
-    let mut corr = add_nuc_to_end(kmer >> 2, alts[0], valid_kmer.k);
-    let mut local_corr = vec![cocktail::kmer::bit2nuc(alts[0])];
-
-    for _ in 0..gap_size {
-        debug!("kmer {:?}", cocktail::kmer::kmer2seq(corr, valid_kmer.k));
-
-        alts = next_nucs(valid_kmer, corr);
-
-        if alts.len() != 1 {
-            debug!("failled multiple successor {:?}", alts);
-            return None;
-        }
-
-        corr = add_nuc_to_end(corr, alts[0], valid_kmer.k);
-
-        local_corr.push(cocktail::kmer::bit2nuc(alts[0]));
-    }
-
-    Some(local_corr)
 }
 
 #[cfg(test)]
@@ -243,7 +118,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = GapSize::new(&data, 2);
+        let mut corrector = GapSize::new(&data, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
@@ -263,7 +138,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = GapSize::new(&data, 2);
+        let mut corrector = GapSize::new(&data, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
@@ -283,7 +158,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = GapSize::new(&data, 2);
+        let mut corrector = GapSize::new(&data, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrect
@@ -303,7 +178,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = GapSize::new(&data, 2);
+        let mut corrector = GapSize::new(&data, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
@@ -323,7 +198,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = GapSize::new(&data, 2);
+        let mut corrector = GapSize::new(&data, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -343,7 +218,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = GapSize::new(&data, 2);
+        let mut corrector = GapSize::new(&data, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -363,7 +238,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = GapSize::new(&data, 2);
+        let mut corrector = GapSize::new(&data, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
@@ -372,18 +247,18 @@ mod tests {
     #[test]
     fn ciic() {
         init();
+	
+        let refe = b"GCGTAAATGGAT";
+        //           ||||||
+        let read = b"GCGTAATTATGGAT";
 
-        let refe = b"GATACATGGACACTAGTATGACGA";
-        //           ||||||||||
-        let read = b"GATACATGGATTCACTAGTATGACGA";
-
-        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
+	let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
 
         for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
             data.set(kmer, true);
         }
 
-        let corrector = GapSize::new(&data, 2);
+        let mut corrector = GapSize::new(&data, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
