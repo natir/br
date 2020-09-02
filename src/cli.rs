@@ -49,6 +49,14 @@ pub struct Command {
     pub outputs: Vec<String>,
 
     #[clap(
+	short = "m",
+	long = "method",
+	possible_values = &["one", "graph", "greedy", "gap_size"],
+	about = "correction method used, methods are applied in the order you specify, default value is 'one'"
+    )]
+    pub methods: Option<Vec<String>>,
+
+    #[clap(
         short = "c",
         long = "confirm",
         about = "number of kmer need to be solid after one, greedy correction to validate it, default value is '2'"
@@ -61,14 +69,6 @@ pub struct Command {
         about = "number of base we use to try correct error, default value is '7'"
     )]
     pub max_search: Option<u8>,
-
-    #[clap(
-	short = "m",
-	long = "method",
-	possible_values = &["one", "graph", "greedy", "gap_size"],
-	about = "correction method used, methods are applied in the order you specify, default value is 'one'"
-    )]
-    pub methods: Option<Vec<String>>,
 
     #[clap(
         short = "n",

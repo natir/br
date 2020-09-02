@@ -65,22 +65,7 @@ fn main() -> Result<()> {
         7
     };
 
-    let mut methods: Vec<Box<dyn correct::Corrector>> = Vec::new();
-    if let Some(ms) = &params.methods {
-        for method in ms {
-            match &method[..] {
-                "one" => methods.push(Box::new(correct::One::new(&solid, confirm))),
-                "graph" => methods.push(Box::new(correct::Graph::new(&solid))),
-                "greedy" => {
-                    methods.push(Box::new(correct::Greedy::new(&solid, max_search, confirm)))
-                }
-                "gap_size" => methods.push(Box::new(correct::GapSize::new(&solid, confirm))),
-                _ => unreachable!(),
-            }
-        }
-    } else {
-        methods.push(Box::new(correct::One::new(&solid, confirm)));
-    }
+    let mut methods = br::build_methods(params.methods, &solid, confirm, max_search);
 
     for (input, output) in params.inputs.iter().zip(params.outputs) {
         info!("Read file {} write in {}", input, output);
@@ -108,6 +93,15 @@ fn main() -> Result<()> {
                 .iter_mut()
                 .for_each(|x| correct = x.correct(correct.as_slice()));
 
+            if !params.two_side {
+                correct.reverse();
+                methods
+                    .iter_mut()
+                    .for_each(|x| correct = x.correct(correct.as_slice()));
+
+                correct.reverse();
+            }
+
             write
                 .write_record(&bio::io::fasta::Record::with_attrs(
                     record.id(),
@@ -115,7 +109,7 @@ fn main() -> Result<()> {
                     &correct,
                 ))
                 .with_context(|| Error::IO(IO::ErrorDurringWrite))
-                .with_context(|| anyhow!("File {}", input.clone()))?;
+                .with_context(|| anyhow!("File {}", output.clone()))?;
         }
     }
 

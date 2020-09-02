@@ -25,3 +25,30 @@ pub mod cli;
 pub mod error;
 
 pub mod correct;
+
+pub fn build_methods<'a>(
+    params: Option<Vec<String>>,
+    solid: &'a pcon::solid::Solid,
+    confirm: u8,
+    max_search: u8,
+) -> Vec<Box<dyn correct::Corrector + 'a>> {
+    let mut methods: Vec<Box<dyn correct::Corrector + 'a>> = Vec::new();
+
+    if let Some(ms) = params {
+        for method in ms {
+            match &method[..] {
+                "one" => methods.push(Box::new(correct::One::new(solid, confirm))),
+                "graph" => methods.push(Box::new(correct::Graph::new(&solid))),
+                "greedy" => {
+                    methods.push(Box::new(correct::Greedy::new(&solid, max_search, confirm)))
+                }
+                "gap_size" => methods.push(Box::new(correct::GapSize::new(&solid, confirm))),
+                _ => unreachable!(),
+            }
+        }
+    } else {
+        methods.push(Box::new(correct::One::new(&solid, confirm)));
+    }
+
+    methods
+}
