@@ -26,13 +26,103 @@ pub mod error;
 
 pub mod correct;
 
+/* crate use */
+use anyhow::{anyhow, Context, Result};
+use rayon::prelude::*;
+
+/* local use */
+use error::IO::*;
+use error::*;
+
+pub fn run_correction<'a>(
+    inputs: Vec<String>,
+    outputs: Vec<String>,
+    methods: Vec<Box<dyn correct::Corrector + Sync + Send + 'a>>,
+    two_side: bool,
+    record_buffer_len: usize,
+) -> Result<()> {
+    for (input, output) in inputs.iter().zip(outputs) {
+        log::info!("Read file {} write in {}", input, output);
+
+        let reader = bio::io::fasta::Reader::new(std::io::BufReader::new(
+            std::fs::File::open(input)
+                .with_context(|| error::Error::IO(CantOpenFile))
+                .with_context(|| anyhow!("File {}", input.clone()))?,
+        ));
+
+        let mut write = bio::io::fasta::Writer::new(std::io::BufWriter::new(
+            std::fs::File::create(&output)
+                .with_context(|| error::Error::IO(CantCreateFile))
+                .with_context(|| anyhow!("File {}", output.clone()))?,
+        ));
+
+        let mut iter = reader.records();
+        let mut records = Vec::with_capacity(record_buffer_len);
+        let mut corrected: Vec<bio::io::fasta::Record>;
+
+        let mut end = false;
+        loop {
+            for _ in 0..record_buffer_len {
+                if let Some(Ok(record)) = iter.next() {
+                    records.push(record);
+                } else {
+                    end = true;
+                    break;
+                }
+            }
+
+            log::info!("Buffer len: {}", records.len());
+
+            corrected = records
+                .par_iter()
+                .map(|record| {
+                    log::debug!("correct read {}", record.id());
+
+                    let seq = record.seq();
+
+                    let mut correct = seq.to_vec();
+                    methods
+                        .iter()
+                        .for_each(|x| correct = x.correct(correct.as_slice()));
+
+                    if !two_side {
+                        correct.reverse();
+                        methods
+                            .iter()
+                            .for_each(|x| correct = x.correct(correct.as_slice()));
+
+                        correct.reverse();
+                    }
+
+                    bio::io::fasta::Record::with_attrs(record.id(), record.desc(), &correct)
+                })
+                .collect();
+
+            for corr in corrected {
+                write
+                    .write_record(&corr)
+                    .with_context(|| Error::IO(IO::ErrorDurringWrite))
+                    .with_context(|| anyhow!("File {}", output.clone()))?
+            }
+
+            records.clear();
+
+            if end {
+                break;
+            }
+        }
+    }
+
+    Ok(())
+}
+
 pub fn build_methods<'a>(
     params: Option<Vec<String>>,
     solid: &'a pcon::solid::Solid,
     confirm: u8,
     max_search: u8,
-) -> Vec<Box<dyn correct::Corrector + 'a>> {
-    let mut methods: Vec<Box<dyn correct::Corrector + 'a>> = Vec::new();
+) -> Vec<Box<dyn correct::Corrector + Sync + Send + 'a>> {
+    let mut methods: Vec<Box<dyn correct::Corrector + Sync + Send + 'a>> = Vec::new();
 
     if let Some(ms) = params {
         for method in ms {
@@ -51,4 +141,12 @@ pub fn build_methods<'a>(
     }
 
     methods
+}
+
+/// Set the number of threads use by count step
+pub fn set_nb_threads(nb_threads: usize) {
+    rayon::ThreadPoolBuilder::new()
+        .num_threads(nb_threads)
+        .build_global()
+        .unwrap();
 }

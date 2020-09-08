@@ -21,13 +21,9 @@ SOFTWARE.
  */
 
 /* crate use */
-use anyhow::{anyhow, Context, Result};
+use anyhow::Result;
 use clap::Clap;
 
-use log::info;
-
-use br::error::IO::*;
-use br::error::*;
 use br::*;
 
 fn main() -> Result<()> {
@@ -46,13 +42,6 @@ fn main() -> Result<()> {
             .init();
     }
 
-    let solidity_reader = std::io::BufReader::new(
-        std::fs::File::open(&params.solidity)
-            .with_context(|| Error::IO(CantOpenFile))
-            .with_context(|| anyhow!("File {}", params.solidity.clone()))?,
-    );
-    let solid = pcon::solid::Solid::deserialize(solidity_reader)?;
-
     let confirm = if let Some(val) = params.confirm {
         val
     } else {
@@ -65,53 +54,30 @@ fn main() -> Result<()> {
         7
     };
 
-    let mut methods = br::build_methods(params.methods, &solid, confirm, max_search);
+    if let Some(threads) = params.threads {
+        log::info!("Set number of threads to {}", threads);
 
-    for (input, output) in params.inputs.iter().zip(params.outputs) {
-        info!("Read file {} write in {}", input, output);
-
-        let reader = bio::io::fasta::Reader::new(std::io::BufReader::new(
-            std::fs::File::open(input)
-                .with_context(|| Error::IO(CantOpenFile))
-                .with_context(|| anyhow!("File {}", input.clone()))?,
-        ));
-
-        let mut write = bio::io::fasta::Writer::new(std::io::BufWriter::new(
-            std::fs::File::create(&output)
-                .with_context(|| Error::IO(CantCreateFile))
-                .with_context(|| anyhow!("File {}", output.clone()))?,
-        ));
-
-        let mut records = reader.records();
-        while let Some(Ok(record)) = records.next() {
-            info!("correct read {}", record.id());
-
-            let seq = record.seq();
-
-            let mut correct = seq.to_vec();
-            methods
-                .iter_mut()
-                .for_each(|x| correct = x.correct(correct.as_slice()));
-
-            if !params.two_side {
-                correct.reverse();
-                methods
-                    .iter_mut()
-                    .for_each(|x| correct = x.correct(correct.as_slice()));
-
-                correct.reverse();
-            }
-
-            write
-                .write_record(&bio::io::fasta::Record::with_attrs(
-                    record.id(),
-                    record.desc(),
-                    &correct,
-                ))
-                .with_context(|| Error::IO(IO::ErrorDurringWrite))
-                .with_context(|| anyhow!("File {}", output.clone()))?;
-        }
+        set_nb_threads(threads);
     }
+
+    let record_buffer = if let Some(len) = params.record_buffer {
+        len
+    } else {
+        8192
+    };
+
+    let solid =
+        cli::read_or_compute_solidity(params.solidity, params.kmer, &params.inputs, record_buffer)?;
+
+    let methods = br::build_methods(params.methods, &solid, confirm, max_search);
+
+    br::run_correction(
+        params.inputs,
+        params.outputs,
+        methods,
+        params.two_side,
+        record_buffer,
+    )?;
 
     Ok(())
 }

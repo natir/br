@@ -41,7 +41,7 @@ impl<'a> GapSize<'a> {
         }
     }
 
-    pub fn ins_sub_correction(&mut self, kmer: u64, gap_size: usize) -> Option<(Vec<u8>, usize)> {
+    pub fn ins_sub_correction(&self, kmer: u64, gap_size: usize) -> Option<(Vec<u8>, usize)> {
         let mut alts = alt_nucs(self.valid_kmer, kmer);
 
         if alts.len() != 1 {
@@ -77,7 +77,7 @@ impl<'a> Corrector for GapSize<'a> {
         self.valid_kmer
     }
 
-    fn correct_error(&mut self, kmer: u64, seq: &[u8]) -> Option<(Vec<u8>, usize)> {
+    fn correct_error(&self, kmer: u64, seq: &[u8]) -> Option<(Vec<u8>, usize)> {
         let (error_len, _first_correct_kmer) = error_len(&seq, kmer, self.valid_kmer());
 
         debug!("error_len {}", error_len);

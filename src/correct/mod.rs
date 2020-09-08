@@ -20,8 +20,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
  */
 
-use log::info;
-
 const MASK_LOOKUP: [u64; 32] = {
     let mut lookup = [0; 32];
 
@@ -43,13 +41,13 @@ pub(crate) fn mask(k: u8) -> u64 {
 pub trait Corrector {
     fn valid_kmer(&self) -> &pcon::solid::Solid;
 
-    fn correct_error(&mut self, kmer: u64, seq: &[u8]) -> Option<(Vec<u8>, usize)>;
+    fn correct_error(&self, kmer: u64, seq: &[u8]) -> Option<(Vec<u8>, usize)>;
 
     fn k(&self) -> u8 {
         self.valid_kmer().k
     }
 
-    fn correct(&mut self, seq: &[u8]) -> Vec<u8> {
+    fn correct(&self, seq: &[u8]) -> Vec<u8> {
         let mut correct: Vec<u8> = Vec::with_capacity(seq.len());
 
         if seq.len() < self.k() as usize {
@@ -79,14 +77,14 @@ pub trait Corrector {
                         correct.push(nuc);
                     }
 
-                    info!("error at position {} cor", i);
+                    log::debug!("error at position {} cor", i);
 
                     previous = true;
                     i += offset;
                 } else {
                     correct.push(nuc);
 
-                    info!("error at position {} not", i);
+                    log::debug!("error at position {} not", i);
 
                     i += 1;
                     previous = false;

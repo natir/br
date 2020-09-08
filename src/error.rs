@@ -33,6 +33,9 @@ pub enum Error {
     /// See enum [IO]
     #[error(transparent)]
     IO(#[from] IO),
+
+    #[error("Can't compute minimal abundance")]
+    CantComputeAbundance,
 }
 
 /// Error emmit durring Cli parsing
@@ -41,6 +44,9 @@ pub enum Cli {
     /// Number of inputs and outputs must be the same
     #[error("Kmer size must be odd")]
     NotSameNumberOfInAndOut,
+
+    #[error("You must provide a solidity path '-s' or a kmer length '-k'")]
+    NoSolidityNoKmer,
 }
 
 /// Error emmit when pcon try to work with file

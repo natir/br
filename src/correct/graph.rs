@@ -41,7 +41,7 @@ impl<'a> Corrector for Graph<'a> {
         self.valid_kmer
     }
 
-    fn correct_error(&mut self, mut kmer: u64, seq: &[u8]) -> Option<(Vec<u8>, usize)> {
+    fn correct_error(&self, mut kmer: u64, seq: &[u8]) -> Option<(Vec<u8>, usize)> {
         let (error_len, first_correct_kmer) = error_len(&seq, kmer, self.valid_kmer());
 
         let mut local_corr = Vec::new();

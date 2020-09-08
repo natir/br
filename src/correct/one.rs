@@ -42,7 +42,7 @@ impl<'a> Corrector for One<'a> {
         self.valid_kmer
     }
 
-    fn correct_error(&mut self, kmer: u64, seq: &[u8]) -> Option<(Vec<u8>, usize)> {
+    fn correct_error(&self, kmer: u64, seq: &[u8]) -> Option<(Vec<u8>, usize)> {
         let alts = alt_nucs(self.valid_kmer(), kmer);
 
         if alts.len() != 1 {

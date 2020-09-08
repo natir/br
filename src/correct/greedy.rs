@@ -42,29 +42,27 @@ pub struct Greedy<'a> {
     valid_kmer: &'a pcon::solid::Solid,
     max_search: u8,
     nb_validate: u8,
-    aligner: bio::alignment::pairwise::Aligner<Score>,
 }
 
 impl<'a> Greedy<'a> {
     pub fn new(valid_kmer: &'a pcon::solid::Solid, max_search: u8, nb_validate: u8) -> Self {
-        let score = Score {};
-
         Self {
             valid_kmer,
             max_search,
             nb_validate,
-            aligner: bio::alignment::pairwise::Aligner::with_capacity(10, 10, -1, -1, score),
         }
     }
 
-    fn match_alignement(&mut self, before_seq: Vec<u8>, read: &[u8], corr: &[u8]) -> Option<i64> {
+    fn match_alignement(&self, before_seq: Vec<u8>, read: &[u8], corr: &[u8]) -> Option<i64> {
         let mut r = before_seq.clone();
         r.extend_from_slice(read);
 
         let mut c = before_seq.clone();
         c.extend_from_slice(corr);
 
-        let alignment = self.aligner.global(r.as_slice(), c.as_slice());
+        let mut aligner =
+            bio::alignment::pairwise::Aligner::with_capacity(10, 10, -1, -1, Score {});
+        let alignment = aligner.global(r.as_slice(), c.as_slice());
 
         trace!("{}", alignment.pretty(r.as_slice(), c.as_slice()));
 
@@ -122,7 +120,7 @@ impl<'a> Corrector for Greedy<'a> {
         self.valid_kmer
     }
 
-    fn correct_error(&mut self, mut kmer: u64, seq: &[u8]) -> Option<(Vec<u8>, usize)> {
+    fn correct_error(&self, mut kmer: u64, seq: &[u8]) -> Option<(Vec<u8>, usize)> {
         let alts = alt_nucs(self.valid_kmer(), kmer);
         if alts.len() != 1 {
             debug!("failled multiple successor {:?}", alts);
