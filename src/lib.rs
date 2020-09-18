@@ -28,6 +28,7 @@ pub mod correct;
 
 /* crate use */
 use anyhow::{anyhow, Context, Result};
+use rayon::iter::ParallelBridge;
 use rayon::prelude::*;
 
 /* local use */
@@ -74,9 +75,10 @@ pub fn run_correction<'a>(
             log::info!("Buffer len: {}", records.len());
 
             corrected = records
-                .par_iter()
+                .drain(..)
+                .par_bridge()
                 .map(|record| {
-                    log::debug!("correct read {}", record.id());
+                    log::debug!("begin correct read {} {}", record.id(), record.seq().len());
 
                     let seq = record.seq();
 
@@ -94,6 +96,7 @@ pub fn run_correction<'a>(
                         correct.reverse();
                     }
 
+                    log::debug!("end correct read {}", record.id());
                     bio::io::fasta::Record::with_attrs(record.id(), record.desc(), &correct)
                 })
                 .collect();
