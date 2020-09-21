@@ -104,7 +104,7 @@ mod tests {
 
         data.set(cocktail::kmer::seq2bit(b"TTTTT"), true);
 
-        let mut corrector = Graph::new(&data);
+        let corrector = Graph::new(&data);
 
         assert_eq!(read, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
@@ -126,7 +126,7 @@ mod tests {
 
         data.set(cocktail::kmer::seq2bit(b"GGACT"), true);
 
-        let mut corrector = Graph::new(&data);
+        let corrector = Graph::new(&data);
 
         assert_eq!(read, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -148,7 +148,7 @@ mod tests {
 
         data.set(cocktail::kmer::seq2bit(b"GGACT"), true);
 
-        let mut corrector = Graph::new(&data);
+        let corrector = Graph::new(&data);
 
         assert_eq!(read, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
@@ -168,7 +168,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let mut corrector = Graph::new(&data);
+        let corrector = Graph::new(&data);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
@@ -188,7 +188,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let mut corrector = Graph::new(&data);
+        let corrector = Graph::new(&data);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
@@ -208,7 +208,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let mut corrector = Graph::new(&data);
+        let corrector = Graph::new(&data);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrect
@@ -228,7 +228,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let mut corrector = Graph::new(&data);
+        let corrector = Graph::new(&data);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
@@ -248,7 +248,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let mut corrector = Graph::new(&data);
+        let corrector = Graph::new(&data);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -268,7 +268,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let mut corrector = Graph::new(&data);
+        let corrector = Graph::new(&data);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -288,7 +288,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let mut corrector = Graph::new(&data);
+        let corrector = Graph::new(&data);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
@@ -308,7 +308,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let mut corrector = Graph::new(&data);
+        let corrector = Graph::new(&data);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection

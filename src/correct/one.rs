@@ -133,7 +133,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let mut corrector = One::new(&data, 2);
+        let corrector = One::new(&data, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -152,7 +152,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let mut corrector = One::new(&data, 2);
+        let corrector = One::new(&data, 2);
 
         assert_eq!(read, corrector.correct(read).as_slice()); // don't correct
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -171,7 +171,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let mut corrector = One::new(&data, 2);
+        let corrector = One::new(&data, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -190,7 +190,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let mut corrector = One::new(&data, 2);
+        let corrector = One::new(&data, 2);
 
         assert_eq!(read, corrector.correct(read).as_slice()); // don't correct
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -209,7 +209,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let mut corrector = One::new(&data, 2);
+        let corrector = One::new(&data, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -228,7 +228,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let mut corrector = One::new(&data, 2);
+        let corrector = One::new(&data, 2);
 
         assert_eq!(read, corrector.correct(read).as_slice()); // don't correct
         assert_eq!(refe, corrector.correct(refe).as_slice());

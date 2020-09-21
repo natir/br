@@ -117,7 +117,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let mut corrector = GapSize::new(&data, 2);
+        let corrector = GapSize::new(&data, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
@@ -137,7 +137,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let mut corrector = GapSize::new(&data, 2);
+        let corrector = GapSize::new(&data, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
@@ -157,7 +157,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let mut corrector = GapSize::new(&data, 2);
+        let corrector = GapSize::new(&data, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrect
@@ -177,7 +177,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let mut corrector = GapSize::new(&data, 2);
+        let corrector = GapSize::new(&data, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
@@ -197,7 +197,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let mut corrector = GapSize::new(&data, 2);
+        let corrector = GapSize::new(&data, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -217,7 +217,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let mut corrector = GapSize::new(&data, 2);
+        let corrector = GapSize::new(&data, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -237,7 +237,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let mut corrector = GapSize::new(&data, 2);
+        let corrector = GapSize::new(&data, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
@@ -257,7 +257,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let mut corrector = GapSize::new(&data, 2);
+        let corrector = GapSize::new(&data, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection

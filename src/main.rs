@@ -66,8 +66,13 @@ fn main() -> Result<()> {
         8192
     };
 
-    let solid =
-        cli::read_or_compute_solidity(params.solidity, params.kmer, &params.inputs, record_buffer)?;
+    let solid = cli::read_or_compute_solidity(
+        params.solidity,
+        params.kmer,
+        &params.inputs,
+        record_buffer,
+        params.abundance,
+    )?;
 
     let methods = br::build_methods(params.methods, &solid, confirm, max_search);
 

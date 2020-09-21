@@ -186,7 +186,7 @@ mod tests {
 
         data.set(cocktail::kmer::seq2bit(b"CTTTT"), true);
 
-        let mut corrector = Greedy::new(&data, 7, 2);
+        let corrector = Greedy::new(&data, 7, 2);
 
         assert_eq!(read, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
@@ -208,7 +208,7 @@ mod tests {
 
         data.set(cocktail::kmer::seq2bit(b"GGACT"), true);
 
-        let mut corrector = Greedy::new(&data, 7, 2);
+        let corrector = Greedy::new(&data, 7, 2);
 
         assert_eq!(read, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -230,7 +230,7 @@ mod tests {
 
         data.set(cocktail::kmer::seq2bit(b"GGACT"), true);
 
-        let mut corrector = Greedy::new(&data, 7, 2);
+        let corrector = Greedy::new(&data, 7, 2);
 
         assert_eq!(read, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
@@ -250,7 +250,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let mut corrector = Greedy::new(&data, 7, 2);
+        let corrector = Greedy::new(&data, 7, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
@@ -270,7 +270,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let mut corrector = Greedy::new(&data, 7, 2);
+        let corrector = Greedy::new(&data, 7, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
@@ -290,7 +290,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let mut corrector = Greedy::new(&data, 7, 2);
+        let corrector = Greedy::new(&data, 7, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrect
@@ -310,7 +310,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let mut corrector = Greedy::new(&data, 7, 2);
+        let corrector = Greedy::new(&data, 7, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
@@ -330,7 +330,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let mut corrector = Greedy::new(&data, 7, 2);
+        let corrector = Greedy::new(&data, 7, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -350,7 +350,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let mut corrector = Greedy::new(&data, 7, 2);
+        let corrector = Greedy::new(&data, 7, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -370,7 +370,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let mut corrector = Greedy::new(&data, 7, 2);
+        let corrector = Greedy::new(&data, 7, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
@@ -390,7 +390,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let mut corrector = Greedy::new(&data, 7, 2);
+        let corrector = Greedy::new(&data, 7, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
