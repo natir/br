@@ -44,6 +44,8 @@ impl<'a> Corrector for Graph<'a> {
     fn correct_error(&self, mut kmer: u64, seq: &[u8]) -> Option<(Vec<u8>, usize)> {
         let (error_len, first_correct_kmer) = error_len(&seq, kmer, self.valid_kmer());
 
+        let mut viewed_kmer = rustc_hash::FxHashSet::default();
+
         let mut local_corr = Vec::new();
 
         let alts = alt_nucs(self.valid_kmer(), kmer);
@@ -54,6 +56,7 @@ impl<'a> Corrector for Graph<'a> {
 
         kmer = add_nuc_to_end(kmer >> 2, alts[0], self.k());
         local_corr.push(cocktail::kmer::bit2nuc(alts[0]));
+        viewed_kmer.insert(kmer);
 
         while self.valid_kmer().get(kmer) {
             let alts = next_nucs(self.valid_kmer(), kmer);
@@ -64,6 +67,12 @@ impl<'a> Corrector for Graph<'a> {
             }
 
             kmer = add_nuc_to_end(kmer, alts[0], self.k());
+
+            if viewed_kmer.contains(&kmer) {
+                debug!("we view this kmer previously");
+                return None;
+            }
+            viewed_kmer.insert(kmer);
 
             local_corr.push(cocktail::kmer::bit2nuc(alts[0]));
 

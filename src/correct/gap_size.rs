@@ -51,6 +51,8 @@ impl<'a> GapSize<'a> {
 
         let mut corr = add_nuc_to_end(kmer >> 2, alts[0], self.k());
         let mut local_corr = vec![cocktail::kmer::bit2nuc(alts[0])];
+        let mut viewed_kmer = rustc_hash::FxHashSet::default();
+        viewed_kmer.insert(corr);
 
         for i in 0..gap_size {
             debug!("kmer {:?}", cocktail::kmer::kmer2seq(corr, self.k()));
@@ -63,6 +65,11 @@ impl<'a> GapSize<'a> {
             }
 
             corr = add_nuc_to_end(corr, alts[0], self.k());
+            if viewed_kmer.contains(&kmer) {
+                debug!("we view this kmer previously");
+                return None;
+            }
+            viewed_kmer.insert(kmer);
 
             local_corr.push(cocktail::kmer::bit2nuc(alts[0]));
         }
@@ -81,12 +88,12 @@ impl<'a> Corrector for GapSize<'a> {
         let (error_len, _first_correct_kmer) = error_len(&seq, kmer, self.valid_kmer());
 
         debug!("error_len {}", error_len);
-        if error_len < self.k() as usize {
-            self.graph.correct_error(kmer, seq) // we can avoid a second compute of error_len
-        } else if error_len == self.k() as usize {
-            self.one.correct_error(kmer, seq)
-        } else {
-            self.ins_sub_correction(kmer, error_len - self.k() as usize)
+        match error_len.cmp(&(self.k() as usize)) {
+            std::cmp::Ordering::Less => self.graph.correct_error(kmer, seq), // we can avoid a second compute of error_len
+            std::cmp::Ordering::Equal => self.one.correct_error(kmer, seq),
+            std::cmp::Ordering::Greater => {
+                self.ins_sub_correction(kmer, error_len - self.k() as usize)
+            }
         }
     }
 }

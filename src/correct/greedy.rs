@@ -127,6 +127,8 @@ impl<'a> Corrector for Greedy<'a> {
             return None;
         }
 
+        let mut viewed_kmer = rustc_hash::FxHashSet::default();
+
         let mut local_corr = Vec::new();
         let before_seq = cocktail::kmer::kmer2seq(kmer >> 2, self.k() - 1)
             .as_bytes()
@@ -135,12 +137,19 @@ impl<'a> Corrector for Greedy<'a> {
         kmer = add_nuc_to_end(kmer >> 2, alts[0], self.k());
 
         local_corr.push(cocktail::kmer::bit2nuc(alts[0]));
+        viewed_kmer.insert(kmer);
 
         for i in 0..(self.max_search as usize) {
             if let Some((base, new_kmer)) = self.follow_graph(kmer) {
                 local_corr.push(base);
                 kmer = new_kmer;
             }
+
+            if viewed_kmer.contains(&kmer) {
+                debug!("we view this kmer previously");
+                return None;
+            }
+            viewed_kmer.insert(kmer);
 
             if seq.len() < i as usize {
                 return None;
