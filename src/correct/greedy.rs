@@ -172,6 +172,9 @@ mod tests {
 
     use super::*;
 
+    static K: u8 = 11;
+    static REFE: &[u8] = b"TAAGGCGCGTCCCGCACACATTTCGCTGCCCGATACGCAGATGAAAGAGG";
+
     fn init() {
         let _ = env_logger::builder()
             .is_test(true)
@@ -179,229 +182,227 @@ mod tests {
             .try_init();
     }
 
+    fn get_solid() -> pcon::solid::Solid {
+        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(K);
+
+        for kmer in cocktail::tokenizer::Tokenizer::new(REFE, K) {
+            data.set(kmer, true);
+        }
+
+        data
+    }
+
     #[test]
     fn branching_path_csc() {
         init();
 
-        let refe = b"TCTTTATTTTC";
-        //           ||||| |||||
-        let read = b"TCTTTGTTTTC";
+        //           TAAGGCGCGTCCCGCACACATTTCGCTGCCCGATACGCAGATGAAAGAGG
+        //           |||||||||||||||||||||||| |||||||||||||||||||||||||
+        let read = b"TAAGGCGCGTCCCGCACACATTTCACTGCCCGATACGCAGATGAAAGAGG";
 
-        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
+        let mut data = get_solid();
 
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
-            data.set(kmer, true);
-        }
-
-        data.set(cocktail::kmer::seq2bit(b"CTTTT"), true);
+        data.set(cocktail::kmer::seq2bit(b"CACATTTCGCG"), true);
 
         let corrector = Greedy::new(&data, 7, 2);
 
         assert_eq!(read, corrector.correct(read).as_slice()); // test correction work
-        assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
+        assert_eq!(REFE, corrector.correct(REFE).as_slice()); // test not overcorrection
     }
 
     #[test]
     fn branching_path_cdc() {
         init();
 
-        let refe = b"GATACATGGACACTAGTATG";
-        //           ||||||||||
-        let read = b"GATACATGGAACTAGTATG";
+        //           TAAGGCGCGTCCCGCACACATTTCGCTGCCCGATACGCAGATGAAAGAGG
+        //           ||||||||||||||||||||||||//////////////////////////
+        let read = b"TAAGGCGCGTCCCGCACACATTTCCTGCCCGATACGCAGATGAAAGAGG";
 
-        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
+        let mut data = get_solid();
 
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
-            data.set(kmer, true);
-        }
-
-        data.set(cocktail::kmer::seq2bit(b"GGACT"), true);
+        data.set(cocktail::kmer::seq2bit(b"CACATTTCGCG"), true);
 
         let corrector = Greedy::new(&data, 7, 2);
 
-        assert_eq!(read, corrector.correct(read).as_slice());
-        assert_eq!(refe, corrector.correct(refe).as_slice());
+        assert_eq!(read, corrector.correct(read).as_slice()); // test correction work
+        assert_eq!(REFE, corrector.correct(REFE).as_slice()); // test not overcorrection
     }
 
     #[test]
     fn branching_path_cic() {
         init();
 
-        let refe = b"GATACATGGACACTAGTATG";
-        //           ||||||||||
-        let read = b"GATACATGGATCACTAGTATG";
+        //           TAAGGCGCGTCCCGCACACATTTCGCTGCCCGATACGCAGATGAAAGAGG
+        //           ||||||||||||||||||||||||\\\\\\\\\\\\\\\\\\\\\\\\\\
+        let read = b"TAAGGCGCGTCCCGCACACATTTCAGCTGCCCGATACGCAGATGAAAGAGG";
 
-        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
+        let mut data = get_solid();
 
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 7) {
-            data.set(kmer, true);
-        }
-
-        data.set(cocktail::kmer::seq2bit(b"GGACT"), true);
+        data.set(cocktail::kmer::seq2bit(b"CACACATTTCT"), true);
 
         let corrector = Greedy::new(&data, 7, 2);
 
         assert_eq!(read, corrector.correct(read).as_slice()); // test correction work
-        assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
+        assert_eq!(REFE, corrector.correct(REFE).as_slice()); // test not overcorrection
     }
 
     #[test]
     fn csc() {
         init();
 
-        let refe = b"TCTTTATTTTC";
-        //           ||||| |||||
-        let read = b"TCTTTGTTTTC";
+        //           TAAGGCGCGTCCCGCACACATTTCGCTGCCCGATACGCAGATGAAAGAGG
+        //           |||||||||||||||||||||||| |||||||||||||||||||||||||
+        let read = b"TAAGGCGCGTCCCGCACACATTTCACTGCCCGATACGCAGATGAAAGAGG";
 
-        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
-
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
-            data.set(kmer, true);
-        }
+        let data = get_solid();
 
         let corrector = Greedy::new(&data, 7, 2);
 
-        assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
-        assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
+        assert_eq!(read, corrector.correct(read).as_slice()); // test correction work
+        assert_eq!(REFE, corrector.correct(REFE).as_slice()); // test not overcorrection
     }
 
     #[test]
     fn cssc() {
         init();
 
-        let refe = b"TCTCTAATCTTC";
-        //           |||||  |||||
-        let read = b"TCTCTGGTCTTC";
+        //           TAAGGCGCGTCCCGCACACATTTCGCTGCCCGATACGCAGATGAAAGAGG
+        //           |||||||||||||||||||||||  |||||||||||||||||||||||||
+        let read = b"TAAGGCGCGTCCCGCACACATTTGACTGCCCGATACGCAGATGAAAGAGG";
 
-        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
-
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
-            data.set(kmer, true);
-        }
+        let data = get_solid();
 
         let corrector = Greedy::new(&data, 7, 2);
 
-        assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
-        assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
+        assert_eq!(read, corrector.correct(read).as_slice()); // test correction work
+        assert_eq!(REFE, corrector.correct(REFE).as_slice()); // test not overcorrection
     }
 
     #[test]
     fn csssc() {
         init();
 
-        let refe = b"TCTCTAAATCTTC";
-        //           |||||  |||||
-        let read = b"TCTCTGGGTCTTC";
+        //           TAAGGCGCGTCCCGCACACATTTCGCTGCCCGATACGCAGATGAAAGAGG
+        //           |||||||||||||||||||||||   ||||||||||||||||||||||||
+        let read = b"TAAGGCGCGTCCCGCACACATTTGATTGCCCGATACGCAGATGAAAGAGG";
 
-        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
-
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
-            data.set(kmer, true);
-        }
+        let data = get_solid();
 
         let corrector = Greedy::new(&data, 7, 2);
 
-        assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
-        assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrect
+        assert_eq!(read, corrector.correct(read).as_slice()); // test correction work
+        assert_eq!(REFE, corrector.correct(REFE).as_slice()); // test not overcorrection
     }
 
     #[test]
     fn cscsc() {
         init();
 
-        let refe = b"TCTTTACATTTTT";
-        //           ||||| | |||||
-        let read = b"TCTTTGCGTTTTT";
+        //           TAAGGCGCGTCCCGCACACATTTCGCTGCCCGATACGCAGATGAAAGAGG
+        //           |||||||||||||||||||||||   ||||||||||||||||||||||||
+        let read = b"TAAGGCGCGTCCCGCACACATTTGATTGCCCGATACGCAGATGAAAGAGG";
 
-        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
-
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
-            data.set(kmer, true);
-        }
+        let data = get_solid();
 
         let corrector = Greedy::new(&data, 7, 2);
 
-        assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
-        assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
+        assert_eq!(read, corrector.correct(read).as_slice()); // test correction work
+        assert_eq!(REFE, corrector.correct(REFE).as_slice()); // test not overcorrection
     }
 
     #[test]
     fn cdc() {
         init();
 
-        let refe = b"GATACATGGACACTAGTATG";
-        //           ||||||||||
-        let read = b"GATACATGGAACTAGTATG";
+        //           TAAGGCGCGTCCCGCACACATTTCGCTGCCCGATACGCAGATGAAAGAGG
+        //           ||||||||||||||||||||||||//////////////////////////
+        let read = b"TAAGGCGCGTCCCGCACACATTTCCTGCCCGATACGCAGATGAAAGAGG";
 
-        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
-
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
-            data.set(kmer, true);
-        }
+        let data = get_solid();
 
         let corrector = Greedy::new(&data, 7, 2);
 
-        assert_eq!(refe, corrector.correct(read).as_slice());
-        assert_eq!(refe, corrector.correct(refe).as_slice());
+        assert_eq!(read, corrector.correct(read).as_slice()); // test correction work
+        assert_eq!(REFE, corrector.correct(REFE).as_slice()); // test not overcorrection
     }
 
     #[test]
     fn cddc() {
         init();
 
-        let refe = b"CAAAGCATTTTTT";
-        //           |||||
-        let read = b"CAAAGTTTTTT";
+        //           TAAGGCGCGTCCCGCACACATTTCGCTGCCCGATACGCAGATGAAAGAGG
+        //           ||||||||||||||||||||||||
+        let read = b"TAAGGCGCGTCCCGCACACATCGCTGCCCGATACGCAGATGAAAGAGG";
 
-        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
-
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
-            data.set(kmer, true);
-        }
+        let data = get_solid();
 
         let corrector = Greedy::new(&data, 7, 2);
 
-        assert_eq!(refe, corrector.correct(read).as_slice());
-        assert_eq!(refe, corrector.correct(refe).as_slice());
+        assert_eq!(read, corrector.correct(read).as_slice()); // test correction work
+        assert_eq!(REFE, corrector.correct(REFE).as_slice()); // test not overcorrection
+    }
+
+    #[test]
+    fn cdddc() {
+        init();
+
+        //           TAAGGCGCGTCCCGCACACATTTCGCTGCCCGATACGCAGATGAAAGAGG
+        //           ||||||||||||||||||||
+        let read = b"TAAGGCGCGTCCCGCACACACGCTGCCCGATACGCAGATGAAAGAGG";
+
+        let data = get_solid();
+
+        let corrector = Greedy::new(&data, 7, 2);
+
+        assert_eq!(read, corrector.correct(read).as_slice()); // test correction work
+        assert_eq!(REFE, corrector.correct(REFE).as_slice()); // test not overcorrection
     }
 
     #[test]
     fn cic() {
         init();
 
-        let refe = b"GATACATGGACACTAGTATG";
-        //           ||||||||||
-        let read = b"GATACATGGATCACTAGTATG";
+        //           TAAGGCGCGTCCCGCACACATTTCGCTGCCCGATACGCAGATGAAAGAGG
+        //           ||||||||||||||||||||||||\\\\\\\\\\\\\\\\\\\\\\\\\\\
+        let read = b"TAAGGCGCGTCCCGCACACATTTCAGCTGCCCGATACGCAGATGAAAGAGG";
 
-        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
-
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
-            data.set(kmer, true);
-        }
+        let data = get_solid();
 
         let corrector = Greedy::new(&data, 7, 2);
 
-        assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
-        assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
+        assert_eq!(read, corrector.correct(read).as_slice()); // test correction work
+        assert_eq!(REFE, corrector.correct(REFE).as_slice()); // test not overcorrection
     }
 
     #[test]
     fn ciic() {
         init();
 
-        let refe = b"GATACATGGACACTAGTATG";
-        //           ||||||||||
-        let read = b"GATACATGGATTCACTAGTATG";
+        //           TAAGGCGCGTCCCGCACACATTTC--GCTGCCCGATACGCAGATGAAAGAGG
+        //           ||||||||||||||||||||||||  ||||||||||||||||||||||||||
+        let read = b"TAAGGCGCGTCCCGCACACATTTCAAGCTGCCCGATACGCAGATGAAAGAGG";
 
-        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
-
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
-            data.set(kmer, true);
-        }
+        let data = get_solid();
 
         let corrector = Greedy::new(&data, 7, 2);
 
-        assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
-        assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
+        assert_eq!(read, corrector.correct(read).as_slice()); // test correction work
+        assert_eq!(REFE, corrector.correct(REFE).as_slice()); // test not overcorrection
+    }
+
+    #[test]
+    fn ciiic() {
+        init();
+
+        //           TAAGGCGCGTCCCGCACACATTTC---GCTGCCCGATACGCAGATGAAAGAGG
+        //           ||||||||||||||||||||||||   ||||||||||||||||||||||||||
+        let read = b"TAAGGCGCGTCCCGCACACATTTCAAAGCTGCCCGATACGCAGATGAAAGAGG";
+
+        let data = get_solid();
+
+        let corrector = Greedy::new(&data, 7, 2);
+
+        assert_eq!(read, corrector.correct(read).as_slice()); // test correction work
+        assert_eq!(REFE, corrector.correct(REFE).as_slice()); // test not overcorrection
     }
 }
