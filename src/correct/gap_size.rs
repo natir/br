@@ -55,8 +55,6 @@ impl<'a> GapSize<'a> {
         viewed_kmer.insert(corr);
 
         for i in 0..gap_size {
-            debug!("kmer {:?}", cocktail::kmer::kmer2seq(corr, self.k()));
-
             alts = next_nucs(self.valid_kmer, corr);
 
             if alts.len() != 1 {
@@ -65,11 +63,14 @@ impl<'a> GapSize<'a> {
             }
 
             corr = add_nuc_to_end(corr, alts[0], self.k());
-            if viewed_kmer.contains(&kmer) {
-                debug!("we view this kmer previously");
+            if viewed_kmer.contains(&corr) {
+                debug!(
+                    "we view this kmer previously {}",
+                    cocktail::kmer::kmer2seq(corr, self.k())
+                );
                 return None;
             }
-            viewed_kmer.insert(kmer);
+            viewed_kmer.insert(corr);
 
             local_corr.push(cocktail::kmer::bit2nuc(alts[0]));
         }
@@ -174,13 +175,16 @@ mod tests {
     fn cscsc() {
         init();
 
-        let refe = b"TCTTTACATTTTT";
-        //           ||||| | |||||
-        let read = b"TCTTTGCGTTTTT";
+        let refe = b"GTGTGACTTACACCTCGTTGAGCACCCGATGTTGGTATAGTCCGAACAAC";
+        //                            ||||| | |||||
+        let read = b"GTGTGACTTACACCTCGTTGAGTAGCCGATGTTGGTATAGTCCGAACAAC";
 
-        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
+        println!("{}", String::from_utf8(refe.to_vec()).unwrap());
+        println!("{}", String::from_utf8(read.to_vec()).unwrap());
 
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(11);
+
+        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 11) {
             data.set(kmer, true);
         }
 
