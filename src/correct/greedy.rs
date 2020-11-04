@@ -21,7 +21,7 @@ SOFTWARE.
  */
 
 /* crate use */
-use log::{debug, trace};
+use log::debug;
 
 /* local use */
 use crate::correct::*;
@@ -64,8 +64,6 @@ impl<'a> Greedy<'a> {
             bio::alignment::pairwise::Aligner::with_capacity(10, 10, -1, -1, Score {});
         let alignment = aligner.global(r.as_slice(), c.as_slice());
 
-        trace!("{}", alignment.pretty(r.as_slice(), c.as_slice()));
-
         let mut offset = 0;
         for ops in alignment.operations[before_seq.len()..].windows(2) {
             match ops[0] {
@@ -75,7 +73,15 @@ impl<'a> Greedy<'a> {
             }
 
             if ops[0] == bio::alignment::AlignmentOperation::Match && ops[0] == ops[1] {
-                return Some(offset);
+                let mut offset_corr = 0;
+                for op in alignment.operations.iter().rev() {
+                    match op {
+                        bio::alignment::AlignmentOperation::Del => offset_corr -= 1,
+                        bio::alignment::AlignmentOperation::Ins => offset_corr += 1,
+                        _ => break,
+                    }
+                }
+                return Some(offset - offset_corr);
             }
         }
 
@@ -314,10 +320,11 @@ mod tests {
     fn cdc() {
         init();
 
+        //                               TTTCGCTGCCCG
         //           TAAGGCGCGTCCCGCACACATTTCGCTGCCCGATACGCAGATGAAAGAGG
         //           ||||||||||||||||||||||||//////////////////////////
         let read = b"TAAGGCGCGTCCCGCACACATTTCCTGCCCGATACGCAGATGAAAGAGG";
-
+        //                               TTTCCTGCCCG
         let data = get_solid();
 
         let corrector = Greedy::new(&data, 7, 2);
