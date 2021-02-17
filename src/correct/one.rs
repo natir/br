@@ -37,8 +37,8 @@ impl<'a> One<'a> {
         Self { valid_kmer, c }
     }
 
-    fn get_scenario(&self, kmer: u64, seq: &[u8]) -> Vec<(Vec<u8>, usize, u64)> {
-        let mut scenario: Vec<(Vec<u8>, usize, u64)> = Vec::new();
+    fn get_scenario(&self, kmer: u64, seq: &[u8]) -> Vec<(Vec<u8>, usize, usize)> {
+        let mut scenario: Vec<(Vec<u8>, usize, usize)> = Vec::new();
 
         let alts = alt_nucs(self.valid_kmer, kmer);
 
@@ -50,27 +50,30 @@ impl<'a> One<'a> {
 
         let corr = add_nuc_to_end(kmer >> 2, alts[0], self.k());
 
-        if let Some(limit) = get_end_of_subseq(self.c as usize + 1, seq.len()) {
-            // Substitution
-            if get_kmer_score(self.valid_kmer, corr, &seq[1..limit]) == self.c as usize {
-                debug!("it's a substitution {}", alts[0]);
-                scenario.push((vec![cocktail::kmer::bit2nuc(alts[0])], 1, corr));
-            }
-        }
-
         if let Some(limit) = get_end_of_subseq(self.c as usize + 2, seq.len()) {
-            // Insertion
-            if get_kmer_score(self.valid_kmer, corr, &seq[2..limit]) == self.c as usize {
-                debug!("it's a insertion");
-                scenario.push((Vec::new(), 1, corr));
+            // Substitution
+	    let score = get_kmer_score(self.valid_kmer, corr, &seq[1..limit]);
+            if score >= self.c as usize {
+                debug!("it's a substitution {}", alts[0]);
+                scenario.push((vec![cocktail::kmer::bit2nuc(alts[0])], 1, score));
             }
         }
 
-        if let Some(limit) = get_end_of_subseq(self.c as usize, seq.len()) {
+        if let Some(limit) = get_end_of_subseq(self.c as usize + 3, seq.len()) {
+            // Insertion
+	    let score = get_kmer_score(self.valid_kmer, corr, &seq[2..limit]);
+            if  score >= self.c as usize {
+                debug!("it's a insertion");
+                scenario.push((Vec::new(), 1, score));
+            }
+        }
+
+        if let Some(limit) = get_end_of_subseq(self.c as usize + 1, seq.len()) {
             // Deletion
-            if get_kmer_score(self.valid_kmer, corr, &seq[0..limit]) == self.c as usize {
+	    let score = get_kmer_score(self.valid_kmer, corr, &seq[0..limit]);
+            if  score >= self.c as usize {
                 debug!("it's a deletion {}", alts[0]);
-                scenario.push((vec![cocktail::kmer::bit2nuc(alts[0])], 0, corr));
+                scenario.push((vec![cocktail::kmer::bit2nuc(alts[0])], 0, score));
             }
         }
 
@@ -84,59 +87,23 @@ impl<'a> Corrector for One<'a> {
     }
 
     fn correct_error(&self, kmer: u64, seq: &[u8]) -> Option<(Vec<u8>, usize)> {
-        let scenario = self.get_scenario(kmer, seq);
-
-        let mut plus_one = Vec::new();
-
+        let mut scenario = self.get_scenario(kmer, seq);
+	
         if scenario.is_empty() {
-            debug!("relax no scenario {:?}", scenario);
-            return None;
-        } else if scenario.len() == 1 {
-            debug!("relax one scenario");
-            return Some((scenario[0].0.clone(), scenario[0].1));
-        } else {
-            // check one base more
-            for (bases, shift, corr) in scenario {
-                if bases.len() == 1 && shift == 1 {
-                    if let Some(limit) = get_end_of_subseq(self.c as usize + 2, seq.len()) {
-                        // Substitution
-                        if get_kmer_score(self.valid_kmer(), corr, &seq[1..limit])
-                            == self.c as usize + 1
-                        {
-                            debug!("relax it's a substitution");
-                            plus_one.push((bases, 1, corr));
-                        }
-                    }
-                } else if bases.is_empty() && shift == 1 {
-                    if let Some(limit) = get_end_of_subseq(self.c as usize + 3, seq.len()) {
-                        // Insertion
-                        if get_kmer_score(self.valid_kmer(), corr, &seq[2..limit])
-                            == self.c as usize + 1
-                        {
-                            debug!("relax it's a insertion");
-                            plus_one.push((bases, 1, corr));
-                        }
-                    }
-                } else if bases.len() == 1 && shift == 0 {
-                    if let Some(limit) = get_end_of_subseq(self.c as usize + 1, seq.len()) {
-                        // Deletion
-                        if get_kmer_score(self.valid_kmer(), corr, &seq[0..limit])
-                            == self.c as usize + 1
-                        {
-                            debug!("relax it's a deletion");
-                            plus_one.push((bases, 0, corr));
-                        }
-                    }
-                }
-            }
-        }
-
-        if plus_one.len() == 1 {
-            debug!("relax one scenario");
-            Some((plus_one[0].0.clone(), plus_one[0].1))
-        } else {
-            debug!("relax multi scenario {:?}", plus_one);
+            debug!("no scenario {:?}", scenario);
             None
+        } else if scenario.len() == 1 {
+            debug!("one scenario");
+            Some((scenario[0].0.clone(), scenario[0].1))
+        } else {
+	    scenario.retain(|x| x.2 == (self.c as usize + 1));
+	    if scenario.len() == 1 {
+		debug!("multi scenario one good");
+		Some((scenario[0].0.clone(), scenario[0].1))
+	    } else {
+		debug!("multi scenario no good");
+		None
+	    }
         }
     }
 }
@@ -176,8 +143,8 @@ mod tests {
     fn csc() {
         init();
 
-        let refe = b"ACTGACGA";
-        let read = b"ACTGATGA";
+        let refe = b"ACTGACGAC";
+        let read = b"ACTGATGAC";
 
         let mut data = pcon::solid::Solid::new(5);
 
@@ -244,8 +211,8 @@ mod tests {
     fn cic() {
         init();
 
-        let refe = b"ACTGACGA";
-        let read = b"ACTGATCGA";
+        let refe = b"ACTGACGAC";
+        let read = b"ACTGATCGAC";
 
         let mut data = pcon::solid::Solid::new(5);
 
@@ -265,9 +232,9 @@ mod tests {
     fn cic_relaxe() {
         init();
 
-        let refe = b"ACTGACGA";
-        let read = b"ACTGATCGA";
-        let conf = b"ACTGACGA";
+        let refe = b"ACTGACGAC";
+        let read = b"ACTGATCGAC";
+        let conf = b"ACTGACGAC";
 
         let mut data = pcon::solid::Solid::new(5);
 
@@ -312,8 +279,8 @@ mod tests {
     fn cdc() {
         init();
 
-        let refe = b"ACTGACGA";
-        let read = b"ACTGAGA";
+        let refe = b"ACTGACGAC";
+        let read = b"ACTGAGAC";
 
         let mut data = pcon::solid::Solid::new(5);
 
@@ -333,9 +300,9 @@ mod tests {
     fn cdc_relaxe() {
         init();
 
-        let refe = b"ACTGACGA";
-        let read = b"ACTGAGA";
-        let conf = b"ACTGACTA";
+        let refe = b"ACTGACGAC";
+        let read = b"ACTGAGAC";
+        let conf = b"ACTGACTAC";
 
         let mut data = pcon::solid::Solid::new(5);
 
