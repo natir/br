@@ -209,8 +209,8 @@ mod tests {
         let mut data = get_solid();
 
         data.set(cocktail::kmer::seq2bit(b"CACATTTCGCG"), true);
-	
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
         let corrector = Greedy::new(&set, 7, 2);
 
@@ -230,7 +230,7 @@ mod tests {
 
         data.set(cocktail::kmer::seq2bit(b"CACATTTCGCG"), true);
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
         let corrector = Greedy::new(&set, 7, 2);
 
@@ -250,7 +250,7 @@ mod tests {
 
         data.set(cocktail::kmer::seq2bit(b"CACACATTTCT"), true);
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
         let corrector = Greedy::new(&set, 7, 2);
 
@@ -268,7 +268,7 @@ mod tests {
 
         let data = get_solid();
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
         let corrector = Greedy::new(&set, 7, 2);
 
@@ -286,7 +286,7 @@ mod tests {
 
         let data = get_solid();
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
         let corrector = Greedy::new(&set, 7, 2);
 
@@ -304,7 +304,7 @@ mod tests {
 
         let data = get_solid();
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
         let corrector = Greedy::new(&set, 7, 2);
 
@@ -322,7 +322,7 @@ mod tests {
 
         let data = get_solid();
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
         let corrector = Greedy::new(&set, 7, 2);
 
@@ -341,7 +341,7 @@ mod tests {
         //                               TTTCCTGCCCG
         let data = get_solid();
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
         let corrector = Greedy::new(&set, 7, 2);
 
@@ -359,7 +359,7 @@ mod tests {
 
         let data = get_solid();
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
         let corrector = Greedy::new(&set, 7, 2);
 
@@ -377,7 +377,7 @@ mod tests {
 
         let data = get_solid();
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
         let corrector = Greedy::new(&set, 7, 2);
 
@@ -395,7 +395,7 @@ mod tests {
 
         let data = get_solid();
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
         let corrector = Greedy::new(&set, 7, 2);
 
@@ -413,7 +413,7 @@ mod tests {
 
         let data = get_solid();
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
         let corrector = Greedy::new(&set, 7, 2);
 
@@ -431,7 +431,7 @@ mod tests {
 
         let data = get_solid();
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
         let corrector = Greedy::new(&set, 7, 2);
 

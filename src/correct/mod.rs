@@ -75,8 +75,11 @@ pub trait Corrector {
                     kmer >>= 2;
 
                     for nuc in local_correct {
-                        kmer =
-                            add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(nuc), self.valid_kmer().k());
+                        kmer = add_nuc_to_end(
+                            kmer,
+                            cocktail::kmer::nuc2bit(nuc),
+                            self.valid_kmer().k(),
+                        );
                         correct.push(nuc);
                     }
 
@@ -170,8 +173,8 @@ mod tests {
         data.set(cocktail::kmer::seq2bit(b"ACTGA"), true);
         data.set(cocktail::kmer::seq2bit(b"ACTGT"), true);
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
-	
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
         let kmer = cocktail::kmer::seq2bit(b"ACTGC");
 
         assert_eq!(alt_nucs(&set, kmer), vec![0, 2]);

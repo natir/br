@@ -36,7 +36,7 @@ impl<'a> One<'a> {
     pub fn new(valid_kmer: &'a set::BoxKmerSet<'a>, c: u8) -> Self {
         Self { valid_kmer, c }
     }
-    
+
     fn get_scenario(&self, kmer: u64, seq: &[u8]) -> Vec<(Vec<u8>, usize, u64)> {
         let mut scenario: Vec<(Vec<u8>, usize, u64)> = Vec::new();
 
@@ -100,7 +100,9 @@ impl<'a> Corrector for One<'a> {
                 if bases.len() == 1 && shift == 1 {
                     if let Some(limit) = get_end_of_subseq(self.c as usize + 2, seq.len()) {
                         // Substitution
-                        if get_kmer_score(self.valid_kmer(), corr, &seq[1..limit]) == self.c as usize + 1 {
+                        if get_kmer_score(self.valid_kmer(), corr, &seq[1..limit])
+                            == self.c as usize + 1
+                        {
                             debug!("relax it's a substitution");
                             plus_one.push((bases, 1, corr));
                         }
@@ -108,7 +110,9 @@ impl<'a> Corrector for One<'a> {
                 } else if bases.is_empty() && shift == 1 {
                     if let Some(limit) = get_end_of_subseq(self.c as usize + 3, seq.len()) {
                         // Insertion
-                        if get_kmer_score(self.valid_kmer(), corr, &seq[2..limit]) == self.c as usize + 1 {
+                        if get_kmer_score(self.valid_kmer(), corr, &seq[2..limit])
+                            == self.c as usize + 1
+                        {
                             debug!("relax it's a insertion");
                             plus_one.push((bases, 1, corr));
                         }
@@ -116,7 +120,9 @@ impl<'a> Corrector for One<'a> {
                 } else if bases.len() == 1 && shift == 0 {
                     if let Some(limit) = get_end_of_subseq(self.c as usize + 1, seq.len()) {
                         // Deletion
-                        if get_kmer_score(self.valid_kmer(), corr, &seq[0..limit]) == self.c as usize + 1 {
+                        if get_kmer_score(self.valid_kmer(), corr, &seq[0..limit])
+                            == self.c as usize + 1
+                        {
                             debug!("relax it's a deletion");
                             plus_one.push((bases, 0, corr));
                         }
@@ -179,7 +185,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
         let corrector = One::new(&set, 2);
 
@@ -205,8 +211,8 @@ mod tests {
             data.set(kmer, true);
         }
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
-	
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
         let corrector = One::new(&set, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
@@ -226,8 +232,8 @@ mod tests {
             data.set(kmer, true);
         }
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
-	
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
         let corrector = One::new(&set, 2);
 
         assert_eq!(read, corrector.correct(read).as_slice()); // don't correct
@@ -247,8 +253,8 @@ mod tests {
             data.set(kmer, true);
         }
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
-	
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
         let corrector = One::new(&set, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
@@ -273,8 +279,8 @@ mod tests {
             data.set(kmer, true);
         }
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
-	
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
         let corrector = One::new(&set, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
@@ -294,7 +300,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
         let corrector = One::new(&set, 2);
 
@@ -315,8 +321,8 @@ mod tests {
             data.set(kmer, true);
         }
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
-	
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
         let corrector = One::new(&set, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
@@ -340,10 +346,10 @@ mod tests {
         for kmer in cocktail::tokenizer::Tokenizer::new(conf, 5) {
             data.set(kmer, true);
         }
-	
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
-	let corrector = One::new(&set, 2);
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = One::new(&set, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -362,9 +368,9 @@ mod tests {
             data.set(kmer, true);
         }
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
-	
-        let corrector  = One::new(&set, 2);
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = One::new(&set, 2);
 
         assert_eq!(read, corrector.correct(read).as_slice()); // don't correct
         assert_eq!(refe, corrector.correct(refe).as_slice());

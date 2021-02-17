@@ -50,7 +50,7 @@ impl<'a> Corrector for Graph<'a> {
 
         let alts = alt_nucs(self.valid_kmer(), kmer);
         if alts.len() != 1 {
-            debug!("failled multiple successor {:?}", alts);
+            debug!("failed multiple successor {:?}", alts);
             return None;
         }
 
@@ -62,7 +62,7 @@ impl<'a> Corrector for Graph<'a> {
             let alts = next_nucs(self.valid_kmer(), kmer);
 
             if alts.len() != 1 {
-                debug!("failled branching node {:?}", alts);
+                debug!("failed branching node {:?}", alts);
                 return None;
             }
 
@@ -113,7 +113,7 @@ mod tests {
 
         data.set(cocktail::kmer::seq2bit(b"TTTTT"), true);
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
         let corrector = Graph::new(&set);
 
@@ -137,7 +137,7 @@ mod tests {
 
         data.set(cocktail::kmer::seq2bit(b"GGACT"), true);
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
         let corrector = Graph::new(&set);
 
@@ -161,7 +161,7 @@ mod tests {
 
         data.set(cocktail::kmer::seq2bit(b"GGACT"), true);
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
         let corrector = Graph::new(&set);
 
@@ -183,7 +183,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
         let corrector = Graph::new(&set);
 
@@ -205,7 +205,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
         let corrector = Graph::new(&set);
 
@@ -227,7 +227,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
         let corrector = Graph::new(&set);
 
@@ -249,7 +249,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
         let corrector = Graph::new(&set);
 
@@ -271,7 +271,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
         let corrector = Graph::new(&set);
 
@@ -293,7 +293,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
         let corrector = Graph::new(&set);
 
@@ -311,13 +311,12 @@ mod tests {
 
         let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
 
-
         for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
             data.set(kmer, true);
         }
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
-	
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
         let corrector = Graph::new(&set);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
@@ -338,7 +337,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
         let corrector = Graph::new(&set);
 

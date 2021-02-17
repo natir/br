@@ -29,18 +29,16 @@ pub struct Pcon {
 
 impl Pcon {
     pub fn new(set: pcon::solid::Solid) -> Self {
-	Pcon {
-	    set
-	}
+        Pcon { set }
     }
 }
 
 impl KmerSet for Pcon {
     fn get(&self, kmer: u64) -> bool {
-	self.set.get(kmer)
+        self.set.get(kmer)
     }
 
     fn k(&self) -> u8 {
-	self.set.k
+        self.set.k
     }
 }

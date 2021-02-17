@@ -22,8 +22,8 @@ SOFTWARE.
 
 /* local mod */
 pub mod cli;
-pub mod error;
 pub mod correct;
+pub mod error;
 pub mod set;
 
 /* crate use */

@@ -125,7 +125,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
         let corrector = GapSize::new(&set, 2);
 
@@ -147,7 +147,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
         let corrector = GapSize::new(&set, 2);
 
@@ -169,7 +169,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
         let corrector = GapSize::new(&set, 2);
 
@@ -194,7 +194,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
         let corrector = GapSize::new(&set, 2);
 
@@ -216,7 +216,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
         let corrector = GapSize::new(&set, 2);
 
@@ -238,7 +238,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
         let corrector = GapSize::new(&set, 2);
 
@@ -260,7 +260,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
         let corrector = GapSize::new(&set, 2);
 
@@ -282,7 +282,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
         let corrector = GapSize::new(&set, 2);
 
