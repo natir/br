@@ -38,7 +38,7 @@ pub struct Command {
         about = "solidity bitfield produce by pcon"
     )]
     pub solidity: Option<String>,
-
+    
     #[clap(
         short = 'k',
         long = "kmer",
@@ -66,7 +66,7 @@ pub struct Command {
     #[clap(
 	short = 'm',
 	long = "method",
-	possible_values = &["one", "one_relax", "graph", "greedy", "gap_size"],
+	possible_values = &["one", "graph", "greedy", "gap_size"],
 	about = "correction method used, methods are applied in the order you specify, default value is 'one'"
     )]
     pub methods: Option<Vec<String>>,
@@ -154,7 +154,9 @@ pub fn read_or_compute_solidity(
         );
 
         log::info!("Load solidity file");
-        Ok(Box::new(set::Pcon::new(pcon::solid::Solid::deserialize(solidity_reader)?)))
+        Ok(Box::new(set::Pcon::new(pcon::solid::Solid::deserialize(
+            solidity_reader,
+        )?)))
     } else if let Some(kmer) = kmer {
         let mut counter = pcon::counter::Counter::new(kmer);
 
@@ -187,7 +189,9 @@ pub fn read_or_compute_solidity(
             abundance as u8
         };
 
-        Ok(Box::new(set::Pcon::new(pcon::solid::Solid::from_counter(&counter, abun))))
+        Ok(Box::new(set::Pcon::new(pcon::solid::Solid::from_counter(
+            &counter, abun,
+        ))))
     } else {
         Err(Error::Cli(NoSolidityNoKmer).into())
     }
