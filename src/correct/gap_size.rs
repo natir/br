@@ -27,13 +27,13 @@ use log::debug;
 use crate::correct::*;
 
 pub struct GapSize<'a> {
-    valid_kmer: &'a pcon::solid::Solid,
+    valid_kmer: &'a set::BoxKmerSet<'a>,
     graph: graph::Graph<'a>,
     one: one::One<'a>,
 }
 
 impl<'a> GapSize<'a> {
-    pub fn new(valid_kmer: &'a pcon::solid::Solid, c: u8) -> Self {
+    pub fn new(valid_kmer: &'a set::BoxKmerSet<'a>, c: u8) -> Self {
         Self {
             valid_kmer,
             graph: graph::Graph::new(valid_kmer),
@@ -81,7 +81,7 @@ impl<'a> GapSize<'a> {
 }
 
 impl<'a> Corrector for GapSize<'a> {
-    fn valid_kmer(&self) -> &pcon::solid::Solid {
+    fn valid_kmer(&self) -> &set::BoxKmerSet<'a> {
         self.valid_kmer
     }
 
@@ -125,7 +125,9 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = GapSize::new(&data, 2);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = GapSize::new(&set, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
@@ -145,7 +147,9 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = GapSize::new(&data, 2);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = GapSize::new(&set, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
@@ -165,7 +169,9 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = GapSize::new(&data, 2);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = GapSize::new(&set, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrect
@@ -188,7 +194,9 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = GapSize::new(&data, 2);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = GapSize::new(&set, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
@@ -208,7 +216,9 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = GapSize::new(&data, 2);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = GapSize::new(&set, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -228,7 +238,9 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = GapSize::new(&data, 2);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = GapSize::new(&set, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -248,7 +260,9 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = GapSize::new(&data, 2);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = GapSize::new(&set, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
@@ -268,7 +282,9 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = GapSize::new(&data, 2);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = GapSize::new(&set, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection

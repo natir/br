@@ -116,6 +116,7 @@ pub struct Command {
 }
 
 use crate::error::*;
+use crate::set;
 use Cli::*;
 use IO::*;
 
@@ -144,7 +145,7 @@ pub fn read_or_compute_solidity(
     inputs: &[String],
     record_buffer_len: usize,
     abundance: Option<u8>,
-) -> Result<pcon::solid::Solid> {
+) -> Result<set::BoxKmerSet> {
     if let Some(solidity_path) = solidity_path {
         let solidity_reader = std::io::BufReader::new(
             std::fs::File::open(&solidity_path)
@@ -153,7 +154,7 @@ pub fn read_or_compute_solidity(
         );
 
         log::info!("Load solidity file");
-        Ok(pcon::solid::Solid::deserialize(solidity_reader)?)
+        Ok(Box::new(set::Pcon::new(pcon::solid::Solid::deserialize(solidity_reader)?)))
     } else if let Some(kmer) = kmer {
         let mut counter = pcon::counter::Counter::new(kmer);
 
@@ -186,7 +187,7 @@ pub fn read_or_compute_solidity(
             abundance as u8
         };
 
-        Ok(pcon::solid::Solid::from_counter(&counter, abun))
+        Ok(Box::new(set::Pcon::new(pcon::solid::Solid::from_counter(&counter, abun))))
     } else {
         Err(Error::Cli(NoSolidityNoKmer).into())
     }

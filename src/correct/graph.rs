@@ -27,17 +27,17 @@ use log::debug;
 use crate::correct::*;
 
 pub struct Graph<'a> {
-    valid_kmer: &'a pcon::solid::Solid,
+    valid_kmer: &'a set::BoxKmerSet<'a>,
 }
 
 impl<'a> Graph<'a> {
-    pub fn new(valid_kmer: &'a pcon::solid::Solid) -> Self {
+    pub fn new(valid_kmer: &'a set::BoxKmerSet<'a>) -> Self {
         Self { valid_kmer }
     }
 }
 
 impl<'a> Corrector for Graph<'a> {
-    fn valid_kmer(&self) -> &pcon::solid::Solid {
+    fn valid_kmer(&self) -> &set::BoxKmerSet {
         self.valid_kmer
     }
 
@@ -113,7 +113,9 @@ mod tests {
 
         data.set(cocktail::kmer::seq2bit(b"TTTTT"), true);
 
-        let corrector = Graph::new(&data);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = Graph::new(&set);
 
         assert_eq!(read, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
@@ -135,7 +137,9 @@ mod tests {
 
         data.set(cocktail::kmer::seq2bit(b"GGACT"), true);
 
-        let corrector = Graph::new(&data);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = Graph::new(&set);
 
         assert_eq!(read, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -157,7 +161,9 @@ mod tests {
 
         data.set(cocktail::kmer::seq2bit(b"GGACT"), true);
 
-        let corrector = Graph::new(&data);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = Graph::new(&set);
 
         assert_eq!(read, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
@@ -177,7 +183,9 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = Graph::new(&data);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = Graph::new(&set);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
@@ -197,7 +205,9 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = Graph::new(&data);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = Graph::new(&set);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
@@ -217,7 +227,9 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = Graph::new(&data);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = Graph::new(&set);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrect
@@ -237,7 +249,9 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = Graph::new(&data);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = Graph::new(&set);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
@@ -257,7 +271,9 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = Graph::new(&data);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = Graph::new(&set);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -277,7 +293,9 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = Graph::new(&data);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = Graph::new(&set);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -293,11 +311,14 @@ mod tests {
 
         let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
 
+
         for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
             data.set(kmer, true);
         }
 
-        let corrector = Graph::new(&data);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+	
+        let corrector = Graph::new(&set);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
@@ -317,7 +338,9 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = Graph::new(&data);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = Graph::new(&set);
 
         assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection

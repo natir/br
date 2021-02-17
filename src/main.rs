@@ -77,8 +77,8 @@ fn main() -> Result<()> {
     let methods = br::build_methods(params.methods, &solid, confirm, max_search);
 
     br::run_correction(
-        params.inputs,
-        params.outputs,
+        &params.inputs,
+        &params.outputs,
         methods,
         params.two_side,
         record_buffer,

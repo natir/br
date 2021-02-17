@@ -23,8 +23,8 @@ SOFTWARE.
 /* local mod */
 pub mod cli;
 pub mod error;
-
 pub mod correct;
+pub mod set;
 
 /* crate use */
 use anyhow::{anyhow, Context, Result};
@@ -36,8 +36,8 @@ use error::IO::*;
 use error::*;
 
 pub fn run_correction<'a>(
-    inputs: Vec<String>,
-    outputs: Vec<String>,
+    inputs: &[String],
+    outputs: &[String],
     methods: Vec<Box<dyn correct::Corrector + Sync + Send + 'a>>,
     two_side: bool,
     record_buffer_len: usize,
@@ -121,7 +121,7 @@ pub fn run_correction<'a>(
 
 pub fn build_methods<'a>(
     params: Option<Vec<String>>,
-    solid: &'a pcon::solid::Solid,
+    solid: &'a set::BoxKmerSet,
     confirm: u8,
     max_search: u8,
 ) -> Vec<Box<dyn correct::Corrector + Sync + Send + 'a>> {

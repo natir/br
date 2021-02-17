@@ -39,13 +39,13 @@ impl bio::alignment::pairwise::MatchFunc for Score {
 }
 
 pub struct Greedy<'a> {
-    valid_kmer: &'a pcon::solid::Solid,
+    valid_kmer: &'a set::BoxKmerSet<'a>,
     max_search: u8,
     nb_validate: u8,
 }
 
 impl<'a> Greedy<'a> {
-    pub fn new(valid_kmer: &'a pcon::solid::Solid, max_search: u8, nb_validate: u8) -> Self {
+    pub fn new(valid_kmer: &'a set::BoxKmerSet, max_search: u8, nb_validate: u8) -> Self {
         Self {
             valid_kmer,
             max_search,
@@ -119,10 +119,10 @@ impl<'a> Greedy<'a> {
 
 impl<'a> Corrector for Greedy<'a> {
     fn k(&self) -> u8 {
-        self.valid_kmer.k
+        self.valid_kmer.k()
     }
 
-    fn valid_kmer(&self) -> &pcon::solid::Solid {
+    fn valid_kmer(&self) -> &set::BoxKmerSet {
         self.valid_kmer
     }
 
@@ -209,8 +209,10 @@ mod tests {
         let mut data = get_solid();
 
         data.set(cocktail::kmer::seq2bit(b"CACATTTCGCG"), true);
+	
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
-        let corrector = Greedy::new(&data, 7, 2);
+        let corrector = Greedy::new(&set, 7, 2);
 
         assert_eq!(read, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(REFE, corrector.correct(REFE).as_slice()); // test not overcorrection
@@ -228,7 +230,9 @@ mod tests {
 
         data.set(cocktail::kmer::seq2bit(b"CACATTTCGCG"), true);
 
-        let corrector = Greedy::new(&data, 7, 2);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = Greedy::new(&set, 7, 2);
 
         assert_eq!(read, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(REFE, corrector.correct(REFE).as_slice()); // test not overcorrection
@@ -246,7 +250,9 @@ mod tests {
 
         data.set(cocktail::kmer::seq2bit(b"CACACATTTCT"), true);
 
-        let corrector = Greedy::new(&data, 7, 2);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = Greedy::new(&set, 7, 2);
 
         assert_eq!(read, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(REFE, corrector.correct(REFE).as_slice()); // test not overcorrection
@@ -262,7 +268,9 @@ mod tests {
 
         let data = get_solid();
 
-        let corrector = Greedy::new(&data, 7, 2);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = Greedy::new(&set, 7, 2);
 
         assert_eq!(read, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(REFE, corrector.correct(REFE).as_slice()); // test not overcorrection
@@ -278,7 +286,9 @@ mod tests {
 
         let data = get_solid();
 
-        let corrector = Greedy::new(&data, 7, 2);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = Greedy::new(&set, 7, 2);
 
         assert_eq!(read, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(REFE, corrector.correct(REFE).as_slice()); // test not overcorrection
@@ -294,7 +304,9 @@ mod tests {
 
         let data = get_solid();
 
-        let corrector = Greedy::new(&data, 7, 2);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = Greedy::new(&set, 7, 2);
 
         assert_eq!(read, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(REFE, corrector.correct(REFE).as_slice()); // test not overcorrection
@@ -310,7 +322,9 @@ mod tests {
 
         let data = get_solid();
 
-        let corrector = Greedy::new(&data, 7, 2);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = Greedy::new(&set, 7, 2);
 
         assert_eq!(read, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(REFE, corrector.correct(REFE).as_slice()); // test not overcorrection
@@ -327,7 +341,9 @@ mod tests {
         //                               TTTCCTGCCCG
         let data = get_solid();
 
-        let corrector = Greedy::new(&data, 7, 2);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = Greedy::new(&set, 7, 2);
 
         assert_eq!(read, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(REFE, corrector.correct(REFE).as_slice()); // test not overcorrection
@@ -343,7 +359,9 @@ mod tests {
 
         let data = get_solid();
 
-        let corrector = Greedy::new(&data, 7, 2);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = Greedy::new(&set, 7, 2);
 
         assert_eq!(read, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(REFE, corrector.correct(REFE).as_slice()); // test not overcorrection
@@ -359,7 +377,9 @@ mod tests {
 
         let data = get_solid();
 
-        let corrector = Greedy::new(&data, 7, 2);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = Greedy::new(&set, 7, 2);
 
         assert_eq!(read, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(REFE, corrector.correct(REFE).as_slice()); // test not overcorrection
@@ -375,7 +395,9 @@ mod tests {
 
         let data = get_solid();
 
-        let corrector = Greedy::new(&data, 7, 2);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = Greedy::new(&set, 7, 2);
 
         assert_eq!(read, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(REFE, corrector.correct(REFE).as_slice()); // test not overcorrection
@@ -391,7 +413,9 @@ mod tests {
 
         let data = get_solid();
 
-        let corrector = Greedy::new(&data, 7, 2);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = Greedy::new(&set, 7, 2);
 
         assert_eq!(read, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(REFE, corrector.correct(REFE).as_slice()); // test not overcorrection
@@ -407,7 +431,9 @@ mod tests {
 
         let data = get_solid();
 
-        let corrector = Greedy::new(&data, 7, 2);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = Greedy::new(&set, 7, 2);
 
         assert_eq!(read, corrector.correct(read).as_slice()); // test correction work
         assert_eq!(REFE, corrector.correct(REFE).as_slice()); // test not overcorrection

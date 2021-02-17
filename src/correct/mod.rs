@@ -20,6 +20,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
  */
 
+/* local use */
+use crate::set;
+
 const MASK_LOOKUP: [u64; 32] = {
     let mut lookup = [0; 32];
 
@@ -39,12 +42,12 @@ pub(crate) fn mask(k: u8) -> u64 {
 }
 
 pub trait Corrector {
-    fn valid_kmer(&self) -> &pcon::solid::Solid;
+    fn valid_kmer(&self) -> &set::BoxKmerSet;
 
     fn correct_error(&self, kmer: u64, seq: &[u8]) -> Option<(Vec<u8>, usize)>;
 
     fn k(&self) -> u8 {
-        self.valid_kmer().k
+        self.valid_kmer().k()
     }
 
     fn correct(&self, seq: &[u8]) -> Vec<u8> {
@@ -73,7 +76,7 @@ pub trait Corrector {
 
                     for nuc in local_correct {
                         kmer =
-                            add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(nuc), self.valid_kmer().k);
+                            add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(nuc), self.valid_kmer().k());
                         correct.push(nuc);
                     }
 
@@ -105,15 +108,15 @@ pub(crate) fn add_nuc_to_end(kmer: u64, nuc: u64, k: u8) -> u64 {
     ((kmer << 2) & mask(k)) ^ nuc
 }
 
-pub(crate) fn alt_nucs(valid_kmer: &pcon::solid::Solid, ori: u64) -> Vec<u64> {
+pub(crate) fn alt_nucs(valid_kmer: &set::BoxKmerSet, ori: u64) -> Vec<u64> {
     next_nucs(valid_kmer, ori >> 2)
 }
 
-pub(crate) fn next_nucs(valid_kmer: &pcon::solid::Solid, kmer: u64) -> Vec<u64> {
+pub(crate) fn next_nucs(valid_kmer: &set::BoxKmerSet, kmer: u64) -> Vec<u64> {
     let mut correct_nuc: Vec<u64> = Vec::with_capacity(4);
 
     for alt_nuc in 0..4 {
-        if valid_kmer.get(add_nuc_to_end(kmer, alt_nuc, valid_kmer.k)) {
+        if valid_kmer.get(add_nuc_to_end(kmer, alt_nuc, valid_kmer.k())) {
             correct_nuc.push(alt_nuc);
         }
     }
@@ -124,7 +127,7 @@ pub(crate) fn next_nucs(valid_kmer: &pcon::solid::Solid, kmer: u64) -> Vec<u64> 
 pub(crate) fn error_len(
     subseq: &[u8],
     mut kmer: u64,
-    valid_kmer: &pcon::solid::Solid,
+    valid_kmer: &set::BoxKmerSet,
 ) -> (usize, u64) {
     let mut j = 0;
 
@@ -135,7 +138,7 @@ pub(crate) fn error_len(
             break;
         }
 
-        kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(subseq[j]), valid_kmer.k);
+        kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(subseq[j]), valid_kmer.k());
 
         if valid_kmer.get(kmer) {
             break;
@@ -149,12 +152,12 @@ pub mod gap_size;
 pub mod graph;
 pub mod greedy;
 pub mod one;
-pub mod two;
+//pub mod two;
 
 pub use gap_size::GapSize;
 pub use graph::Graph;
 pub use greedy::Greedy;
-//pub use one;
+pub use one::One;
 
 #[cfg(test)]
 mod tests {
@@ -163,12 +166,14 @@ mod tests {
 
     #[test]
     fn found_alt_kmer() {
-        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
+        let mut data = pcon::solid::Solid::new(5);
         data.set(cocktail::kmer::seq2bit(b"ACTGA"), true);
         data.set(cocktail::kmer::seq2bit(b"ACTGT"), true);
 
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+	
         let kmer = cocktail::kmer::seq2bit(b"ACTGC");
 
-        assert_eq!(alt_nucs(&data, kmer), vec![0, 2]);
+        assert_eq!(alt_nucs(&set, kmer), vec![0, 2]);
     }
 }

@@ -25,14 +25,15 @@ use log::debug;
 
 /* local use */
 use crate::correct::*;
+use crate::set;
 
 pub struct One<'a> {
-    valid_kmer: &'a pcon::solid::Solid,
+    valid_kmer: &'a set::BoxKmerSet<'a>,
     c: u8,
 }
 
 impl<'a> One<'a> {
-    pub fn new(valid_kmer: &'a pcon::solid::Solid, c: u8) -> Self {
+    pub fn new(valid_kmer: &'a set::BoxKmerSet<'a>, c: u8) -> Self {
         Self { valid_kmer, c }
     }
     
@@ -78,7 +79,7 @@ impl<'a> One<'a> {
 }
 
 impl<'a> Corrector for One<'a> {
-    fn valid_kmer(&self) -> &pcon::solid::Solid {
+    fn valid_kmer(&self) -> &set::BoxKmerSet {
         self.valid_kmer
     }
 
@@ -142,11 +143,11 @@ fn get_end_of_subseq(offset: usize, max_length: usize) -> Option<usize> {
     }
 }
 
-fn get_kmer_score(valid_kmer: &pcon::solid::Solid, mut kmer: u64, nucs: &[u8]) -> usize {
+fn get_kmer_score(valid_kmer: &set::BoxKmerSet, mut kmer: u64, nucs: &[u8]) -> usize {
     let mut score = 0;
 
     for nuc in nucs {
-        kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(*nuc), valid_kmer.k);
+        kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(*nuc), valid_kmer.k());
 
         if valid_kmer.get(kmer) {
             score += 1
@@ -178,7 +179,9 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = One::new(&data, 2);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = One::new(&set, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -202,7 +205,9 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = One::new(&data, 2);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+	
+        let corrector = One::new(&set, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -221,7 +226,9 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = One::new(&data, 2);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+	
+        let corrector = One::new(&set, 2);
 
         assert_eq!(read, corrector.correct(read).as_slice()); // don't correct
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -240,7 +247,9 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = One::new(&data, 2);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+	
+        let corrector = One::new(&set, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -264,7 +273,9 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = One::new(&data, 2);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+	
+        let corrector = One::new(&set, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -283,7 +294,9 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = One::new(&data, 2);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = One::new(&set, 2);
 
         assert_eq!(read, corrector.correct(read).as_slice()); // don't correct
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -302,7 +315,9 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = One::new(&data, 2);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+	
+        let corrector = One::new(&set, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -325,8 +340,10 @@ mod tests {
         for kmer in cocktail::tokenizer::Tokenizer::new(conf, 5) {
             data.set(kmer, true);
         }
+	
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
-        let corrector = One::new(&data, 2);
+	let corrector = One::new(&set, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -345,7 +362,9 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = One::new(&data, 2);
+	let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+	
+        let corrector  = One::new(&set, 2);
 
         assert_eq!(read, corrector.correct(read).as_slice()); // don't correct
         assert_eq!(refe, corrector.correct(refe).as_slice());
