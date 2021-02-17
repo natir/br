@@ -68,7 +68,8 @@ fn main() -> Result<()> {
 
     let solid = cli::read_or_compute_solidity(
         params.solidity,
-        params.kmer,
+	params.kmer_solid,
+        params.kmer_size,
         &params.inputs,
         record_buffer,
         params.abundance,

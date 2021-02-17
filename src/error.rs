@@ -45,8 +45,11 @@ pub enum Cli {
     #[error("Kmer size must be odd")]
     NotSameNumberOfInAndOut,
 
-    #[error("You must provide a solidity path '-s' or a kmer length '-k'")]
+    #[error("You must provide a solidity path '-s', a kmer solid path '-S' or a kmer length '-k'")]
     NoSolidityNoKmer,
+
+    #[error("If you provide kmer solid path '-S' you must provide a kmer length '-k'")]
+    KmerSolidNeedK,
 }
 
 /// Error emmit when pcon try to work with file
