@@ -149,11 +149,12 @@ pub mod gap_size;
 pub mod graph;
 pub mod greedy;
 pub mod one;
+pub mod two;
 
 pub use gap_size::GapSize;
 pub use graph::Graph;
 pub use greedy::Greedy;
-pub use one::One;
+//pub use one;
 
 #[cfg(test)]
 mod tests {

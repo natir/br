@@ -26,19 +26,20 @@ use log::debug;
 /* local use */
 use crate::correct::*;
 
-pub trait One {
-    fn c(&self) -> usize;
+pub struct One<'a> {
+    valid_kmer: &'a pcon::solid::Solid,
+    c: u8,
+}
 
-    fn v_kmer(&self) -> &pcon::solid::Solid;
-
-    fn k(&self) -> u8 {
-        self.v_kmer().k
+impl<'a> One<'a> {
+    pub fn new(valid_kmer: &'a pcon::solid::Solid, c: u8) -> Self {
+        Self { valid_kmer, c }
     }
-
+    
     fn get_scenario(&self, kmer: u64, seq: &[u8]) -> Vec<(Vec<u8>, usize, u64)> {
         let mut scenario: Vec<(Vec<u8>, usize, u64)> = Vec::new();
 
-        let alts = alt_nucs(self.v_kmer(), kmer);
+        let alts = alt_nucs(self.valid_kmer, kmer);
 
         if alts.len() != 1 {
             debug!("not one alts {:?}", alts);
@@ -48,25 +49,25 @@ pub trait One {
 
         let corr = add_nuc_to_end(kmer >> 2, alts[0], self.k());
 
-        if let Some(limit) = get_end_of_subseq(self.c() + 1, seq.len()) {
+        if let Some(limit) = get_end_of_subseq(self.c as usize + 1, seq.len()) {
             // Substitution
-            if get_kmer_score(self.v_kmer(), corr, &seq[1..limit]) == self.c() {
+            if get_kmer_score(self.valid_kmer, corr, &seq[1..limit]) == self.c as usize {
                 debug!("it's a substitution {}", alts[0]);
                 scenario.push((vec![cocktail::kmer::bit2nuc(alts[0])], 1, corr));
             }
         }
 
-        if let Some(limit) = get_end_of_subseq(self.c() + 2, seq.len()) {
+        if let Some(limit) = get_end_of_subseq(self.c as usize + 2, seq.len()) {
             // Insertion
-            if get_kmer_score(self.v_kmer(), corr, &seq[2..limit]) == self.c() {
+            if get_kmer_score(self.valid_kmer, corr, &seq[2..limit]) == self.c as usize {
                 debug!("it's a insertion");
                 scenario.push((Vec::new(), 1, corr));
             }
         }
 
-        if let Some(limit) = get_end_of_subseq(self.c(), seq.len()) {
+        if let Some(limit) = get_end_of_subseq(self.c as usize, seq.len()) {
             // Deletion
-            if get_kmer_score(self.v_kmer(), corr, &seq[0..limit]) == self.c() {
+            if get_kmer_score(self.valid_kmer, corr, &seq[0..limit]) == self.c as usize {
                 debug!("it's a deletion {}", alts[0]);
                 scenario.push((vec![cocktail::kmer::bit2nuc(alts[0])], 0, corr));
             }
@@ -76,67 +77,7 @@ pub trait One {
     }
 }
 
-pub struct Strict<'a> {
-    valid_kmer: &'a pcon::solid::Solid,
-    c: u8,
-}
-
-impl<'a> Strict<'a> {
-    pub fn new(valid_kmer: &'a pcon::solid::Solid, c: u8) -> Self {
-        Self { valid_kmer, c }
-    }
-}
-
-impl<'a> One for Strict<'a> {
-    fn c(&self) -> usize {
-        self.c as usize
-    }
-
-    fn v_kmer(&self) -> &pcon::solid::Solid {
-        self.valid_kmer
-    }
-}
-
-impl<'a> Corrector for Strict<'a> {
-    fn valid_kmer(&self) -> &pcon::solid::Solid {
-        self.valid_kmer
-    }
-
-    fn correct_error(&self, kmer: u64, seq: &[u8]) -> Option<(Vec<u8>, usize)> {
-        let scenario = self.get_scenario(kmer, seq);
-
-        if scenario.len() == 1 {
-            debug!("one scenario");
-            Some((scenario[0].0.clone(), scenario[0].1))
-        } else {
-            debug!("multi scenario {:?}", scenario);
-            None
-        }
-    }
-}
-
-pub struct Relax<'a> {
-    valid_kmer: &'a pcon::solid::Solid,
-    c: u8,
-}
-
-impl<'a> Relax<'a> {
-    pub fn new(valid_kmer: &'a pcon::solid::Solid, c: u8) -> Self {
-        Self { valid_kmer, c }
-    }
-}
-
-impl<'a> One for Relax<'a> {
-    fn c(&self) -> usize {
-        self.c as usize
-    }
-
-    fn v_kmer(&self) -> &pcon::solid::Solid {
-        self.valid_kmer
-    }
-}
-
-impl<'a> Corrector for Relax<'a> {
+impl<'a> Corrector for One<'a> {
     fn valid_kmer(&self) -> &pcon::solid::Solid {
         self.valid_kmer
     }
@@ -156,25 +97,25 @@ impl<'a> Corrector for Relax<'a> {
             // check one base more
             for (bases, shift, corr) in scenario {
                 if bases.len() == 1 && shift == 1 {
-                    if let Some(limit) = get_end_of_subseq(self.c() + 2, seq.len()) {
+                    if let Some(limit) = get_end_of_subseq(self.c as usize + 2, seq.len()) {
                         // Substitution
-                        if get_kmer_score(self.valid_kmer(), corr, &seq[1..limit]) == self.c() + 1 {
+                        if get_kmer_score(self.valid_kmer(), corr, &seq[1..limit]) == self.c as usize + 1 {
                             debug!("relax it's a substitution");
                             plus_one.push((bases, 1, corr));
                         }
                     }
                 } else if bases.is_empty() && shift == 1 {
-                    if let Some(limit) = get_end_of_subseq(self.c() + 3, seq.len()) {
+                    if let Some(limit) = get_end_of_subseq(self.c as usize + 3, seq.len()) {
                         // Insertion
-                        if get_kmer_score(self.valid_kmer(), corr, &seq[2..limit]) == self.c() + 1 {
+                        if get_kmer_score(self.valid_kmer(), corr, &seq[2..limit]) == self.c as usize + 1 {
                             debug!("relax it's a insertion");
                             plus_one.push((bases, 1, corr));
                         }
                     }
                 } else if bases.len() == 1 && shift == 0 {
-                    if let Some(limit) = get_end_of_subseq(self.c() + 1, seq.len()) {
+                    if let Some(limit) = get_end_of_subseq(self.c as usize + 1, seq.len()) {
                         // Deletion
-                        if get_kmer_score(self.valid_kmer(), corr, &seq[0..limit]) == self.c() + 1 {
+                        if get_kmer_score(self.valid_kmer(), corr, &seq[0..limit]) == self.c as usize + 1 {
                             debug!("relax it's a deletion");
                             plus_one.push((bases, 0, corr));
                         }
@@ -237,7 +178,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = Strict::new(&data, 2);
+        let corrector = One::new(&data, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -261,7 +202,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = Relax::new(&data, 2);
+        let corrector = One::new(&data, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -280,7 +221,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = Strict::new(&data, 2);
+        let corrector = One::new(&data, 2);
 
         assert_eq!(read, corrector.correct(read).as_slice()); // don't correct
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -299,7 +240,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = Strict::new(&data, 2);
+        let corrector = One::new(&data, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -323,7 +264,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = Relax::new(&data, 2);
+        let corrector = One::new(&data, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -342,7 +283,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = Strict::new(&data, 2);
+        let corrector = One::new(&data, 2);
 
         assert_eq!(read, corrector.correct(read).as_slice()); // don't correct
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -361,7 +302,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = Strict::new(&data, 2);
+        let corrector = One::new(&data, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -385,7 +326,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = Relax::new(&data, 2);
+        let corrector = One::new(&data, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -404,7 +345,7 @@ mod tests {
             data.set(kmer, true);
         }
 
-        let corrector = Strict::new(&data, 2);
+        let corrector = One::new(&data, 2);
 
         assert_eq!(read, corrector.correct(read).as_slice()); // don't correct
         assert_eq!(refe, corrector.correct(refe).as_slice());
