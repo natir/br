@@ -20,8 +20,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
  */
 
+pub mod hash;
 pub mod pcon;
 
+pub use self::hash::Hash;
 pub use self::pcon::Pcon;
 
 pub trait KmerSet: Sync {

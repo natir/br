@@ -38,7 +38,7 @@ pub struct Command {
         about = "solidity bitfield produce by pcon"
     )]
     pub solidity: Option<String>,
-    
+
     #[clap(
         short = 'k',
         long = "kmer",
