@@ -27,6 +27,39 @@ use log::debug;
 use crate::correct::*;
 use crate::set;
 
+#[derive(Debug)]
+enum Scenario {
+    Deletion,
+    Substitution,
+    Insertion,
+}
+
+impl Scenario {
+    fn check(&self) -> u8 {
+        match self {
+            Scenario::Deletion => 0,
+            Scenario::Substitution => 1,
+            Scenario::Insertion => 2,
+        }
+    }
+
+    fn post(&self) -> usize {
+        match self {
+            Scenario::Deletion => 0,
+            Scenario::Substitution => 1,
+            Scenario::Insertion => 1,
+        }
+    }
+
+    fn name(&self) -> &str {
+        match self {
+            Scenario::Deletion => "Deletion",
+            Scenario::Substitution => "Substitution",
+            Scenario::Insertion => "Insertion",
+        }
+    }
+}
+
 pub struct One<'a> {
     valid_kmer: &'a set::BoxKmerSet<'a>,
     c: u8,
@@ -37,8 +70,27 @@ impl<'a> One<'a> {
         Self { valid_kmer, c }
     }
 
-    fn get_scenario(&self, kmer: u64, seq: &[u8]) -> Vec<(Vec<u8>, usize, usize)> {
-        let mut scenario: Vec<(Vec<u8>, usize, usize)> = Vec::new();
+    fn evaluate_scenario(
+        &self,
+        scenari: Scenario,
+        corr: u64,
+        seq: &[u8],
+        scenario: &mut Vec<(Scenario, u64, Vec<u8>)>,
+        alts: Vec<u8>,
+    ) {
+        if get_score(
+            self.valid_kmer,
+            corr,
+            &seq[scenari.check() as usize..(self.c + scenari.check()) as usize],
+        ) == self.c as usize
+        {
+            debug!("it's a {}", scenari.name());
+            scenario.push((scenari, corr, alts));
+        }
+    }
+
+    fn get_scenario(&self, kmer: u64, seq: &[u8]) -> Vec<(Scenario, u64, Vec<u8>)> {
+        let mut scenario: Vec<(Scenario, u64, Vec<u8>)> = Vec::new();
 
         let alts = alt_nucs(self.valid_kmer, kmer);
 
@@ -50,31 +102,25 @@ impl<'a> One<'a> {
 
         let corr = add_nuc_to_end(kmer >> 2, alts[0], self.k());
 
-        if let Some(limit) = get_end_of_subseq(self.c as usize + 2, seq.len()) {
-            // Substitution
-	    let score = get_kmer_score(self.valid_kmer, corr, &seq[1..limit]);
-            if score >= self.c as usize {
-                debug!("it's a substitution {}", alts[0]);
-                scenario.push((vec![cocktail::kmer::bit2nuc(alts[0])], 1, score));
-            }
-        }
-
-        if let Some(limit) = get_end_of_subseq(self.c as usize + 3, seq.len()) {
-            // Insertion
-	    let score = get_kmer_score(self.valid_kmer, corr, &seq[2..limit]);
-            if  score >= self.c as usize {
-                debug!("it's a insertion");
-                scenario.push((Vec::new(), 1, score));
-            }
-        }
-
-        if let Some(limit) = get_end_of_subseq(self.c as usize + 1, seq.len()) {
-            // Deletion
-	    let score = get_kmer_score(self.valid_kmer, corr, &seq[0..limit]);
-            if  score >= self.c as usize {
-                debug!("it's a deletion {}", alts[0]);
-                scenario.push((vec![cocktail::kmer::bit2nuc(alts[0])], 0, score));
-            }
+        if (self.c + Scenario::Insertion.check()) as usize <= seq.len() {
+            debug!("Test deletion");
+            self.evaluate_scenario(
+                Scenario::Deletion,
+                corr,
+                seq,
+                &mut scenario,
+                vec![cocktail::kmer::bit2nuc(alts[0])],
+            );
+            debug!("Test substitution");
+            self.evaluate_scenario(
+                Scenario::Substitution,
+                corr,
+                seq,
+                &mut scenario,
+                vec![cocktail::kmer::bit2nuc(alts[0])],
+            );
+            debug!("Test insertion");
+            self.evaluate_scenario(Scenario::Insertion, corr, seq, &mut scenario, vec![]);
         }
 
         scenario
@@ -88,46 +134,68 @@ impl<'a> Corrector for One<'a> {
 
     fn correct_error(&self, kmer: u64, seq: &[u8]) -> Option<(Vec<u8>, usize)> {
         let mut scenario = self.get_scenario(kmer, seq);
-	
+
         if scenario.is_empty() {
             debug!("no scenario {:?}", scenario);
             None
         } else if scenario.len() == 1 {
             debug!("one scenario");
-            Some((scenario[0].0.clone(), scenario[0].1))
+            Some((scenario[0].2.clone(), scenario[0].0.post()))
+        } else if (self.c + Scenario::Insertion.check() + 1) as usize <= seq.len() {
+            scenario.retain(|x| {
+                last_is_valid(
+                    self.valid_kmer,
+                    x.1,
+                    &seq[(x.0.check() as usize)..(self.c + x.0.check() + 1) as usize],
+                )
+            });
+
+            if scenario.len() == 1 {
+                debug!("multi scenario one is better {}", scenario[0].0.name());
+                Some((scenario[0].2.clone(), scenario[0].0.post()))
+            } else {
+                debug!("multi scenario no better");
+                None
+            }
         } else {
-	    scenario.retain(|x| x.2 == (self.c as usize + 1));
-	    if scenario.len() == 1 {
-		debug!("multi scenario one good");
-		Some((scenario[0].0.clone(), scenario[0].1))
-	    } else {
-		debug!("multi scenario no good");
-		None
-	    }
+            None
         }
     }
 }
 
-fn get_end_of_subseq(offset: usize, max_length: usize) -> Option<usize> {
-    if offset > max_length {
-        None
-    } else {
-        Some(offset)
-    }
-}
-
-fn get_kmer_score(valid_kmer: &set::BoxKmerSet, mut kmer: u64, nucs: &[u8]) -> usize {
+fn get_score(valid_kmer: &set::BoxKmerSet, mut kmer: u64, nucs: &[u8]) -> usize {
     let mut score = 0;
 
     for nuc in nucs {
+        debug!("before {}", cocktail::kmer::kmer2seq(kmer, valid_kmer.k()));
         kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(*nuc), valid_kmer.k());
-
+        debug!(
+            "after  {} {}",
+            cocktail::kmer::kmer2seq(kmer, valid_kmer.k()),
+            valid_kmer.get(kmer)
+        );
         if valid_kmer.get(kmer) {
             score += 1
+        } else {
+            break;
         }
     }
 
     score
+}
+
+fn last_is_valid(valid_kmer: &set::BoxKmerSet, mut kmer: u64, nucs: &[u8]) -> bool {
+    debug!("kmer {}", cocktail::kmer::kmer2seq(kmer, valid_kmer.k()));
+    debug!("nucs {}", std::str::from_utf8(nucs).unwrap());
+    nucs.iter()
+        .for_each(|nuc| kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(*nuc), valid_kmer.k()));
+    debug!(
+        "last kmer {} valid {}",
+        cocktail::kmer::kmer2seq(kmer, valid_kmer.k()),
+        valid_kmer.get(kmer)
+    );
+
+    valid_kmer.get(kmer)
 }
 
 #[cfg(test)]
@@ -232,17 +300,17 @@ mod tests {
     fn cic_relaxe() {
         init();
 
-        let refe = b"ACTGACGAC";
-        let read = b"ACTGATCGAC";
-        let conf = b"ACTGACGAC";
+        let refe = b"GAGCGTACGTTGGAT";
+        let read = b"GAGCGTACTGTTGGAT";
+        let conf = b"GCGTACGTGA";
 
-        let mut data = pcon::solid::Solid::new(5);
+        let mut data = pcon::solid::Solid::new(7);
 
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 7) {
             data.set(kmer, true);
         }
 
-        for kmer in cocktail::tokenizer::Tokenizer::new(conf, 5) {
+        for kmer in cocktail::tokenizer::Tokenizer::new(conf, 7) {
             data.set(kmer, true);
         }
 
@@ -279,8 +347,8 @@ mod tests {
     fn cdc() {
         init();
 
-        let refe = b"ACTGACGAC";
-        let read = b"ACTGAGAC";
+        let refe = b"ACTGACGACCC";
+        let read = b"ACTGAGACCC";
 
         let mut data = pcon::solid::Solid::new(5);
 
@@ -300,17 +368,17 @@ mod tests {
     fn cdc_relaxe() {
         init();
 
-        let refe = b"ACTGACGAC";
-        let read = b"ACTGAGAC";
-        let conf = b"ACTGACTAC";
+        let refe = b"GAGCGTACGTTGGAT";
+        let read = b"GAGCGTAGTTGGAT";
+        let conf = b"GCGTACTT";
 
-        let mut data = pcon::solid::Solid::new(5);
+        let mut data = pcon::solid::Solid::new(7);
 
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 7) {
             data.set(kmer, true);
         }
 
-        for kmer in cocktail::tokenizer::Tokenizer::new(conf, 5) {
+        for kmer in cocktail::tokenizer::Tokenizer::new(conf, 7) {
             data.set(kmer, true);
         }
 

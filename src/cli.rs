@@ -166,19 +166,20 @@ pub fn read_or_compute_solidity(
             solidity_reader,
         )?)))
     } else if let Some(kmer_solid) = kmer_solid {
-	let mut files = Vec::new();
+        let mut files = Vec::new();
 
-	for path in kmer_solid {
-	    files.push(
-		std::io::BufReader::new(
-		    std::fs::File::open(&path)
-			.with_context(|| Error::IO(CantOpenFile))
-			.with_context(|| anyhow!("File {:?}", solidity_path.clone()))?,
-		)
-	    );
-	}
+        for path in kmer_solid {
+            files.push(std::io::BufReader::new(
+                std::fs::File::open(&path)
+                    .with_context(|| Error::IO(CantOpenFile))
+                    .with_context(|| anyhow!("File {:?}", solidity_path.clone()))?,
+            ));
+        }
 
-	Ok(Box::new(set::Hash::new(files, kmer_size.ok_or(Error::Cli(Cli::KmerSolidNeedK))?)))
+        Ok(Box::new(set::Hash::new(
+            files,
+            kmer_size.ok_or(Error::Cli(Cli::KmerSolidNeedK))?,
+        )))
     } else if let Some(kmer_size) = kmer_size {
         let mut counter = pcon::counter::Counter::new(kmer_size);
 
