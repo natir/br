@@ -9,9 +9,6 @@ edition = "2018"
 name = "br"
 crate-type = ["rlib", "cdylib", "staticlib"]
 
-[[bin]]
-name = "br"
-path = "src/main.rs"
 
 [dependencies]
 bio            = "0.32"

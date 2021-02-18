@@ -28,7 +28,7 @@ use log::Level;
 #[derive(Clap, Debug)]
 #[clap(
     version = "0.1",
-    author = "Pierre Marijon <pmarijon@mpi-inf.mpg.de>",
+    author = "Pierre Marijon <pierre.marijon@hhu.de>",
     about = "Br: Brutal rewrite a simple long read corrector based on kmer spectrum methode"
 )]
 pub struct Command {
@@ -38,13 +38,6 @@ pub struct Command {
         about = "solidity bitfield produce by pcon"
     )]
     pub solidity: Option<String>,
-
-    #[clap(
-        short = 'S',
-        long = "kmer-solid",
-        about = "use kmer present in fasta file as solid kmer and store them in HashSet"
-    )]
-    pub kmer_solid: Option<Vec<String>>,
 
     #[clap(
         short = 'k',
@@ -148,7 +141,6 @@ pub fn i82level(level: i8) -> Option<Level> {
 
 pub fn read_or_compute_solidity(
     solidity_path: Option<String>,
-    kmer_solid: Option<Vec<String>>,
     kmer_size: Option<u8>,
     inputs: &[String],
     record_buffer_len: usize,
@@ -165,21 +157,6 @@ pub fn read_or_compute_solidity(
         Ok(Box::new(set::Pcon::new(pcon::solid::Solid::deserialize(
             solidity_reader,
         )?)))
-    } else if let Some(kmer_solid) = kmer_solid {
-        let mut files = Vec::new();
-
-        for path in kmer_solid {
-            files.push(std::io::BufReader::new(
-                std::fs::File::open(&path)
-                    .with_context(|| Error::IO(CantOpenFile))
-                    .with_context(|| anyhow!("File {:?}", solidity_path.clone()))?,
-            ));
-        }
-
-        Ok(Box::new(set::Hash::new(
-            files,
-            kmer_size.ok_or(Error::Cli(Cli::KmerSolidNeedK))?,
-        )))
     } else if let Some(kmer_size) = kmer_size {
         let mut counter = pcon::counter::Counter::new(kmer_size);
 

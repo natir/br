@@ -42,33 +42,19 @@ fn main() -> Result<()> {
             .init();
     }
 
-    let confirm = if let Some(val) = params.confirm {
-        val
-    } else {
-        2
-    };
-
-    let max_search = if let Some(val) = params.max_search {
-        val
-    } else {
-        7
-    };
-
+    let confirm = params.confirm.unwrap_or(2);
+    let max_search = params.max_search.unwrap_or(7);
+    let record_buffer = params.record_buffer.unwrap_or(8192);
+    
     if let Some(threads) = params.threads {
         log::info!("Set number of threads to {}", threads);
 
         set_nb_threads(threads);
     }
 
-    let record_buffer = if let Some(len) = params.record_buffer {
-        len
-    } else {
-        8192
-    };
 
     let solid = cli::read_or_compute_solidity(
         params.solidity,
-        params.kmer_solid,
         params.kmer_size,
         &params.inputs,
         record_buffer,
