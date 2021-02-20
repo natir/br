@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Cli","Error emmit durring Cli parsing"],["Error","All error produce by Pcon"],["IO","Error emmit when pcon try to work with file"]]});

@@ -1,0 +1,4 @@
+(function() {var implementors = {};
+implementors["br"] = [{"text":"impl Freeze for Command","synthetic":true,"types":[]},{"text":"impl&lt;'a&gt; Freeze for GapSize&lt;'a&gt;","synthetic":true,"types":[]},{"text":"impl&lt;'a&gt; Freeze for Graph&lt;'a&gt;","synthetic":true,"types":[]},{"text":"impl&lt;'a&gt; Freeze for Greedy&lt;'a&gt;","synthetic":true,"types":[]},{"text":"impl&lt;'a&gt; Freeze for One&lt;'a&gt;","synthetic":true,"types":[]},{"text":"impl Freeze for Error","synthetic":true,"types":[]},{"text":"impl Freeze for Cli","synthetic":true,"types":[]},{"text":"impl Freeze for IO","synthetic":true,"types":[]},{"text":"impl Freeze for Hash","synthetic":true,"types":[]},{"text":"impl Freeze for Pcon","synthetic":true,"types":[]}];
+implementors["br_large"] = [{"text":"impl Freeze for Command","synthetic":true,"types":[]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
