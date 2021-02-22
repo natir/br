@@ -512,7 +512,7 @@ SOFTWARE.
 
         <span class="kw">let</span> <span class="ident">set</span>: <span class="ident">set</span>::<span class="ident">BoxKmerSet</span> <span class="op">=</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">set</span>::<span class="ident">Pcon</span>::<span class="ident">new</span>(<span class="ident">data</span>));
 
-        <span class="kw">let</span> <span class="ident">corrector</span> <span class="op">=</span> <span class="ident">One</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">set</span>, <span class="number">2</span>);
+        <span class="kw">let</span> <span class="ident">corrector</span> <span class="op">=</span> <span class="ident">Two</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">set</span>, <span class="number">2</span>);
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">refe</span>, <span class="ident">corrector</span>.<span class="ident">correct</span>(<span class="ident">read</span>).<span class="ident">as_slice</span>());
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">refe</span>, <span class="ident">corrector</span>.<span class="ident">correct</span>(<span class="ident">refe</span>).<span class="ident">as_slice</span>());
@@ -533,7 +533,7 @@ SOFTWARE.
 
         <span class="kw">let</span> <span class="ident">set</span>: <span class="ident">set</span>::<span class="ident">BoxKmerSet</span> <span class="op">=</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">set</span>::<span class="ident">Pcon</span>::<span class="ident">new</span>(<span class="ident">data</span>));
 
-        <span class="kw">let</span> <span class="ident">corrector</span> <span class="op">=</span> <span class="ident">One</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">set</span>, <span class="number">2</span>);
+        <span class="kw">let</span> <span class="ident">corrector</span> <span class="op">=</span> <span class="ident">Two</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">set</span>, <span class="number">2</span>);
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">refe</span>, <span class="ident">corrector</span>.<span class="ident">correct</span>(<span class="ident">read</span>).<span class="ident">as_slice</span>());
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">refe</span>, <span class="ident">corrector</span>.<span class="ident">correct</span>(<span class="ident">refe</span>).<span class="ident">as_slice</span>());
@@ -554,7 +554,7 @@ SOFTWARE.
 
         <span class="kw">let</span> <span class="ident">set</span>: <span class="ident">set</span>::<span class="ident">BoxKmerSet</span> <span class="op">=</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">set</span>::<span class="ident">Pcon</span>::<span class="ident">new</span>(<span class="ident">data</span>));
 
-        <span class="kw">let</span> <span class="ident">corrector</span> <span class="op">=</span> <span class="ident">One</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">set</span>, <span class="number">2</span>);
+        <span class="kw">let</span> <span class="ident">corrector</span> <span class="op">=</span> <span class="ident">Two</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">set</span>, <span class="number">2</span>);
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">refe</span>, <span class="ident">corrector</span>.<span class="ident">correct</span>(<span class="ident">read</span>).<span class="ident">as_slice</span>());
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">refe</span>, <span class="ident">corrector</span>.<span class="ident">correct</span>(<span class="ident">refe</span>).<span class="ident">as_slice</span>());
