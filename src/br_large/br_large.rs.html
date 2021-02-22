@@ -144,14 +144,6 @@
 <span id="141">141</span>
 <span id="142">142</span>
 <span id="143">143</span>
-<span id="144">144</span>
-<span id="145">145</span>
-<span id="146">146</span>
-<span id="147">147</span>
-<span id="148">148</span>
-<span id="149">149</span>
-<span id="150">150</span>
-<span id="151">151</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">/*
 Copyright (c) 2021 Pierre Marijon &lt;pierre.marijon@hhu.de&gt;
@@ -176,12 +168,12 @@ SOFTWARE.
  */</span>
 
 <span class="comment">/* crate use */</span>
-<span class="kw">use</span> <span class="ident">anyhow</span>::{<span class="prelude-ty">Result</span>, <span class="ident">Context</span>, <span class="ident">anyhow</span>};
+<span class="kw">use</span> <span class="ident">anyhow</span>::{<span class="ident">anyhow</span>, <span class="ident">Context</span>, <span class="prelude-ty">Result</span>};
 <span class="kw">use</span> <span class="ident">clap</span>::<span class="ident">Clap</span>;
 
-<span class="kw">use</span> <span class="ident">br</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">br</span>::<span class="ident">error</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">br</span>::<span class="ident">error</span>::<span class="ident">IO</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident">br</span>::<span class="ident">error</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident">br</span>::<span class="kw-2">*</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clap</span>, <span class="ident">Debug</span>)]</span>
 <span class="attribute">#[<span class="ident">clap</span>(
@@ -200,7 +192,6 @@ SOFTWARE.
     )]</span>
     <span class="kw">pub</span> <span class="ident">outputs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 
-    
     <span class="attribute">#[<span class="ident">clap</span>(
         <span class="ident">short</span> <span class="op">=</span> <span class="string">&#39;S&#39;</span>,
         <span class="ident">long</span> <span class="op">=</span> <span class="string">&quot;kmer-solid&quot;</span>,
@@ -208,12 +199,7 @@ SOFTWARE.
     )]</span>
     <span class="kw">pub</span> <span class="ident">kmer_solid</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 
-    
-    <span class="attribute">#[<span class="ident">clap</span>(
-        <span class="ident">short</span> <span class="op">=</span> <span class="string">&#39;k&#39;</span>,
-        <span class="ident">long</span> <span class="op">=</span> <span class="string">&quot;kmer&quot;</span>,
-        <span class="ident">about</span> <span class="op">=</span> <span class="string">&quot;kmer length lower or equal to 32&quot;</span>
-    )]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">short</span> <span class="op">=</span> <span class="string">&#39;k&#39;</span>, <span class="ident">long</span> <span class="op">=</span> <span class="string">&quot;kmer&quot;</span>, <span class="ident">about</span> <span class="op">=</span> <span class="string">&quot;kmer length lower or equal to 32&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">kmer_size</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
 
     <span class="attribute">#[<span class="ident">clap</span>(
@@ -266,7 +252,6 @@ SOFTWARE.
         <span class="ident">about</span> <span class="op">=</span> <span class="string">&quot;verbosity level also control by environment variable BR_LOG if flag is set BR_LOG value is ignored&quot;</span>
     )]</span>
     <span class="kw">pub</span> <span class="ident">verbosity</span>: <span class="ident">i8</span>,
-
 }
 
 <span class="kw">fn</span> <span class="ident">main</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
@@ -282,7 +267,7 @@ SOFTWARE.
         ));
     }
 
-   <span class="kw">let</span> <span class="ident">solid</span>: <span class="ident">set</span>::<span class="ident">BoxKmerSet</span> <span class="op">=</span>  <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">set</span>::<span class="ident">Hash</span>::<span class="ident">new</span>(
+    <span class="kw">let</span> <span class="ident">solid</span>: <span class="ident">set</span>::<span class="ident">BoxKmerSet</span> <span class="op">=</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">set</span>::<span class="ident">Hash</span>::<span class="ident">new</span>(
         <span class="ident">files</span>,
         <span class="ident">params</span>.<span class="ident">kmer_size</span>.<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="ident">Cli</span>(<span class="ident">Cli</span>::<span class="ident">KmerSolidNeedK</span>))<span class="question-mark">?</span>,
     ));
@@ -290,10 +275,9 @@ SOFTWARE.
     <span class="kw">let</span> <span class="ident">confirm</span> <span class="op">=</span> <span class="ident">params</span>.<span class="ident">confirm</span>.<span class="ident">unwrap_or</span>(<span class="number">2</span>);
     <span class="kw">let</span> <span class="ident">max_search</span> <span class="op">=</span> <span class="ident">params</span>.<span class="ident">max_search</span>.<span class="ident">unwrap_or</span>(<span class="number">7</span>);
     <span class="kw">let</span> <span class="ident">record_buffer</span> <span class="op">=</span> <span class="ident">params</span>.<span class="ident">record_buffer</span>.<span class="ident">unwrap_or</span>(<span class="number">8192</span>);
-    
+
     <span class="kw">let</span> <span class="ident">methods</span> <span class="op">=</span> <span class="ident">br</span>::<span class="ident">build_methods</span>(<span class="ident">params</span>.<span class="ident">methods</span>, <span class="kw-2">&amp;</span><span class="ident">solid</span>, <span class="ident">confirm</span>, <span class="ident">max_search</span>);
 
-    
     <span class="ident">br</span>::<span class="ident">run_correction</span>(
         <span class="kw-2">&amp;</span><span class="ident">params</span>.<span class="ident">inputs</span>,
         <span class="kw-2">&amp;</span><span class="ident">params</span>.<span class="ident">outputs</span>,
@@ -301,7 +285,7 @@ SOFTWARE.
         <span class="ident">params</span>.<span class="ident">two_side</span>,
         <span class="ident">record_buffer</span>,
     )<span class="question-mark">?</span>;
-    
+
     <span class="prelude-val">Ok</span>(())
 }
 </pre></div>
