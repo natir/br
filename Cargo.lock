@@ -119,7 +119,7 @@ dependencies = [
  "serde_derive",
  "snafu",
  "statrs",
- "strum",
+ "strum 0.18.0",
  "strum_macros 0.18.0",
  "triple_accel",
  "vec_map",
@@ -185,6 +185,8 @@ dependencies = [
  "pcon",
  "rayon",
  "rustc-hash",
+ "strum 0.20.0",
+ "strum_macros 0.20.1",
  "thiserror",
 ]
 
@@ -1091,6 +1093,12 @@ name = "strum"
 version = "0.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "57bd81eb48f4c437cadc685403cad539345bf703d78e63707418431cecd4522b"
+
+[[package]]
+name = "strum"
+version = "0.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7318c509b5ba57f18533982607f24070a55d353e90d4cae30c467cdb2ad5ac5c"
 
 [[package]]
 name = "strum_macros"

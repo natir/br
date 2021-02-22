@@ -13,6 +13,8 @@ crate-type = ["rlib", "cdylib", "staticlib"]
 [dependencies]
 bio            = "0.32"
 rustc-hash     = "1"
+strum          = "0.20"
+strum_macros   = "0.20"
 cocktail       = { git = "https://github.com/natir/cocktail.git" }
 pcon	       = { git = "https://github.com/natir/pcon.git" }
 
