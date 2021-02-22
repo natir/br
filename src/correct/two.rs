@@ -62,147 +62,104 @@ enum Scenario {
 
 impl Scenario {
     fn apply(self, kmer: u64, _seq: &[u8]) -> Option<(u64, usize)> {
-	match self {
-	    Scenario::I => {
-		Some((kmer, 2))
-	    },
-	    Scenario::S => {
-		Some((kmer, 1))
-	    }
-	    Scenario::D => {
-		Some((kmer, 0))
-	    },
-	    Scenario::II => {
-		Some((kmer, 3))
-	    },
-	    Scenario::IS => {
-		None
-	    },
-	    Scenario::SS => {
-		None
-	    },
-	    Scenario::SD => {
-		None
-	    },
-	    Scenario::DD => {
-		None
-	    },
-	    Scenario::ICI => {
-		None
-	    },
-	    Scenario::ICS => {
-		None
-	    },
-	    Scenario::ICD => {
-		None
-	    },
-	    Scenario::SCI => {
-		None
-	    },
-	    Scenario::SCS => {
-		None
-	    },
-	    Scenario::SCD => {
-		None
-	    },
-	    Scenario::DCI => {
-		None
-	    },
-	    Scenario::DCS => {
-		None
-	    },
-	    Scenario::DCD => {
-		None
-	    },
-	}
+        match self {
+            Scenario::I => Some((kmer, 2)),
+            Scenario::S => Some((kmer, 1)),
+            Scenario::D => Some((kmer, 0)),
+            Scenario::II => Some((kmer, 3)),
+            Scenario::IS => None,
+            Scenario::SS => None,
+            Scenario::SD => None,
+            Scenario::DD => None,
+            Scenario::ICI => None,
+            Scenario::ICS => None,
+            Scenario::ICD => None,
+            Scenario::SCI => None,
+            Scenario::SCS => None,
+            Scenario::SCD => None,
+            Scenario::DCI => None,
+            Scenario::DCS => None,
+            Scenario::DCD => None,
+        }
     }
 
     fn correct(self, kmer: u64, _seq: &[u8]) -> (Vec<u8>, usize) {
-	match self {
-	    Scenario::I => {
-		(vec![], 1)
-	    },
-	    Scenario::S => {
-		(vec![cocktail::kmer::bit2nuc(kmer & 0b11)], 1)
-	    }
-	    Scenario::D => {
-		(vec![cocktail::kmer::bit2nuc(kmer & 0b11)], 0)
-	    },
-	    /*Scenario::II => {
-		Some((kmer, 3))
-	    },
-	    Scenario::IS => {
-		None
-	    },
-	    Scenario::SS => {
-		None
-	    },
-	    Scenario::SD => {
-		None
-	    },
-	    Scenario::DD => {
-		None
-	    },
-	    Scenario::ICI => {
-		None
-	    },
-	    Scenario::ICS => {
-		None
-	    },
-	    Scenario::ICD => {
-		None
-	    },
-	    Scenario::SCI => {
-		None
-	    },
-	    Scenario::SCS => {
-		None
-	    },
-	    Scenario::SCD => {
-		None
-	    },
-	    Scenario::DCI => {
-		None
-	    },
-	    Scenario::DCS => {
-		None
-	    },
-	    Scenario::DCD => {
-		None
-	},*/
-	    _ => {
-		(vec![], 0)
-	    }
-	}
+        match self {
+            Scenario::I => (vec![], 1),
+            Scenario::S => (vec![cocktail::kmer::bit2nuc(kmer & 0b11)], 1),
+            Scenario::D => (vec![cocktail::kmer::bit2nuc(kmer & 0b11)], 0),
+            /*Scenario::II => {
+                Some((kmer, 3))
+                },
+                Scenario::IS => {
+                None
+                },
+                Scenario::SS => {
+                None
+                },
+                Scenario::SD => {
+                None
+                },
+                Scenario::DD => {
+                None
+                },
+                Scenario::ICI => {
+                None
+                },
+                Scenario::ICS => {
+                None
+                },
+                Scenario::ICD => {
+                None
+                },
+                Scenario::SCI => {
+                None
+                },
+                Scenario::SCS => {
+                None
+                },
+                Scenario::SCD => {
+                None
+                },
+                Scenario::DCI => {
+                None
+                },
+                Scenario::DCS => {
+                None
+                },
+                Scenario::DCD => {
+                None
+            },*/
+            _ => (vec![], 0),
+        }
     }
 
     fn get_score(self, valid_kmer: &set::BoxKmerSet, ori: u64, seq: &[u8], c: usize) -> usize {
+        if let Some((mut kmer, offset)) = self.apply(ori, seq) {
+            if !valid_kmer.get(kmer) {
+                return 0;
+            }
 
-	if let Some((mut kmer, offset)) = self.apply(ori, seq) {
-	    if !valid_kmer.get(kmer) {
-		return 0;
-	    }
-	    
-	    if offset + c > seq.len() {
-		return 0;
-	    }
-	    
-	    let mut score = 0;
-	    
-	    for nuc in &seq[offset..offset+c] {
-		kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(*nuc), valid_kmer.k());
+            if offset + c > seq.len() {
+                return 0;
+            }
 
-		if valid_kmer.get(kmer) {
-		    score += 1
-		} else {
-		    break;
-		}
-	    }
+            let mut score = 0;
 
-	    score
-	} else {
-	    0
-	} 
+            for nuc in &seq[offset..offset + c] {
+                kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(*nuc), valid_kmer.k());
+
+                if valid_kmer.get(kmer) {
+                    score += 1
+                } else {
+                    break;
+                }
+            }
+
+            score
+        } else {
+            0
+        }
     }
 }
 
@@ -213,25 +170,25 @@ pub struct Two<'a> {
 
 impl<'a> Two<'a> {
     pub fn new(valid_kmer: &'a set::BoxKmerSet, c: u8) -> Self {
-	Self { valid_kmer, c }
+        Self { valid_kmer, c }
     }
 
     fn get_scenarii(&self, kmer: u64, seq: &[u8]) -> Vec<Scenario> {
         let mut scenarii: Vec<Scenario> = Vec::new();
 
-	for scenario in Scenario::iter() {
-	    if scenario.get_score(self.valid_kmer, kmer, seq, self.c as usize) == self.c as usize {
-		scenarii.push(scenario.clone())
-	    }
-	}
-	
-	scenarii
+        for scenario in Scenario::iter() {
+            if scenario.get_score(self.valid_kmer, kmer, seq, self.c as usize) == self.c as usize {
+                scenarii.push(scenario)
+            }
+        }
+
+        scenarii
     }
 }
 
 impl<'a> Corrector for Two<'a> {
     fn valid_kmer(&self) -> &set::BoxKmerSet {
-	self.valid_kmer
+        self.valid_kmer
     }
 
     fn correct_error(&self, kmer: u64, seq: &[u8]) -> Option<(Vec<u8>, usize)> {
@@ -243,18 +200,18 @@ impl<'a> Corrector for Two<'a> {
         }
         debug!("one alts {:?}", alts);
 
-	let corr = add_nuc_to_end(kmer >> 2, alts[0], self.k());
-	let scenarii = self.get_scenarii(corr, seq);
+        let corr = add_nuc_to_end(kmer >> 2, alts[0], self.k());
+        let scenarii = self.get_scenarii(corr, seq);
 
-	if scenarii.is_empty() {
-	    debug!("no scenario");
-	    None
-	} else if scenarii.len() == 1{
-	    debug!("one scenario");
-	    Some(scenarii[0].correct(corr, seq))
-	} else {
-	    None
-	}
+        if scenarii.is_empty() {
+            debug!("no scenario");
+            None
+        } else if scenarii.len() == 1 {
+            debug!("one scenario");
+            Some(scenarii[0].correct(corr, seq))
+        } else {
+            None
+        }
     }
 }
 
@@ -308,7 +265,7 @@ mod tests {
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
     }
-    
+
     #[test]
     fn cdc() {
         init();

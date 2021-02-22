@@ -21,12 +21,12 @@ SOFTWARE.
  */
 
 /* crate use */
-use anyhow::{Result, Context, anyhow};
+use anyhow::{anyhow, Context, Result};
 use clap::Clap;
 
-use br::*;
-use br::error::*;
 use br::error::IO::*;
+use br::error::*;
+use br::*;
 
 #[derive(Clap, Debug)]
 #[clap(
@@ -45,7 +45,6 @@ pub struct Command {
     )]
     pub outputs: Vec<String>,
 
-    
     #[clap(
         short = 'S',
         long = "kmer-solid",
@@ -53,12 +52,7 @@ pub struct Command {
     )]
     pub kmer_solid: Vec<String>,
 
-    
-    #[clap(
-        short = 'k',
-        long = "kmer",
-        about = "kmer length lower or equal to 32"
-    )]
+    #[clap(short = 'k', long = "kmer", about = "kmer length lower or equal to 32")]
     pub kmer_size: Option<u8>,
 
     #[clap(
@@ -111,7 +105,6 @@ pub struct Command {
         about = "verbosity level also control by environment variable BR_LOG if flag is set BR_LOG value is ignored"
     )]
     pub verbosity: i8,
-
 }
 
 fn main() -> Result<()> {
@@ -127,7 +120,7 @@ fn main() -> Result<()> {
         ));
     }
 
-   let solid: set::BoxKmerSet =  Box::new(set::Hash::new(
+    let solid: set::BoxKmerSet = Box::new(set::Hash::new(
         files,
         params.kmer_size.ok_or(Error::Cli(Cli::KmerSolidNeedK))?,
     ));
@@ -135,10 +128,9 @@ fn main() -> Result<()> {
     let confirm = params.confirm.unwrap_or(2);
     let max_search = params.max_search.unwrap_or(7);
     let record_buffer = params.record_buffer.unwrap_or(8192);
-    
+
     let methods = br::build_methods(params.methods, &solid, confirm, max_search);
 
-    
     br::run_correction(
         &params.inputs,
         &params.outputs,
@@ -146,6 +138,6 @@ fn main() -> Result<()> {
         params.two_side,
         record_buffer,
     )?;
-    
+
     Ok(())
 }

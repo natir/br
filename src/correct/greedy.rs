@@ -331,6 +331,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn cdc() {
         init();
 
@@ -350,6 +351,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn cddc() {
         init();
 
@@ -368,6 +370,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn cdddc() {
         init();
 

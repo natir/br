@@ -45,13 +45,12 @@ fn main() -> Result<()> {
     let confirm = params.confirm.unwrap_or(2);
     let max_search = params.max_search.unwrap_or(7);
     let record_buffer = params.record_buffer.unwrap_or(8192);
-    
+
     if let Some(threads) = params.threads {
         log::info!("Set number of threads to {}", threads);
 
         set_nb_threads(threads);
     }
-
 
     let solid = cli::read_or_compute_solidity(
         params.solidity,
