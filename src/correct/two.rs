@@ -229,7 +229,7 @@ mod tests {
 
         let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
-        let corrector = One::new(&set, 2);
+        let corrector = Two::new(&set, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -250,7 +250,7 @@ mod tests {
 
         let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
-        let corrector = One::new(&set, 2);
+        let corrector = Two::new(&set, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());
@@ -271,7 +271,7 @@ mod tests {
 
         let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
 
-        let corrector = One::new(&set, 2);
+        let corrector = Two::new(&set, 2);
 
         assert_eq!(refe, corrector.correct(read).as_slice());
         assert_eq!(refe, corrector.correct(refe).as_slice());

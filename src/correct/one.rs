@@ -46,7 +46,7 @@ impl Scenario {
     }
 
     fn apply(self, kmer: u64, _seq: &[u8]) -> Option<(u64, usize)> {
-	Some((kmer, self.check()))
+        Some((kmer, self.check()))
     }
 
     fn correct(self, kmer: u64, _seq: &[u8]) -> (Vec<u8>, usize) {
@@ -133,14 +133,14 @@ impl<'a> Corrector for One<'a> {
             debug!("one scenario");
             Some(scenarii[0].correct(corr, seq))
         } else {
-	    scenarii.retain(|x| {
-		last_is_valid(
+            scenarii.retain(|x| {
+                last_is_valid(
                     self.valid_kmer,
                     corr,
                     &seq[(x.check() as usize)..(self.c as usize + x.check() + 1) as usize],
                 )
             });
-	    
+
             if scenarii.len() == 1 {
                 debug!("multi scenario one is better {:?}", scenarii[0]);
                 Some(scenarii[0].correct(corr, seq))

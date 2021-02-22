@@ -1,4 +1,4 @@
-# Brutal Rewrite, is a long read kmer corrector
+# Brutal Rewrite, a long read kmer corrector
 
 [![License](https://img.shields.io/badge/license-MIT-green)](https://github.com/natir/br/blob/master/LICENSE)
 ![CI](https://github.com/natir/br/workflows/CI/badge.svg)
