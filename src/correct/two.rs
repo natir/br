@@ -20,16 +20,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
  */
 
-/*
-Reference: CCTTGCACCGGATTATATAA
-           ||||||||||||  ||||||
-CSSC:      CCTTGCACCGGAGGATATAA
-
-Reference: CCTTGCACCGGATTATATAA
-           |||||||||||| | |||||
-CSCSC:     CCTTGCACCGGAGTCTATAA
- */
-
 /* crate use */
 use log::debug;
 use strum::IntoEnumIterator;

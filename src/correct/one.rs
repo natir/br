@@ -22,40 +22,66 @@ SOFTWARE.
 
 /* crate use */
 use log::debug;
+use strum::IntoEnumIterator;
+use strum_macros::EnumIter;
 
-/* local use */
+/* crate use */
 use crate::correct::*;
 use crate::set;
 
-#[derive(Debug)]
+#[derive(Debug, EnumIter, Clone, Copy)]
 enum Scenario {
-    Deletion,
-    Substitution,
-    Insertion,
+    I,
+    S,
+    D,
 }
 
 impl Scenario {
-    fn check(&self) -> u8 {
+    fn check(self) -> usize {
         match self {
-            Scenario::Deletion => 0,
-            Scenario::Substitution => 1,
-            Scenario::Insertion => 2,
+            Scenario::I => 2,
+            Scenario::S => 1,
+            Scenario::D => 0,
         }
     }
 
-    fn post(&self) -> usize {
+    fn apply(self, kmer: u64, _seq: &[u8]) -> Option<(u64, usize)> {
+	Some((kmer, self.check()))
+    }
+
+    fn correct(self, kmer: u64, _seq: &[u8]) -> (Vec<u8>, usize) {
         match self {
-            Scenario::Deletion => 0,
-            Scenario::Substitution => 1,
-            Scenario::Insertion => 1,
+            Scenario::I => (vec![], 1),
+            Scenario::S => (vec![cocktail::kmer::bit2nuc(kmer & 0b11)], 1),
+            Scenario::D => (vec![cocktail::kmer::bit2nuc(kmer & 0b11)], 0),
         }
     }
 
-    fn name(&self) -> &str {
-        match self {
-            Scenario::Deletion => "Deletion",
-            Scenario::Substitution => "Substitution",
-            Scenario::Insertion => "Insertion",
+    fn get_score(self, valid_kmer: &set::BoxKmerSet, ori: u64, seq: &[u8], c: usize) -> usize {
+        if let Some((mut kmer, offset)) = self.apply(ori, seq) {
+            if !valid_kmer.get(kmer) {
+                return 0;
+            }
+
+            if offset + c > seq.len() {
+                return 0;
+            }
+
+            let mut score = 0;
+
+            for nuc in &seq[offset..offset + c] {
+                kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(*nuc), valid_kmer.k());
+
+                if valid_kmer.get(kmer) {
+                    score += 1
+                } else {
+                    break;
+                }
+            }
+
+            score
+        } else {
+            0
         }
     }
 }
@@ -66,64 +92,20 @@ pub struct One<'a> {
 }
 
 impl<'a> One<'a> {
-    pub fn new(valid_kmer: &'a set::BoxKmerSet<'a>, c: u8) -> Self {
+    pub fn new(valid_kmer: &'a set::BoxKmerSet, c: u8) -> Self {
         Self { valid_kmer, c }
     }
 
-    fn evaluate_scenario(
-        &self,
-        scenari: Scenario,
-        corr: u64,
-        seq: &[u8],
-        scenario: &mut Vec<(Scenario, u64, Vec<u8>)>,
-        alts: Vec<u8>,
-    ) {
-        if get_score(
-            self.valid_kmer,
-            corr,
-            &seq[scenari.check() as usize..(self.c + scenari.check()) as usize],
-        ) == self.c as usize
-        {
-            debug!("it's a {}", scenari.name());
-            scenario.push((scenari, corr, alts));
-        }
-    }
+    fn get_scenarii(&self, kmer: u64, seq: &[u8]) -> Vec<Scenario> {
+        let mut scenarii: Vec<Scenario> = Vec::new();
 
-    fn get_scenario(&self, kmer: u64, seq: &[u8]) -> Vec<(Scenario, u64, Vec<u8>)> {
-        let mut scenario: Vec<(Scenario, u64, Vec<u8>)> = Vec::new();
-
-        let alts = alt_nucs(self.valid_kmer, kmer);
-
-        if alts.len() != 1 {
-            debug!("not one alts {:?}", alts);
-            return scenario;
-        }
-        debug!("one alts {:?}", alts);
-
-        let corr = add_nuc_to_end(kmer >> 2, alts[0], self.k());
-
-        if (self.c + Scenario::Insertion.check()) as usize <= seq.len() {
-            debug!("Test deletion");
-            self.evaluate_scenario(
-                Scenario::Deletion,
-                corr,
-                seq,
-                &mut scenario,
-                vec![cocktail::kmer::bit2nuc(alts[0])],
-            );
-            debug!("Test substitution");
-            self.evaluate_scenario(
-                Scenario::Substitution,
-                corr,
-                seq,
-                &mut scenario,
-                vec![cocktail::kmer::bit2nuc(alts[0])],
-            );
-            debug!("Test insertion");
-            self.evaluate_scenario(Scenario::Insertion, corr, seq, &mut scenario, vec![]);
+        for scenario in Scenario::iter() {
+            if scenario.get_score(self.valid_kmer, kmer, seq, self.c as usize) == self.c as usize {
+                scenarii.push(scenario)
+            }
         }
 
-        scenario
+        scenarii
     }
 }
 
@@ -133,55 +115,41 @@ impl<'a> Corrector for One<'a> {
     }
 
     fn correct_error(&self, kmer: u64, seq: &[u8]) -> Option<(Vec<u8>, usize)> {
-        let mut scenario = self.get_scenario(kmer, seq);
+        let alts = alt_nucs(self.valid_kmer, kmer);
 
-        if scenario.is_empty() {
-            debug!("no scenario {:?}", scenario);
+        if alts.len() != 1 {
+            debug!("not one alts {:?}", alts);
+            return None;
+        }
+        debug!("one alts {:?}", alts);
+
+        let corr = add_nuc_to_end(kmer >> 2, alts[0], self.k());
+        let mut scenarii = self.get_scenarii(corr, seq);
+
+        if scenarii.is_empty() {
+            debug!("no scenario");
             None
-        } else if scenario.len() == 1 {
+        } else if scenarii.len() == 1 {
             debug!("one scenario");
-            Some((scenario[0].2.clone(), scenario[0].0.post()))
-        } else if (self.c + Scenario::Insertion.check() + 1) as usize <= seq.len() {
-            scenario.retain(|x| {
-                last_is_valid(
+            Some(scenarii[0].correct(corr, seq))
+        } else {
+	    scenarii.retain(|x| {
+		last_is_valid(
                     self.valid_kmer,
-                    x.1,
-                    &seq[(x.0.check() as usize)..(self.c + x.0.check() + 1) as usize],
+                    corr,
+                    &seq[(x.check() as usize)..(self.c as usize + x.check() + 1) as usize],
                 )
             });
-
-            if scenario.len() == 1 {
-                debug!("multi scenario one is better {}", scenario[0].0.name());
-                Some((scenario[0].2.clone(), scenario[0].0.post()))
+	    
+            if scenarii.len() == 1 {
+                debug!("multi scenario one is better {:?}", scenarii[0]);
+                Some(scenarii[0].correct(corr, seq))
             } else {
                 debug!("multi scenario no better");
                 None
             }
-        } else {
-            None
         }
     }
-}
-
-fn get_score(valid_kmer: &set::BoxKmerSet, mut kmer: u64, nucs: &[u8]) -> usize {
-    let mut score = 0;
-
-    for nuc in nucs {
-        debug!("before {}", cocktail::kmer::kmer2seq(kmer, valid_kmer.k()));
-        kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(*nuc), valid_kmer.k());
-        debug!(
-            "after  {} {}",
-            cocktail::kmer::kmer2seq(kmer, valid_kmer.k()),
-            valid_kmer.get(kmer)
-        );
-        if valid_kmer.get(kmer) {
-            score += 1
-        } else {
-            break;
-        }
-    }
-
-    score
 }
 
 fn last_is_valid(valid_kmer: &set::BoxKmerSet, mut kmer: u64, nucs: &[u8]) -> bool {
