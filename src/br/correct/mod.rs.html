@@ -183,6 +183,7 @@
 <span id="180">180</span>
 <span id="181">181</span>
 <span id="182">182</span>
+<span id="183">183</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">/*
 Copyright (c) 2020 Pierre Marijon &lt;pmarijon@mmci.uni-saarland.de&gt;
@@ -341,12 +342,13 @@ SOFTWARE.
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">graph</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">greedy</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">one</span>;
-<span class="comment">//pub mod two;</span>
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">two</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">gap_size</span>::<span class="ident">GapSize</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">graph</span>::<span class="ident">Graph</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">greedy</span>::<span class="ident">Greedy</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">one</span>::<span class="ident">One</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">two</span>::<span class="ident">Two</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {

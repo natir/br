@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["gap_size",""],["graph",""],["greedy",""],["one",""]],"trait":[["Corrector",""]]});
+initSidebarItems({"mod":[["gap_size",""],["graph",""],["greedy",""],["one",""],["two",""]],"trait":[["Corrector",""]]});
