@@ -299,101 +299,6 @@
 <span id="296">296</span>
 <span id="297">297</span>
 <span id="298">298</span>
-<span id="299">299</span>
-<span id="300">300</span>
-<span id="301">301</span>
-<span id="302">302</span>
-<span id="303">303</span>
-<span id="304">304</span>
-<span id="305">305</span>
-<span id="306">306</span>
-<span id="307">307</span>
-<span id="308">308</span>
-<span id="309">309</span>
-<span id="310">310</span>
-<span id="311">311</span>
-<span id="312">312</span>
-<span id="313">313</span>
-<span id="314">314</span>
-<span id="315">315</span>
-<span id="316">316</span>
-<span id="317">317</span>
-<span id="318">318</span>
-<span id="319">319</span>
-<span id="320">320</span>
-<span id="321">321</span>
-<span id="322">322</span>
-<span id="323">323</span>
-<span id="324">324</span>
-<span id="325">325</span>
-<span id="326">326</span>
-<span id="327">327</span>
-<span id="328">328</span>
-<span id="329">329</span>
-<span id="330">330</span>
-<span id="331">331</span>
-<span id="332">332</span>
-<span id="333">333</span>
-<span id="334">334</span>
-<span id="335">335</span>
-<span id="336">336</span>
-<span id="337">337</span>
-<span id="338">338</span>
-<span id="339">339</span>
-<span id="340">340</span>
-<span id="341">341</span>
-<span id="342">342</span>
-<span id="343">343</span>
-<span id="344">344</span>
-<span id="345">345</span>
-<span id="346">346</span>
-<span id="347">347</span>
-<span id="348">348</span>
-<span id="349">349</span>
-<span id="350">350</span>
-<span id="351">351</span>
-<span id="352">352</span>
-<span id="353">353</span>
-<span id="354">354</span>
-<span id="355">355</span>
-<span id="356">356</span>
-<span id="357">357</span>
-<span id="358">358</span>
-<span id="359">359</span>
-<span id="360">360</span>
-<span id="361">361</span>
-<span id="362">362</span>
-<span id="363">363</span>
-<span id="364">364</span>
-<span id="365">365</span>
-<span id="366">366</span>
-<span id="367">367</span>
-<span id="368">368</span>
-<span id="369">369</span>
-<span id="370">370</span>
-<span id="371">371</span>
-<span id="372">372</span>
-<span id="373">373</span>
-<span id="374">374</span>
-<span id="375">375</span>
-<span id="376">376</span>
-<span id="377">377</span>
-<span id="378">378</span>
-<span id="379">379</span>
-<span id="380">380</span>
-<span id="381">381</span>
-<span id="382">382</span>
-<span id="383">383</span>
-<span id="384">384</span>
-<span id="385">385</span>
-<span id="386">386</span>
-<span id="387">387</span>
-<span id="388">388</span>
-<span id="389">389</span>
-<span id="390">390</span>
-<span id="391">391</span>
-<span id="392">392</span>
-<span id="393">393</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">/*
 Copyright (c) 2020 Pierre Marijon &lt;pierre.marijon@hhu.de&gt;
@@ -430,10 +335,6 @@ SOFTWARE.
 <span class="comment">////////////////////////////////////</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">EnumIter</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ScenarioTwo</span> {
-    <span class="ident">I</span>(<span class="ident">usize</span>, <span class="ident">u8</span>),
-    <span class="ident">S</span>(<span class="ident">usize</span>, <span class="ident">u8</span>),
-    <span class="ident">D</span>(<span class="ident">usize</span>, <span class="ident">u8</span>),
-
     <span class="ident">II</span>(<span class="ident">usize</span>, <span class="ident">u8</span>),
     <span class="ident">IS</span>(<span class="ident">usize</span>, <span class="ident">u8</span>),
     <span class="ident">SS</span>(<span class="ident">usize</span>, <span class="ident">u8</span>),
@@ -454,9 +355,6 @@ SOFTWARE.
 <span class="kw">impl</span> <span class="ident">Scenario</span> <span class="kw">for</span> <span class="ident">ScenarioTwo</span> {
     <span class="kw">fn</span> <span class="ident">init</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">c</span>: <span class="ident">usize</span>, <span class="ident">k</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ScenarioTwo</span>::<span class="ident">I</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ScenarioTwo</span>::<span class="ident">I</span>(<span class="ident">c</span>, <span class="ident">k</span>),
-            <span class="ident">ScenarioTwo</span>::<span class="ident">S</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ScenarioTwo</span>::<span class="ident">S</span>(<span class="ident">c</span>, <span class="ident">k</span>),
-            <span class="ident">ScenarioTwo</span>::<span class="ident">D</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ScenarioTwo</span>::<span class="ident">D</span>(<span class="ident">c</span>, <span class="ident">k</span>),
             <span class="ident">ScenarioTwo</span>::<span class="ident">II</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ScenarioTwo</span>::<span class="ident">II</span>(<span class="ident">c</span>, <span class="ident">k</span>),
             <span class="ident">ScenarioTwo</span>::<span class="ident">IS</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ScenarioTwo</span>::<span class="ident">IS</span>(<span class="ident">c</span>, <span class="ident">k</span>),
             <span class="ident">ScenarioTwo</span>::<span class="ident">SS</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ScenarioTwo</span>::<span class="ident">SS</span>(<span class="ident">c</span>, <span class="ident">k</span>),
@@ -476,9 +374,6 @@ SOFTWARE.
 
     <span class="kw">fn</span> <span class="ident">c</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ScenarioTwo</span>::<span class="ident">I</span>(<span class="ident">c</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">c</span>,
-            <span class="ident">ScenarioTwo</span>::<span class="ident">S</span>(<span class="ident">c</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">c</span>,
-            <span class="ident">ScenarioTwo</span>::<span class="ident">D</span>(<span class="ident">c</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">c</span>,
             <span class="ident">ScenarioTwo</span>::<span class="ident">II</span>(<span class="ident">c</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">c</span>,
             <span class="ident">ScenarioTwo</span>::<span class="ident">IS</span>(<span class="ident">c</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">c</span>,
             <span class="ident">ScenarioTwo</span>::<span class="ident">SS</span>(<span class="ident">c</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">c</span>,
@@ -503,31 +398,37 @@ SOFTWARE.
         <span class="ident">seq</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">u64</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ScenarioTwo</span>::<span class="ident">I</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>((<span class="ident">kmer</span>, <span class="number">2</span>)),
-            <span class="ident">ScenarioTwo</span>::<span class="ident">S</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>((<span class="ident">kmer</span>, <span class="number">1</span>)),
-            <span class="ident">ScenarioTwo</span>::<span class="ident">D</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>((<span class="ident">kmer</span>, <span class="number">0</span>)),
-            <span class="ident">ScenarioTwo</span>::<span class="ident">II</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>((<span class="ident">kmer</span>, <span class="number">3</span>)),
-            <span class="ident">ScenarioTwo</span>::<span class="ident">IS</span>(<span class="kw">_</span>, <span class="ident">k</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <span class="ident">seq</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">2</span> {
+            <span class="ident">ScenarioTwo</span>::<span class="ident">II</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>((<span class="ident">kmer</span>, <span class="number">3</span>)), <span class="comment">// kmer not change check from base 3</span>
+            <span class="ident">ScenarioTwo</span>::<span class="ident">IS</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>((<span class="ident">kmer</span>, <span class="number">2</span>)), <span class="comment">// kmer not change check from base 2</span>
+            <span class="ident">ScenarioTwo</span>::<span class="ident">SS</span>(<span class="kw">_</span>, <span class="ident">k</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">if</span> <span class="ident">seq</span>.<span class="ident">is_empty</span>() {
                     <span class="prelude-val">None</span>
                 } <span class="kw">else</span> {
-                    <span class="ident">kmer</span> <span class="op">=</span> <span class="ident">add_nuc_to_end</span>(<span class="ident">kmer</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">2</span>, <span class="ident">cocktail</span>::<span class="ident">kmer</span>::<span class="ident">nuc2bit</span>(<span class="ident">seq</span>[<span class="number">1</span>]), <span class="kw-2">*</span><span class="ident">k</span>);
-
+                    <span class="ident">kmer</span> <span class="op">=</span> <span class="ident">add_nuc_to_end</span>(<span class="ident">kmer</span>, <span class="ident">cocktail</span>::<span class="ident">kmer</span>::<span class="ident">nuc2bit</span>(<span class="ident">seq</span>[<span class="number">1</span>]), <span class="kw-2">*</span><span class="ident">k</span>);
                     <span class="kw">if</span> <span class="ident">valid_kmer</span>.<span class="ident">get</span>(<span class="ident">kmer</span>) {
                         <span class="prelude-val">None</span>
                     } <span class="kw">else</span> {
                         <span class="kw">let</span> <span class="ident">alts</span> <span class="op">=</span> <span class="ident">alt_nucs</span>(<span class="ident">valid_kmer</span>, <span class="ident">kmer</span>);
-
                         <span class="kw">if</span> <span class="ident">alts</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="number">1</span> {
                             <span class="prelude-val">None</span>
                         } <span class="kw">else</span> {
-                            <span class="prelude-val">Some</span>((<span class="ident">add_nuc_to_end</span>(<span class="ident">kmer</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">2</span>, <span class="ident">alts</span>[<span class="number">0</span>], <span class="kw-2">*</span><span class="ident">k</span>), <span class="number">3</span>))
+                            <span class="prelude-val">Some</span>((<span class="ident">add_nuc_to_end</span>(<span class="ident">kmer</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">2</span>, <span class="ident">alts</span>[<span class="number">0</span>], <span class="kw-2">*</span><span class="ident">k</span>), <span class="number">2</span>))
                         }
                     }
                 }
             }
-            <span class="ident">ScenarioTwo</span>::<span class="ident">SS</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">ScenarioTwo</span>::<span class="ident">SD</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">ScenarioTwo</span>::<span class="ident">SD</span>(<span class="kw">_</span>, <span class="ident">k</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">if</span> <span class="ident">seq</span>.<span class="ident">is_empty</span>() {
+                    <span class="prelude-val">None</span>
+                } <span class="kw">else</span> {
+                    <span class="kw">let</span> <span class="ident">alts</span> <span class="op">=</span> <span class="ident">alt_nucs</span>(<span class="ident">valid_kmer</span>, <span class="ident">kmer</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">2</span>);
+                    <span class="kw">if</span> <span class="ident">alts</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="number">1</span> {
+                        <span class="prelude-val">None</span>
+                    } <span class="kw">else</span> {
+                        <span class="prelude-val">Some</span>((<span class="ident">add_nuc_to_end</span>(<span class="ident">kmer</span>, <span class="ident">alts</span>[<span class="number">0</span>], <span class="kw-2">*</span><span class="ident">k</span>), <span class="number">1</span>))
+                    }
+                }
+            }
             <span class="ident">ScenarioTwo</span>::<span class="ident">DD</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
             <span class="ident">ScenarioTwo</span>::<span class="ident">ICI</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
             <span class="ident">ScenarioTwo</span>::<span class="ident">ICS</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
@@ -541,21 +442,24 @@ SOFTWARE.
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">correct</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">kmer</span>: <span class="ident">u64</span>, <span class="ident">_seq</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">usize</span>) {
+    <span class="kw">fn</span> <span class="ident">correct</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">valid_kmer</span>: <span class="kw-2">&amp;</span><span class="ident">set</span>::<span class="ident">BoxKmerSet</span>, <span class="ident">kmer</span>: <span class="ident">u64</span>, <span class="ident">seq</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">usize</span>) {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ScenarioTwo</span>::<span class="ident">I</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="macro">vec</span><span class="macro">!</span>[], <span class="number">2</span>),
-            <span class="ident">ScenarioTwo</span>::<span class="ident">S</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="macro">vec</span><span class="macro">!</span>[<span class="ident">cocktail</span>::<span class="ident">kmer</span>::<span class="ident">bit2nuc</span>(<span class="ident">kmer</span> <span class="op">&amp;</span> <span class="number">0b11</span>)], <span class="number">1</span>),
-            <span class="ident">ScenarioTwo</span>::<span class="ident">D</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="macro">vec</span><span class="macro">!</span>[<span class="ident">cocktail</span>::<span class="ident">kmer</span>::<span class="ident">bit2nuc</span>(<span class="ident">kmer</span> <span class="op">&amp;</span> <span class="number">0b11</span>)], <span class="number">0</span>),
             <span class="ident">ScenarioTwo</span>::<span class="ident">II</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="macro">vec</span><span class="macro">!</span>[], <span class="number">2</span>),
             <span class="ident">ScenarioTwo</span>::<span class="ident">IS</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="macro">vec</span><span class="macro">!</span>[<span class="ident">cocktail</span>::<span class="ident">kmer</span>::<span class="ident">bit2nuc</span>(<span class="ident">kmer</span> <span class="op">&amp;</span> <span class="number">0b11</span>)], <span class="number">2</span>),
+            <span class="ident">ScenarioTwo</span>::<span class="ident">SS</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">|</span> <span class="ident">ScenarioTwo</span>::<span class="ident">SD</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> (<span class="ident">corr</span>, <span class="ident">offset</span>) <span class="op">=</span> <span class="self">self</span>
+                    .<span class="ident">apply</span>(<span class="ident">valid_kmer</span>, <span class="ident">kmer</span>, <span class="ident">seq</span>)
+                    .<span class="ident">expect</span>(<span class="string">&quot;we can&#39;t failled her&quot;</span>);
 
-            <span class="comment">/*    ScenarioTwo::SS =&gt; {
-                None
-                },
-                ScenarioTwo::SD =&gt; {
-                None
-                },
-                ScenarioTwo::DD =&gt; {
+                (
+                    <span class="macro">vec</span><span class="macro">!</span>[
+                        <span class="ident">cocktail</span>::<span class="ident">kmer</span>::<span class="ident">bit2nuc</span>((<span class="ident">corr</span> <span class="op">&amp;</span> <span class="number">0b1100</span>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">2</span>),
+                        <span class="ident">cocktail</span>::<span class="ident">kmer</span>::<span class="ident">bit2nuc</span>(<span class="ident">corr</span> <span class="op">&amp;</span> <span class="number">0b11</span>),
+                    ],
+                    <span class="ident">offset</span>,
+                )
+            }
+            <span class="comment">/*ScenarioTwo::DD =&gt; {
                 None
                 },
                 ScenarioTwo::ICI =&gt; {
@@ -585,7 +489,7 @@ SOFTWARE.
                 ScenarioTwo::DCD =&gt; {
                 None
             },*/</span>
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="macro">vec</span><span class="macro">!</span>[], <span class="number">0</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="macro">vec</span><span class="macro">!</span>[], <span class="number">1</span>),
         }
     }
 }
@@ -597,154 +501,16 @@ SOFTWARE.
 
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
+    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">correct</span>::<span class="ident">Corrector</span>;
+
     <span class="kw">fn</span> <span class="ident">init</span>() {
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">env_logger</span>::<span class="ident">builder</span>().<span class="ident">is_test</span>(<span class="bool-val">true</span>).<span class="ident">try_init</span>();
+        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">env_logger</span>::<span class="ident">builder</span>()
+            .<span class="ident">is_test</span>(<span class="bool-val">true</span>)
+            .<span class="ident">filter_level</span>(<span class="ident">log</span>::<span class="ident">LevelFilter</span>::<span class="ident">Trace</span>)
+            .<span class="ident">try_init</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">csc</span>() {
-        <span class="ident">init</span>();
-
-        <span class="kw">let</span> <span class="ident">refe</span> <span class="op">=</span> <span class="string">b&quot;ACTGACGAC&quot;</span>;
-        <span class="kw">let</span> <span class="ident">read</span> <span class="op">=</span> <span class="string">b&quot;ACTGATGAC&quot;</span>;
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">pcon</span>::<span class="ident">solid</span>::<span class="ident">Solid</span>::<span class="ident">new</span>(<span class="number">5</span>);
-
-        <span class="kw">for</span> <span class="ident">kmer</span> <span class="kw">in</span> <span class="ident">cocktail</span>::<span class="ident">tokenizer</span>::<span class="ident">Tokenizer</span>::<span class="ident">new</span>(<span class="ident">refe</span>, <span class="number">5</span>) {
-            <span class="ident">data</span>.<span class="ident">set</span>(<span class="ident">kmer</span>, <span class="bool-val">true</span>);
-        }
-
-        <span class="kw">let</span> <span class="ident">set</span>: <span class="ident">set</span>::<span class="ident">BoxKmerSet</span> <span class="op">=</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">set</span>::<span class="ident">Pcon</span>::<span class="ident">new</span>(<span class="ident">data</span>));
-
-        <span class="kw">let</span> <span class="ident">corrector</span> <span class="op">=</span> <span class="ident">Two</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">set</span>, <span class="number">2</span>);
-
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">refe</span>, <span class="ident">corrector</span>.<span class="ident">correct</span>(<span class="ident">read</span>).<span class="ident">as_slice</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">refe</span>, <span class="ident">corrector</span>.<span class="ident">correct</span>(<span class="ident">refe</span>).<span class="ident">as_slice</span>());
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">csc_relaxe</span>() {
-        <span class="ident">init</span>();
-
-        <span class="kw">let</span> <span class="ident">refe</span> <span class="op">=</span> <span class="string">b&quot;ACTGACCACT&quot;</span>;
-        <span class="kw">let</span> <span class="ident">read</span> <span class="op">=</span> <span class="string">b&quot;ACTGATCACT&quot;</span>;
-        <span class="kw">let</span> <span class="ident">conf</span> <span class="op">=</span> <span class="string">b&quot;ACTGACAC&quot;</span>;
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">pcon</span>::<span class="ident">solid</span>::<span class="ident">Solid</span>::<span class="ident">new</span>(<span class="number">5</span>);
-
-        <span class="kw">for</span> <span class="ident">kmer</span> <span class="kw">in</span> <span class="ident">cocktail</span>::<span class="ident">tokenizer</span>::<span class="ident">Tokenizer</span>::<span class="ident">new</span>(<span class="ident">refe</span>, <span class="number">5</span>) {
-            <span class="ident">data</span>.<span class="ident">set</span>(<span class="ident">kmer</span>, <span class="bool-val">true</span>);
-        }
-
-        <span class="kw">for</span> <span class="ident">kmer</span> <span class="kw">in</span> <span class="ident">cocktail</span>::<span class="ident">tokenizer</span>::<span class="ident">Tokenizer</span>::<span class="ident">new</span>(<span class="ident">conf</span>, <span class="number">5</span>) {
-            <span class="ident">data</span>.<span class="ident">set</span>(<span class="ident">kmer</span>, <span class="bool-val">true</span>);
-        }
-
-        <span class="kw">let</span> <span class="ident">set</span>: <span class="ident">set</span>::<span class="ident">BoxKmerSet</span> <span class="op">=</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">set</span>::<span class="ident">Pcon</span>::<span class="ident">new</span>(<span class="ident">data</span>));
-
-        <span class="kw">let</span> <span class="ident">corrector</span> <span class="op">=</span> <span class="ident">Two</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">set</span>, <span class="number">2</span>);
-
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">refe</span>, <span class="ident">corrector</span>.<span class="ident">correct</span>(<span class="ident">read</span>).<span class="ident">as_slice</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">refe</span>, <span class="ident">corrector</span>.<span class="ident">correct</span>(<span class="ident">refe</span>).<span class="ident">as_slice</span>());
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">cic</span>() {
-        <span class="ident">init</span>();
-
-        <span class="kw">let</span> <span class="ident">refe</span> <span class="op">=</span> <span class="string">b&quot;ACTGACGAC&quot;</span>;
-        <span class="kw">let</span> <span class="ident">read</span> <span class="op">=</span> <span class="string">b&quot;ACTGATCGAC&quot;</span>;
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">pcon</span>::<span class="ident">solid</span>::<span class="ident">Solid</span>::<span class="ident">new</span>(<span class="number">5</span>);
-
-        <span class="kw">for</span> <span class="ident">kmer</span> <span class="kw">in</span> <span class="ident">cocktail</span>::<span class="ident">tokenizer</span>::<span class="ident">Tokenizer</span>::<span class="ident">new</span>(<span class="ident">refe</span>, <span class="number">5</span>) {
-            <span class="ident">data</span>.<span class="ident">set</span>(<span class="ident">kmer</span>, <span class="bool-val">true</span>);
-        }
-
-        <span class="kw">let</span> <span class="ident">set</span>: <span class="ident">set</span>::<span class="ident">BoxKmerSet</span> <span class="op">=</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">set</span>::<span class="ident">Pcon</span>::<span class="ident">new</span>(<span class="ident">data</span>));
-
-        <span class="kw">let</span> <span class="ident">corrector</span> <span class="op">=</span> <span class="ident">Two</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">set</span>, <span class="number">2</span>);
-
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">refe</span>, <span class="ident">corrector</span>.<span class="ident">correct</span>(<span class="ident">read</span>).<span class="ident">as_slice</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">refe</span>, <span class="ident">corrector</span>.<span class="ident">correct</span>(<span class="ident">refe</span>).<span class="ident">as_slice</span>());
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">ignore</span>]</span>
-    <span class="kw">fn</span> <span class="ident">cic_relaxe</span>() {
-        <span class="ident">init</span>();
-
-        <span class="kw">let</span> <span class="ident">refe</span> <span class="op">=</span> <span class="string">b&quot;GAGCGTACGTTGGAT&quot;</span>;
-        <span class="kw">let</span> <span class="ident">read</span> <span class="op">=</span> <span class="string">b&quot;GAGCGTACTGTTGGAT&quot;</span>;
-        <span class="kw">let</span> <span class="ident">conf</span> <span class="op">=</span> <span class="string">b&quot;GCGTACGTGA&quot;</span>;
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">pcon</span>::<span class="ident">solid</span>::<span class="ident">Solid</span>::<span class="ident">new</span>(<span class="number">7</span>);
-
-        <span class="kw">for</span> <span class="ident">kmer</span> <span class="kw">in</span> <span class="ident">cocktail</span>::<span class="ident">tokenizer</span>::<span class="ident">Tokenizer</span>::<span class="ident">new</span>(<span class="ident">refe</span>, <span class="number">7</span>) {
-            <span class="ident">data</span>.<span class="ident">set</span>(<span class="ident">kmer</span>, <span class="bool-val">true</span>);
-        }
-
-        <span class="kw">for</span> <span class="ident">kmer</span> <span class="kw">in</span> <span class="ident">cocktail</span>::<span class="ident">tokenizer</span>::<span class="ident">Tokenizer</span>::<span class="ident">new</span>(<span class="ident">conf</span>, <span class="number">7</span>) {
-            <span class="ident">data</span>.<span class="ident">set</span>(<span class="ident">kmer</span>, <span class="bool-val">true</span>);
-        }
-
-        <span class="kw">let</span> <span class="ident">set</span>: <span class="ident">set</span>::<span class="ident">BoxKmerSet</span> <span class="op">=</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">set</span>::<span class="ident">Pcon</span>::<span class="ident">new</span>(<span class="ident">data</span>));
-
-        <span class="kw">let</span> <span class="ident">corrector</span> <span class="op">=</span> <span class="ident">Two</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">set</span>, <span class="number">2</span>);
-
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">refe</span>, <span class="ident">corrector</span>.<span class="ident">correct</span>(<span class="ident">read</span>).<span class="ident">as_slice</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">refe</span>, <span class="ident">corrector</span>.<span class="ident">correct</span>(<span class="ident">refe</span>).<span class="ident">as_slice</span>());
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">cdc</span>() {
-        <span class="ident">init</span>();
-
-        <span class="kw">let</span> <span class="ident">refe</span> <span class="op">=</span> <span class="string">b&quot;ACTGACGACCC&quot;</span>;
-        <span class="kw">let</span> <span class="ident">read</span> <span class="op">=</span> <span class="string">b&quot;ACTGAGACCC&quot;</span>;
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">pcon</span>::<span class="ident">solid</span>::<span class="ident">Solid</span>::<span class="ident">new</span>(<span class="number">5</span>);
-
-        <span class="kw">for</span> <span class="ident">kmer</span> <span class="kw">in</span> <span class="ident">cocktail</span>::<span class="ident">tokenizer</span>::<span class="ident">Tokenizer</span>::<span class="ident">new</span>(<span class="ident">refe</span>, <span class="number">5</span>) {
-            <span class="ident">data</span>.<span class="ident">set</span>(<span class="ident">kmer</span>, <span class="bool-val">true</span>);
-        }
-
-        <span class="kw">let</span> <span class="ident">set</span>: <span class="ident">set</span>::<span class="ident">BoxKmerSet</span> <span class="op">=</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">set</span>::<span class="ident">Pcon</span>::<span class="ident">new</span>(<span class="ident">data</span>));
-
-        <span class="kw">let</span> <span class="ident">corrector</span> <span class="op">=</span> <span class="ident">Two</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">set</span>, <span class="number">2</span>);
-
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">refe</span>, <span class="ident">corrector</span>.<span class="ident">correct</span>(<span class="ident">read</span>).<span class="ident">as_slice</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">refe</span>, <span class="ident">corrector</span>.<span class="ident">correct</span>(<span class="ident">refe</span>).<span class="ident">as_slice</span>());
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">cdc_relaxe</span>() {
-        <span class="ident">init</span>();
-
-        <span class="kw">let</span> <span class="ident">refe</span> <span class="op">=</span> <span class="string">b&quot;GAGCGTACGTTGGAT&quot;</span>;
-        <span class="kw">let</span> <span class="ident">read</span> <span class="op">=</span> <span class="string">b&quot;GAGCGTAGTTGGAT&quot;</span>;
-        <span class="kw">let</span> <span class="ident">conf</span> <span class="op">=</span> <span class="string">b&quot;GCGTACTT&quot;</span>;
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">pcon</span>::<span class="ident">solid</span>::<span class="ident">Solid</span>::<span class="ident">new</span>(<span class="number">7</span>);
-
-        <span class="kw">for</span> <span class="ident">kmer</span> <span class="kw">in</span> <span class="ident">cocktail</span>::<span class="ident">tokenizer</span>::<span class="ident">Tokenizer</span>::<span class="ident">new</span>(<span class="ident">refe</span>, <span class="number">7</span>) {
-            <span class="ident">data</span>.<span class="ident">set</span>(<span class="ident">kmer</span>, <span class="bool-val">true</span>);
-        }
-
-        <span class="kw">for</span> <span class="ident">kmer</span> <span class="kw">in</span> <span class="ident">cocktail</span>::<span class="ident">tokenizer</span>::<span class="ident">Tokenizer</span>::<span class="ident">new</span>(<span class="ident">conf</span>, <span class="number">7</span>) {
-            <span class="ident">data</span>.<span class="ident">set</span>(<span class="ident">kmer</span>, <span class="bool-val">true</span>);
-        }
-
-        <span class="kw">let</span> <span class="ident">set</span>: <span class="ident">set</span>::<span class="ident">BoxKmerSet</span> <span class="op">=</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">set</span>::<span class="ident">Pcon</span>::<span class="ident">new</span>(<span class="ident">data</span>));
-
-        <span class="kw">let</span> <span class="ident">corrector</span> <span class="op">=</span> <span class="ident">Two</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">set</span>, <span class="number">2</span>);
-
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">refe</span>, <span class="ident">corrector</span>.<span class="ident">correct</span>(<span class="ident">read</span>).<span class="ident">as_slice</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">refe</span>, <span class="ident">corrector</span>.<span class="ident">correct</span>(<span class="ident">refe</span>).<span class="ident">as_slice</span>());
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">ignore</span>]</span>
     <span class="kw">fn</span> <span class="ident">ciic</span>() {
         <span class="ident">init</span>();
 
@@ -773,6 +539,50 @@ SOFTWARE.
         <span class="kw">let</span> <span class="ident">refe</span> <span class="op">=</span> <span class="string">b&quot;GATACATGGACACTAGTATG&quot;</span>;
         <span class="comment">//           |||||||||| \\\\\\\\\\</span>
         <span class="kw">let</span> <span class="ident">read</span> <span class="op">=</span> <span class="string">b&quot;GATACATGGATGACTAGTATG&quot;</span>;
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span>: <span class="ident">pcon</span>::<span class="ident">solid</span>::<span class="ident">Solid</span> <span class="op">=</span> <span class="ident">pcon</span>::<span class="ident">solid</span>::<span class="ident">Solid</span>::<span class="ident">new</span>(<span class="number">5</span>);
+
+        <span class="kw">for</span> <span class="ident">kmer</span> <span class="kw">in</span> <span class="ident">cocktail</span>::<span class="ident">tokenizer</span>::<span class="ident">Tokenizer</span>::<span class="ident">new</span>(<span class="ident">refe</span>, <span class="number">5</span>) {
+            <span class="ident">data</span>.<span class="ident">set</span>(<span class="ident">kmer</span>, <span class="bool-val">true</span>);
+        }
+
+        <span class="kw">let</span> <span class="ident">set</span>: <span class="ident">set</span>::<span class="ident">BoxKmerSet</span> <span class="op">=</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">set</span>::<span class="ident">Pcon</span>::<span class="ident">new</span>(<span class="ident">data</span>));
+
+        <span class="kw">let</span> <span class="ident">corrector</span> <span class="op">=</span> <span class="ident">Two</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">set</span>, <span class="number">2</span>);
+
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">refe</span>, <span class="ident">corrector</span>.<span class="ident">correct</span>(<span class="ident">read</span>).<span class="ident">as_slice</span>()); <span class="comment">// test correction work</span>
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">refe</span>, <span class="ident">corrector</span>.<span class="ident">correct</span>(<span class="ident">refe</span>).<span class="ident">as_slice</span>()); <span class="comment">// test not overcorrection</span>
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">cssc</span>() {
+        <span class="ident">init</span>();
+
+        <span class="kw">let</span> <span class="ident">refe</span> <span class="op">=</span> <span class="string">b&quot;TCGTTATTCGGTGGACTCCT&quot;</span>;
+        <span class="comment">//           ||||||||||  ||||||||</span>
+        <span class="kw">let</span> <span class="ident">read</span> <span class="op">=</span> <span class="string">b&quot;TCGTTATTCGAAGGACTCCT&quot;</span>;
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span>: <span class="ident">pcon</span>::<span class="ident">solid</span>::<span class="ident">Solid</span> <span class="op">=</span> <span class="ident">pcon</span>::<span class="ident">solid</span>::<span class="ident">Solid</span>::<span class="ident">new</span>(<span class="number">5</span>);
+
+        <span class="kw">for</span> <span class="ident">kmer</span> <span class="kw">in</span> <span class="ident">cocktail</span>::<span class="ident">tokenizer</span>::<span class="ident">Tokenizer</span>::<span class="ident">new</span>(<span class="ident">refe</span>, <span class="number">5</span>) {
+            <span class="ident">data</span>.<span class="ident">set</span>(<span class="ident">kmer</span>, <span class="bool-val">true</span>);
+        }
+
+        <span class="kw">let</span> <span class="ident">set</span>: <span class="ident">set</span>::<span class="ident">BoxKmerSet</span> <span class="op">=</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">set</span>::<span class="ident">Pcon</span>::<span class="ident">new</span>(<span class="ident">data</span>));
+
+        <span class="kw">let</span> <span class="ident">corrector</span> <span class="op">=</span> <span class="ident">Two</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">set</span>, <span class="number">2</span>);
+
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">refe</span>, <span class="ident">corrector</span>.<span class="ident">correct</span>(<span class="ident">read</span>).<span class="ident">as_slice</span>()); <span class="comment">// test correction work</span>
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">refe</span>, <span class="ident">corrector</span>.<span class="ident">correct</span>(<span class="ident">refe</span>).<span class="ident">as_slice</span>()); <span class="comment">// test not overcorrection</span>
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">csdc</span>() {
+        <span class="ident">init</span>();
+
+        <span class="kw">let</span> <span class="ident">refe</span> <span class="op">=</span> <span class="string">b&quot;AACAGCTGAATCTACCATTG&quot;</span>;
+        <span class="comment">//           |||||||||| /////////</span>
+        <span class="kw">let</span> <span class="ident">read</span> <span class="op">=</span> <span class="string">b&quot;AACAGCTGAAGTACCATTG&quot;</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span>: <span class="ident">pcon</span>::<span class="ident">solid</span>::<span class="ident">Solid</span> <span class="op">=</span> <span class="ident">pcon</span>::<span class="ident">solid</span>::<span class="ident">Solid</span>::<span class="ident">new</span>(<span class="number">5</span>);
 
