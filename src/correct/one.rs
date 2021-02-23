@@ -130,9 +130,9 @@ impl<'a> Corrector for One<'a> {
             debug!("no scenario");
             None
         } else if scenarii.len() == 1 {
-            debug!("one scenario");
+            debug!("one scenario {:?}", scenarii[0]);
             Some(scenarii[0].correct(corr, seq))
-        } else {
+        } else if (Scenario::I.check() + self.c as usize) < seq.len() {
             scenarii.retain(|x| {
                 last_is_valid(
                     self.valid_kmer,
@@ -148,6 +148,8 @@ impl<'a> Corrector for One<'a> {
                 debug!("multi scenario no better");
                 None
             }
+        } else {
+            None
         }
     }
 }

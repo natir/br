@@ -124,7 +124,7 @@ fn main() -> Result<()> {
     if params.inputs.len() != params.outputs.len() {
         return Err(anyhow!(Error::Cli(NotSameNumberOfInAndOut)));
     }
-    
+
     if let Some(level) = cli::i82level(params.verbosity) {
         env_logger::builder()
             .format_timestamp(Some(env_logger::fmt::TimestampPrecision::Millis))
