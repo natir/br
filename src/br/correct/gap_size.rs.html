@@ -325,7 +325,7 @@ SOFTWARE.
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GapSize</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="ident">valid_kmer</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">set</span>::<span class="ident">BoxKmerSet</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
     <span class="ident">graph</span>: <span class="ident">graph</span>::<span class="ident">Graph</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-    <span class="ident">one</span>: <span class="ident">one</span>::<span class="ident">One</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    <span class="ident">one</span>: <span class="ident">One</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">GapSize</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
@@ -333,7 +333,7 @@ SOFTWARE.
         <span class="self">Self</span> {
             <span class="ident">valid_kmer</span>,
             <span class="ident">graph</span>: <span class="ident">graph</span>::<span class="ident">Graph</span>::<span class="ident">new</span>(<span class="ident">valid_kmer</span>),
-            <span class="ident">one</span>: <span class="ident">one</span>::<span class="ident">One</span>::<span class="ident">new</span>(<span class="ident">valid_kmer</span>, <span class="ident">c</span>),
+            <span class="ident">one</span>: <span class="ident">One</span>::<span class="ident">new</span>(<span class="ident">valid_kmer</span>, <span class="ident">c</span>),
         }
     }
 
