@@ -49,6 +49,12 @@ impl Hash {
     }
 }
 
+impl std::fmt::Debug for Hash {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Hash").finish()
+    }
+}
+
 impl KmerSet for Hash {
     fn get(&self, kmer: u64) -> bool {
         self.set.contains(&cocktail::kmer::canonical(kmer, self.k))

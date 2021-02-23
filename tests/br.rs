@@ -24,7 +24,6 @@ mod tests {
     fn count() {
         let child = Command::new("./target/debug/br")
             .args(&[
-                "-vvv",
                 "-i",
                 "tests/data/raw.fasta",
                 "-o",
@@ -44,7 +43,6 @@ mod tests {
     fn solid() {
         let child = Command::new("./target/debug/br")
             .args(&[
-                "-vvv",
                 "-i",
                 "tests/data/raw.fasta",
                 "-o",
@@ -63,13 +61,7 @@ mod tests {
     #[test]
     fn no_count_no_solid() {
         let child = Command::new("./target/debug/br")
-            .args(&[
-                "-vvv",
-                "-i",
-                "tests/data/raw.fasta",
-                "-o",
-                "tests/data/corr.fasta",
-            ])
+            .args(&["-i", "tests/data/raw.fasta", "-o", "tests/data/corr.fasta"])
             .stderr(Stdio::piped())
             .stdout(Stdio::piped())
             .spawn()

@@ -151,17 +151,16 @@ pub(crate) fn error_len(
     (j, kmer)
 }
 
+pub mod exist;
 pub mod gap_size;
 pub mod graph;
 pub mod greedy;
-pub mod one;
-pub mod two;
 
+pub use exist::one::One;
+pub use exist::two::Two;
 pub use gap_size::GapSize;
 pub use graph::Graph;
 pub use greedy::Greedy;
-pub use one::One;
-pub use two::Two;
 
 #[cfg(test)]
 mod tests {

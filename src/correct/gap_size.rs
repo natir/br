@@ -29,7 +29,7 @@ use crate::correct::*;
 pub struct GapSize<'a> {
     valid_kmer: &'a set::BoxKmerSet<'a>,
     graph: graph::Graph<'a>,
-    one: one::One<'a>,
+    one: One<'a>,
 }
 
 impl<'a> GapSize<'a> {
@@ -37,7 +37,7 @@ impl<'a> GapSize<'a> {
         Self {
             valid_kmer,
             graph: graph::Graph::new(valid_kmer),
-            one: one::One::new(valid_kmer, c),
+            one: One::new(valid_kmer, c),
         }
     }
 

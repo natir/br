@@ -130,7 +130,7 @@ pub fn build_methods<'a>(
     if let Some(ms) = params {
         for method in ms {
             match &method[..] {
-                "one" => methods.push(Box::new(correct::one::One::new(solid, confirm))),
+                "one" => methods.push(Box::new(correct::One::new(solid, confirm))),
                 "graph" => methods.push(Box::new(correct::Graph::new(&solid))),
                 "greedy" => {
                     methods.push(Box::new(correct::Greedy::new(&solid, max_search, confirm)))
@@ -140,7 +140,7 @@ pub fn build_methods<'a>(
             }
         }
     } else {
-        methods.push(Box::new(correct::one::One::new(&solid, confirm)));
+        methods.push(Box::new(correct::One::new(&solid, confirm)));
     }
 
     methods
