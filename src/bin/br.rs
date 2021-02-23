@@ -118,6 +118,7 @@ pub struct Command {
     pub verbosity: i8,
 }
 
+#[cfg(not(tarpaulin_include))]
 fn main() -> Result<()> {
     let params = Command::parse();
 

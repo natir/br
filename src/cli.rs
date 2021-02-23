@@ -97,3 +97,20 @@ pub fn read_or_compute_solidity(
         Err(Error::Cli(NoSolidityNoKmer).into())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn loglevel() {
+        assert_eq!(i82level(i8::MIN), None);
+        assert_eq!(i82level(-3), None);
+        assert_eq!(i82level(1), Some(log::Level::Error));
+        assert_eq!(i82level(2), Some(log::Level::Warn));
+        assert_eq!(i82level(3), Some(log::Level::Info));
+        assert_eq!(i82level(4), Some(log::Level::Debug));
+        assert_eq!(i82level(5), Some(log::Level::Trace));
+        assert_eq!(i82level(i8::MAX), Some(log::Level::Trace));
+    }
+}
