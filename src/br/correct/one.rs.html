@@ -382,6 +382,8 @@
 <span id="379">379</span>
 <span id="380">380</span>
 <span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">/*
 Copyright (c) 2020 Pierre Marijon &lt;pmarijon@mmci.uni-saarland.de&gt;
@@ -515,9 +517,9 @@ SOFTWARE.
             <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;no scenario&quot;</span>);
             <span class="prelude-val">None</span>
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">scenarii</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
-            <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;one scenario&quot;</span>);
+            <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;one scenario {:?}&quot;</span>, <span class="ident">scenarii</span>[<span class="number">0</span>]);
             <span class="prelude-val">Some</span>(<span class="ident">scenarii</span>[<span class="number">0</span>].<span class="ident">correct</span>(<span class="ident">corr</span>, <span class="ident">seq</span>))
-        } <span class="kw">else</span> {
+        } <span class="kw">else</span> <span class="kw">if</span> (<span class="ident">Scenario</span>::<span class="ident">I</span>.<span class="ident">check</span>() <span class="op">+</span> <span class="self">self</span>.<span class="ident">c</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;</span> <span class="ident">seq</span>.<span class="ident">len</span>() {
             <span class="ident">scenarii</span>.<span class="ident">retain</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> {
                 <span class="ident">last_is_valid</span>(
                     <span class="self">self</span>.<span class="ident">valid_kmer</span>,
@@ -533,6 +535,8 @@ SOFTWARE.
                 <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;multi scenario no better&quot;</span>);
                 <span class="prelude-val">None</span>
             }
+        } <span class="kw">else</span> {
+            <span class="prelude-val">None</span>
         }
     }
 }
