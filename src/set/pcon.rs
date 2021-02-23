@@ -33,12 +33,6 @@ impl Pcon {
     }
 }
 
-impl std::fmt::Debug for Pcon {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Pcon").finish()
-    }
-}
-
 impl KmerSet for Pcon {
     fn get(&self, kmer: u64) -> bool {
         self.set.get(kmer)

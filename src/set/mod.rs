@@ -26,7 +26,7 @@ pub mod pcon;
 pub use self::hash::Hash;
 pub use self::pcon::Pcon;
 
-pub trait KmerSet: Sync + std::fmt::Debug {
+pub trait KmerSet: Sync {
     fn get(&self, kmer: u64) -> bool;
 
     fn k(&self) -> u8;
