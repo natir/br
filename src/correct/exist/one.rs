@@ -62,7 +62,7 @@ impl Scenario for ScenarioOne {
         }
     }
 
-    fn correct(&self, kmer: u64, _seq: &[u8]) -> (Vec<u8>, usize) {
+    fn correct(&self, _valid_kmer: &set::BoxKmerSet, kmer: u64, _seq: &[u8]) -> (Vec<u8>, usize) {
         match self {
             ScenarioOne::I(_, _) => (vec![], 2),
             ScenarioOne::S(_, _) => (vec![cocktail::kmer::bit2nuc(kmer & 0b11)], 1),
@@ -80,7 +80,10 @@ mod tests {
     use crate::correct::Corrector;
 
     fn init() {
-        let _ = env_logger::builder().is_test(true).try_init();
+        let _ = env_logger::builder()
+            .is_test(true)
+            .filter_level(log::LevelFilter::Trace)
+            .try_init();
     }
 
     #[test]

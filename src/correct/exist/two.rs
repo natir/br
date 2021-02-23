@@ -33,10 +33,6 @@ use crate::set;
 ////////////////////////////////////
 #[derive(Debug, EnumIter, Clone, Copy)]
 pub enum ScenarioTwo {
-    I(usize, u8),
-    S(usize, u8),
-    D(usize, u8),
-
     II(usize, u8),
     IS(usize, u8),
     SS(usize, u8),
@@ -57,9 +53,6 @@ pub enum ScenarioTwo {
 impl Scenario for ScenarioTwo {
     fn init(&self, c: usize, k: u8) -> Self {
         match self {
-            ScenarioTwo::I(_, _) => ScenarioTwo::I(c, k),
-            ScenarioTwo::S(_, _) => ScenarioTwo::S(c, k),
-            ScenarioTwo::D(_, _) => ScenarioTwo::D(c, k),
             ScenarioTwo::II(_, _) => ScenarioTwo::II(c, k),
             ScenarioTwo::IS(_, _) => ScenarioTwo::IS(c, k),
             ScenarioTwo::SS(_, _) => ScenarioTwo::SS(c, k),
@@ -79,9 +72,6 @@ impl Scenario for ScenarioTwo {
 
     fn c(&self) -> usize {
         match self {
-            ScenarioTwo::I(c, _) => *c,
-            ScenarioTwo::S(c, _) => *c,
-            ScenarioTwo::D(c, _) => *c,
             ScenarioTwo::II(c, _) => *c,
             ScenarioTwo::IS(c, _) => *c,
             ScenarioTwo::SS(c, _) => *c,
@@ -106,31 +96,37 @@ impl Scenario for ScenarioTwo {
         seq: &[u8],
     ) -> Option<(u64, usize)> {
         match self {
-            ScenarioTwo::I(_, _) => Some((kmer, 2)),
-            ScenarioTwo::S(_, _) => Some((kmer, 1)),
-            ScenarioTwo::D(_, _) => Some((kmer, 0)),
-            ScenarioTwo::II(_, _) => Some((kmer, 3)),
-            ScenarioTwo::IS(_, k) => {
-                if seq.len() < 2 {
+            ScenarioTwo::II(_, _) => Some((kmer, 3)), // kmer not change check from base 3
+            ScenarioTwo::IS(_, _) => Some((kmer, 2)), // kmer not change check from base 2
+            ScenarioTwo::SS(_, k) => {
+                if seq.is_empty() {
                     None
                 } else {
-                    kmer = add_nuc_to_end(kmer >> 2, cocktail::kmer::nuc2bit(seq[1]), *k);
-
+                    kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(seq[1]), *k);
                     if valid_kmer.get(kmer) {
                         None
                     } else {
                         let alts = alt_nucs(valid_kmer, kmer);
-
                         if alts.len() != 1 {
                             None
                         } else {
-                            Some((add_nuc_to_end(kmer >> 2, alts[0], *k), 3))
+                            Some((add_nuc_to_end(kmer >> 2, alts[0], *k), 2))
                         }
                     }
                 }
             }
-            ScenarioTwo::SS(_, _) => None,
-            ScenarioTwo::SD(_, _) => None,
+            ScenarioTwo::SD(_, k) => {
+                if seq.is_empty() {
+                    None
+                } else {
+                    let alts = alt_nucs(valid_kmer, kmer << 2);
+                    if alts.len() != 1 {
+                        None
+                    } else {
+                        Some((add_nuc_to_end(kmer, alts[0], *k), 1))
+                    }
+                }
+            }
             ScenarioTwo::DD(_, _) => None,
             ScenarioTwo::ICI(_, _) => None,
             ScenarioTwo::ICS(_, _) => None,
@@ -144,21 +140,24 @@ impl Scenario for ScenarioTwo {
         }
     }
 
-    fn correct(&self, kmer: u64, _seq: &[u8]) -> (Vec<u8>, usize) {
+    fn correct(&self, valid_kmer: &set::BoxKmerSet, kmer: u64, seq: &[u8]) -> (Vec<u8>, usize) {
         match self {
-            ScenarioTwo::I(_, _) => (vec![], 2),
-            ScenarioTwo::S(_, _) => (vec![cocktail::kmer::bit2nuc(kmer & 0b11)], 1),
-            ScenarioTwo::D(_, _) => (vec![cocktail::kmer::bit2nuc(kmer & 0b11)], 0),
             ScenarioTwo::II(_, _) => (vec![], 2),
             ScenarioTwo::IS(_, _) => (vec![cocktail::kmer::bit2nuc(kmer & 0b11)], 2),
+            ScenarioTwo::SS(_, _) | ScenarioTwo::SD(_, _) => {
+                let (corr, offset) = self
+                    .apply(valid_kmer, kmer, seq)
+                    .expect("we can't failled her");
 
-            /*    ScenarioTwo::SS => {
-                None
-                },
-                ScenarioTwo::SD => {
-                None
-                },
-                ScenarioTwo::DD => {
+                (
+                    vec![
+                        cocktail::kmer::bit2nuc((corr & 0b1100) >> 2),
+                        cocktail::kmer::bit2nuc(corr & 0b11),
+                    ],
+                    offset,
+                )
+            }
+            /*ScenarioTwo::DD => {
                 None
                 },
                 ScenarioTwo::ICI => {
@@ -188,7 +187,7 @@ impl Scenario for ScenarioTwo {
                 ScenarioTwo::DCD => {
                 None
             },*/
-            _ => (vec![], 0),
+            _ => (vec![], 1),
         }
     }
 }
@@ -200,154 +199,16 @@ mod tests {
 
     use super::*;
 
+    use crate::correct::Corrector;
+
     fn init() {
-        let _ = env_logger::builder().is_test(true).try_init();
+        let _ = env_logger::builder()
+            .is_test(true)
+            .filter_level(log::LevelFilter::Trace)
+            .try_init();
     }
 
     #[test]
-    fn csc() {
-        init();
-
-        let refe = b"ACTGACGAC";
-        let read = b"ACTGATGAC";
-
-        let mut data = pcon::solid::Solid::new(5);
-
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
-            data.set(kmer, true);
-        }
-
-        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
-
-        let corrector = Two::new(&set, 2);
-
-        assert_eq!(refe, corrector.correct(read).as_slice());
-        assert_eq!(refe, corrector.correct(refe).as_slice());
-    }
-
-    #[test]
-    fn csc_relaxe() {
-        init();
-
-        let refe = b"ACTGACCACT";
-        let read = b"ACTGATCACT";
-        let conf = b"ACTGACAC";
-
-        let mut data = pcon::solid::Solid::new(5);
-
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
-            data.set(kmer, true);
-        }
-
-        for kmer in cocktail::tokenizer::Tokenizer::new(conf, 5) {
-            data.set(kmer, true);
-        }
-
-        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
-
-        let corrector = Two::new(&set, 2);
-
-        assert_eq!(refe, corrector.correct(read).as_slice());
-        assert_eq!(refe, corrector.correct(refe).as_slice());
-    }
-
-    #[test]
-    fn cic() {
-        init();
-
-        let refe = b"ACTGACGAC";
-        let read = b"ACTGATCGAC";
-
-        let mut data = pcon::solid::Solid::new(5);
-
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
-            data.set(kmer, true);
-        }
-
-        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
-
-        let corrector = Two::new(&set, 2);
-
-        assert_eq!(refe, corrector.correct(read).as_slice());
-        assert_eq!(refe, corrector.correct(refe).as_slice());
-    }
-
-    #[test]
-    #[ignore]
-    fn cic_relaxe() {
-        init();
-
-        let refe = b"GAGCGTACGTTGGAT";
-        let read = b"GAGCGTACTGTTGGAT";
-        let conf = b"GCGTACGTGA";
-
-        let mut data = pcon::solid::Solid::new(7);
-
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 7) {
-            data.set(kmer, true);
-        }
-
-        for kmer in cocktail::tokenizer::Tokenizer::new(conf, 7) {
-            data.set(kmer, true);
-        }
-
-        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
-
-        let corrector = Two::new(&set, 2);
-
-        assert_eq!(refe, corrector.correct(read).as_slice());
-        assert_eq!(refe, corrector.correct(refe).as_slice());
-    }
-
-    #[test]
-    fn cdc() {
-        init();
-
-        let refe = b"ACTGACGACCC";
-        let read = b"ACTGAGACCC";
-
-        let mut data = pcon::solid::Solid::new(5);
-
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
-            data.set(kmer, true);
-        }
-
-        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
-
-        let corrector = Two::new(&set, 2);
-
-        assert_eq!(refe, corrector.correct(read).as_slice());
-        assert_eq!(refe, corrector.correct(refe).as_slice());
-    }
-
-    #[test]
-    fn cdc_relaxe() {
-        init();
-
-        let refe = b"GAGCGTACGTTGGAT";
-        let read = b"GAGCGTAGTTGGAT";
-        let conf = b"GCGTACTT";
-
-        let mut data = pcon::solid::Solid::new(7);
-
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 7) {
-            data.set(kmer, true);
-        }
-
-        for kmer in cocktail::tokenizer::Tokenizer::new(conf, 7) {
-            data.set(kmer, true);
-        }
-
-        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
-
-        let corrector = Two::new(&set, 2);
-
-        assert_eq!(refe, corrector.correct(read).as_slice());
-        assert_eq!(refe, corrector.correct(refe).as_slice());
-    }
-
-    #[test]
-    #[ignore]
     fn ciic() {
         init();
 
@@ -376,6 +237,50 @@ mod tests {
         let refe = b"GATACATGGACACTAGTATG";
         //           |||||||||| \\\\\\\\\\
         let read = b"GATACATGGATGACTAGTATG";
+
+        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
+
+        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+            data.set(kmer, true);
+        }
+
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = Two::new(&set, 2);
+
+        assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
+        assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
+    }
+
+    #[test]
+    fn cssc() {
+        init();
+
+        let refe = b"TCGTTATTCGGTGGACTCCT";
+        //           ||||||||||  ||||||||
+        let read = b"TCGTTATTCGAAGGACTCCT";
+
+        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
+
+        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+            data.set(kmer, true);
+        }
+
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = Two::new(&set, 2);
+
+        assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
+        assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
+    }
+
+    #[test]
+    fn csdc() {
+        init();
+
+        let refe = b"AACAGCTGAATCTACCATTG";
+        //           |||||||||| /////////
+        let read = b"AACAGCTGAAGTACCATTG";
 
         let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
 

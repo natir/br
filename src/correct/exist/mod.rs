@@ -16,10 +16,16 @@ pub trait Scenario: std::fmt::Debug + Copy {
 
     fn apply(&self, valid_kmer: &set::BoxKmerSet, kmer: u64, seq: &[u8]) -> Option<(u64, usize)>;
 
-    fn correct(&self, kmer: u64, _seq: &[u8]) -> (Vec<u8>, usize);
+    fn correct(&self, valid_kmer: &set::BoxKmerSet, kmer: u64, _seq: &[u8]) -> (Vec<u8>, usize);
 
     fn get_score(&self, valid_kmer: &set::BoxKmerSet, ori: u64, seq: &[u8]) -> usize {
         if let Some((mut kmer, offset)) = self.apply(valid_kmer, ori, seq) {
+            debug!("Scenario {:?}", self);
+            debug!(
+                "correct kmer {} offset {}",
+                cocktail::kmer::kmer2seq(kmer, valid_kmer.k()),
+                offset
+            );
             if !valid_kmer.get(kmer) {
                 return 0;
             }
@@ -30,9 +36,20 @@ pub trait Scenario: std::fmt::Debug + Copy {
 
             let mut score = 0;
 
+            debug!("seq {:?}", seq);
+            debug!("sub seq {:?}", &seq[offset..offset + self.c()]);
             for nuc in &seq[offset..offset + self.c()] {
+                debug!(
+                    "before {} {}",
+                    cocktail::kmer::kmer2seq(kmer, valid_kmer.k()),
+                    *nuc as char
+                );
                 kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(*nuc), valid_kmer.k());
-
+                debug!(
+                    "after {} {}",
+                    cocktail::kmer::kmer2seq(kmer, valid_kmer.k()),
+                    *nuc as char
+                );
                 if valid_kmer.get(kmer) {
                     score += 1
                 } else {
@@ -47,8 +64,8 @@ pub trait Scenario: std::fmt::Debug + Copy {
     }
 
     fn one_more(&self, valid_kmer: &set::BoxKmerSet, mut kmer: u64, seq: &[u8]) -> bool {
-        let (correct, offset) = self.correct(kmer, seq);
-        debug!("{:?} correct {:?}, offset {}", self, correct, offset);
+        let (_, offset) = self.correct(valid_kmer, kmer, seq);
+        debug!("{:?} offset {}", self, offset);
 
         if seq.len() > self.c() + offset + 1 {
             debug!("seq[offset.. ] {:?}", &seq[offset..self.c() + offset + 1]);
@@ -137,14 +154,14 @@ where
             None
         } else if scenarii.len() == 1 {
             debug!("one {:?}", scenarii);
-            Some(scenarii[0].correct(corr, seq))
+            Some(scenarii[0].correct(self.valid_kmer, corr, seq))
         } else {
             debug!("multiple {:?}", scenarii);
             scenarii.retain(|x| x.one_more(self.valid_kmer, corr, seq));
             debug!("multiple {:?}", scenarii);
 
             if scenarii.len() == 1 {
-                Some(scenarii[0].correct(corr, seq))
+                Some(scenarii[0].correct(self.valid_kmer, corr, seq))
             } else {
                 None
             }
