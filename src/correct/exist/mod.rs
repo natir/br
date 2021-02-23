@@ -48,18 +48,18 @@ pub trait Scenario: std::fmt::Debug + Copy {
 
     fn one_more(&self, valid_kmer: &set::BoxKmerSet, mut kmer: u64, seq: &[u8]) -> bool {
         let (correct, offset) = self.correct(kmer, seq);
-        println!("{:?} correct {:?}, offset {}", self, correct, offset);
+        debug!("{:?} correct {:?}, offset {}", self, correct, offset);
 
         if seq.len() > self.c() + offset + 1 {
-            println!("seq[offset.. ] {:?}", &seq[offset..self.c() + offset + 1]);
-            println!(
+            debug!("seq[offset.. ] {:?}", &seq[offset..self.c() + offset + 1]);
+            debug!(
                 "correction {}",
                 cocktail::kmer::kmer2seq(kmer, valid_kmer.k())
             );
             seq[offset..self.c() + offset + 1].iter().for_each(|nuc| {
                 kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(*nuc), valid_kmer.k())
             });
-            println!("check {}", cocktail::kmer::kmer2seq(kmer, valid_kmer.k()));
+            debug!("check {}", cocktail::kmer::kmer2seq(kmer, valid_kmer.k()));
 
             kmer = add_nuc_to_end(
                 kmer,
