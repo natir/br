@@ -22,111 +22,12 @@ SOFTWARE.
 
 /* crate use */
 use anyhow::{anyhow, Context, Result};
-use clap::Clap;
 use log::Level;
-
-#[derive(Clap, Debug)]
-#[clap(
-    version = "0.1",
-    author = "Pierre Marijon <pierre.marijon@hhu.de>",
-    about = "Br: Brutal rewrite a simple long read corrector based on kmer spectrum methode"
-)]
-pub struct Command {
-    #[clap(
-        short = 's',
-        long = "solidity",
-        about = "solidity bitfield produce by pcon"
-    )]
-    pub solidity: Option<String>,
-
-    #[clap(
-        short = 'k',
-        long = "kmer",
-        about = "kmer length if you didn't provide solidity path you must give a kmer length"
-    )]
-    pub kmer_size: Option<u8>,
-
-    #[clap(short = 'i', long = "inputs", about = "fasta file to be correct")]
-    pub inputs: Vec<String>,
-
-    #[clap(
-        short = 'o',
-        long = "outputs",
-        about = "path where corrected read was write"
-    )]
-    pub outputs: Vec<String>,
-
-    #[clap(
-        short = 'a',
-        long = "abundance",
-        about = "if you want choose the minimum abundance you can set this parameter"
-    )]
-    pub abundance: Option<u8>,
-
-    #[clap(
-	short = 'm',
-	long = "method",
-	possible_values = &["one", "graph", "greedy", "gap_size"],
-	about = "correction method used, methods are applied in the order you specify, default value is 'one'"
-    )]
-    pub methods: Option<Vec<String>>,
-
-    #[clap(
-        short = 'c',
-        long = "confirm",
-        about = "number of kmer need to be solid after one, greedy correction to validate it, default value is '2'"
-    )]
-    pub confirm: Option<u8>,
-
-    #[clap(
-        short = 'M',
-        long = "max-search",
-        about = "number of base we use to try correct error, default value is '7'"
-    )]
-    pub max_search: Option<u8>,
-
-    #[clap(
-        short = 'n',
-        long = "not-two-side",
-        about = "if this flag is set br correct only in forward orientation"
-    )]
-    pub two_side: bool,
-
-    #[clap(
-        short = 't',
-        long = "threads",
-        about = "Number of thread use by br, 0 use all avaible core, default value 0"
-    )]
-    pub threads: Option<usize>,
-
-    #[clap(
-        short = 'b',
-        long = "record_buffer",
-        about = "Number of sequence record load in buffer, default 8192"
-    )]
-    pub record_buffer: Option<usize>,
-
-    #[clap(
-        short = 'v',
-        long = "verbosity",
-        parse(from_occurrences),
-        about = "verbosity level also control by environment variable BR_LOG if flag is set BR_LOG value is ignored"
-    )]
-    pub verbosity: i8,
-}
 
 use crate::error::*;
 use crate::set;
 use Cli::*;
 use IO::*;
-
-pub fn check_params(params: Command) -> Result<Command, Error> {
-    if params.inputs.len() != params.outputs.len() {
-        return Err(Error::Cli(NotSameNumberOfInAndOut));
-    }
-
-    Ok(params)
-}
 
 pub fn i82level(level: i8) -> Option<Level> {
     match level {
