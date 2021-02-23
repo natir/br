@@ -88,4 +88,16 @@ mod tests {
 
         assert!(!set.get(0));
     }
+
+    #[test]
+    fn k() {
+        let mut solid = pcon::solid::Solid::new(11);
+        for cano in cocktail::tokenizer::Canonical::new(SEQ, 11) {
+            solid.set(cano, true);
+        }
+
+        let set: crate::set::BoxKmerSet = Box::new(Pcon::new(solid));
+
+        assert_eq!(set.k(), 11);
+    }
 }

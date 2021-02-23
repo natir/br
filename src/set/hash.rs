@@ -105,4 +105,15 @@ mod tests {
 
         assert!(!set.get(0));
     }
+
+    #[test]
+    fn k() {
+        let file = std::io::Cursor::new(FILE);
+
+        let hash = Hash::new(vec![file], 11);
+
+        let set: crate::set::BoxKmerSet = Box::new(hash);
+
+        assert_eq!(set.k(), 11);
+    }
 }
