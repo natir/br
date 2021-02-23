@@ -40,4 +40,23 @@ mod tests {
 
         assert!(run_finish(child));
     }
+
+    #[test]
+    fn no_kmer_size() {
+        let child = Command::new("./target/debug/br_large")
+            .args(&[
+                "-i",
+                "tests/data/raw.fasta",
+                "-o",
+                "tests/data/corr.fasta",
+                "-S",
+                "tests/data/raw.k31.fasta",
+            ])
+            .stderr(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()
+            .expect("Couldn't create br subprocess");
+
+        assert!(!run_finish(child));
+    }
 }
