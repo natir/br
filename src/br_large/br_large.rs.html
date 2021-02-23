@@ -144,6 +144,7 @@
 <span id="141">141</span>
 <span id="142">142</span>
 <span id="143">143</span>
+<span id="144">144</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">/*
 Copyright (c) 2021 Pierre Marijon &lt;pierre.marijon@hhu.de&gt;
@@ -254,6 +255,7 @@ SOFTWARE.
     <span class="kw">pub</span> <span class="ident">verbosity</span>: <span class="ident">i8</span>,
 }
 
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">tarpaulin_include</span>))]</span>
 <span class="kw">fn</span> <span class="ident">main</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">Command</span>::<span class="ident">parse</span>();
 
