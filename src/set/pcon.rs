@@ -48,3 +48,50 @@ impl KmerSet for Pcon {
         self.set.k
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    static SEQ: &[u8] = b"ACGTGGGAATTGTGGCCACATCACGAGGTCCTGCGTATTGACGACTGTAAAGCGAGTGGCCGTGGAATTTCAAGCTCAATTAGCCGAACCAATCCGCCTA";
+
+    #[test]
+    fn canonical() {
+        let mut solid = pcon::solid::Solid::new(11);
+        for cano in cocktail::tokenizer::Canonical::new(SEQ, 11) {
+            solid.set(cano, true);
+        }
+
+        let set: crate::set::BoxKmerSet = Box::new(Pcon::new(solid));
+
+        for cano in cocktail::tokenizer::Canonical::new(SEQ, 11) {
+            assert!(set.get(cano))
+        }
+    }
+
+    #[test]
+    fn forward() {
+        let mut solid = pcon::solid::Solid::new(11);
+        for cano in cocktail::tokenizer::Canonical::new(SEQ, 11) {
+            solid.set(cano, true);
+        }
+
+        let set: crate::set::BoxKmerSet = Box::new(Pcon::new(solid));
+
+        for kmer in cocktail::tokenizer::Tokenizer::new(SEQ, 11) {
+            assert!(set.get(kmer))
+        }
+    }
+
+    #[test]
+    fn absence() {
+        let mut solid = pcon::solid::Solid::new(11);
+        for cano in cocktail::tokenizer::Canonical::new(SEQ, 11) {
+            solid.set(cano, true);
+        }
+
+        let set: crate::set::BoxKmerSet = Box::new(Pcon::new(solid));
+
+        assert!(!set.get(0));
+    }
+}
