@@ -156,6 +156,7 @@
 <span id="153">153</span>
 <span id="154">154</span>
 <span id="155">155</span>
+<span id="156">156</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">/*
 Copyright (c) 2020 Pierre Marijon &lt;pmarijon@mmci.uni-saarland.de&gt;
@@ -290,6 +291,7 @@ SOFTWARE.
         <span class="kw">for</span> <span class="ident">method</span> <span class="kw">in</span> <span class="ident">ms</span> {
             <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">method</span>[..] {
                 <span class="string">&quot;one&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">methods</span>.<span class="ident">push</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">correct</span>::<span class="ident">One</span>::<span class="ident">new</span>(<span class="ident">solid</span>, <span class="ident">confirm</span>))),
+                <span class="string">&quot;two&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">methods</span>.<span class="ident">push</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">correct</span>::<span class="ident">Two</span>::<span class="ident">new</span>(<span class="ident">solid</span>, <span class="ident">confirm</span>))),
                 <span class="string">&quot;graph&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">methods</span>.<span class="ident">push</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">correct</span>::<span class="ident">Graph</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">solid</span>))),
                 <span class="string">&quot;greedy&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">methods</span>.<span class="ident">push</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">correct</span>::<span class="ident">Greedy</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">solid</span>, <span class="ident">max_search</span>, <span class="ident">confirm</span>)))
