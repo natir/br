@@ -292,7 +292,7 @@ dependencies = [
 [[package]]
 name = "cocktail"
 version = "0.1.0"
-source = "git+https://github.com/natir/cocktail.git#4be83ab7c60f9c181d17d90a307aa9248ba5df05"
+source = "git+https://github.com/natir/cocktail.git#b9033e3b4dcddef494b63f575d8ac9ae2606a8b1"
 
 [[package]]
 name = "crc32fast"
@@ -720,12 +720,9 @@ dependencies = [
 
 [[package]]
 name = "newtype_derive"
-version = "0.1.6"
+version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ac8cd24d9f185bb7223958d8c1ff7a961b74b1953fd05dba7cc568a63b3861ec"
-dependencies = [
- "rustc_version",
-]
+checksum = "4b679b023e5cf58a5d8e21632858477fd69e8ccec9e8bd9b923a966bd5e30e2c"
 
 [[package]]
 name = "niffler"
@@ -820,7 +817,7 @@ checksum = "afb2e1c3ee07430c2cf76151675e583e0f19985fa6efae47d6848a3e2c824f85"
 [[package]]
 name = "pcon"
 version = "0.1.0"
-source = "git+https://github.com/natir/pcon.git#c9adaae40315d79ebfba4d906c5a93c20bdc3471"
+source = "git+https://github.com/natir/pcon.git#3065ce6d4a05151f0fef5aea94b97487ebca077f"
 dependencies = [
  "anyhow",
  "bio",
@@ -1025,15 +1022,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "08d43f7aa6b08d49f382cde6a7982047c3426db949b1424bc4b7ec9ae12c6ce2"
 
 [[package]]
-name = "rustc_version"
-version = "0.1.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c5f5376ea5e30ce23c03eb77cbe4962b988deead10910c372b226388b594c084"
-dependencies = [
- "semver",
-]
-
-[[package]]
 name = "rustversion"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1056,12 +1044,6 @@ name = "scopeguard"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d29ab0c6d3fc0ee92fe66e2d99f700eab17a8d57d1c1d3b748380fb20baa78cd"
-
-[[package]]
-name = "semver"
-version = "0.1.20"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d4f410fedcf71af0345d7607d246e7ad15faaadd49d240ee3b24e5dc21a820ac"
 
 [[package]]
 name = "serde"
