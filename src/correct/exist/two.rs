@@ -96,7 +96,7 @@ impl Scenario for ScenarioTwo {
             ScenarioTwo::II(_, _) => Some((kmer, 3)), // kmer not change check from base 3
             ScenarioTwo::IS(_, _) => Some((kmer, 2)), // kmer not change check from base 2
             ScenarioTwo::SS(_, k) => {
-                if seq.is_empty() {
+                if seq.len() < 2 {
                     None
                 } else {
                     kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(seq[1]), *k);
@@ -346,6 +346,27 @@ mod tests {
             .cloned()
             .filter(|x| *x != b'-')
             .collect::<Vec<u8>>()
+    }
+
+    #[test]
+    fn short() {
+        init();
+
+        let refe = filter(b"CTGGTGCACTACCGGATAGG");
+        //                         |||||| |
+        let read = filter(b"-------ACTACCTG");
+
+        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
+
+        for kmer in cocktail::tokenizer::Tokenizer::new(&refe, 5) {
+            data.set(kmer, true);
+        }
+
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
+
+        let corrector = Two::new(&set, 2);
+
+        assert_eq!(read, corrector.correct(&read).as_slice()); // test correction work
     }
 
     #[test]
