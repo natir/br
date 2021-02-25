@@ -659,6 +659,27 @@
 <span id="656">656</span>
 <span id="657">657</span>
 <span id="658">658</span>
+<span id="659">659</span>
+<span id="660">660</span>
+<span id="661">661</span>
+<span id="662">662</span>
+<span id="663">663</span>
+<span id="664">664</span>
+<span id="665">665</span>
+<span id="666">666</span>
+<span id="667">667</span>
+<span id="668">668</span>
+<span id="669">669</span>
+<span id="670">670</span>
+<span id="671">671</span>
+<span id="672">672</span>
+<span id="673">673</span>
+<span id="674">674</span>
+<span id="675">675</span>
+<span id="676">676</span>
+<span id="677">677</span>
+<span id="678">678</span>
+<span id="679">679</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">/*
 Copyright (c) 2020 Pierre Marijon &lt;pierre.marijon@hhu.de&gt;
@@ -758,7 +779,7 @@ SOFTWARE.
             <span class="ident">ScenarioTwo</span>::<span class="ident">II</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>((<span class="ident">kmer</span>, <span class="number">3</span>)), <span class="comment">// kmer not change check from base 3</span>
             <span class="ident">ScenarioTwo</span>::<span class="ident">IS</span>(<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>((<span class="ident">kmer</span>, <span class="number">2</span>)), <span class="comment">// kmer not change check from base 2</span>
             <span class="ident">ScenarioTwo</span>::<span class="ident">SS</span>(<span class="kw">_</span>, <span class="ident">k</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <span class="ident">seq</span>.<span class="ident">is_empty</span>() {
+                <span class="kw">if</span> <span class="ident">seq</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">2</span> {
                     <span class="prelude-val">None</span>
                 } <span class="kw">else</span> {
                     <span class="ident">kmer</span> <span class="op">=</span> <span class="ident">add_nuc_to_end</span>(<span class="ident">kmer</span>, <span class="ident">cocktail</span>::<span class="ident">kmer</span>::<span class="ident">nuc2bit</span>(<span class="ident">seq</span>[<span class="number">1</span>]), <span class="kw-2">*</span><span class="ident">k</span>);
@@ -1008,6 +1029,27 @@ SOFTWARE.
             .<span class="ident">cloned</span>()
             .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">x</span> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;-&#39;</span>)
             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>()
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">short</span>() {
+	<span class="ident">init</span>();
+
+        <span class="kw">let</span> <span class="ident">refe</span> <span class="op">=</span> <span class="ident">filter</span>(<span class="string">b&quot;CTGGTGCACTACCGGATAGG&quot;</span>);
+        <span class="comment">//                         |||||| |</span>
+        <span class="kw">let</span> <span class="ident">read</span> <span class="op">=</span>        <span class="ident">filter</span>(<span class="string">b&quot;ACTACCTG&quot;</span>);
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span>: <span class="ident">pcon</span>::<span class="ident">solid</span>::<span class="ident">Solid</span> <span class="op">=</span> <span class="ident">pcon</span>::<span class="ident">solid</span>::<span class="ident">Solid</span>::<span class="ident">new</span>(<span class="number">5</span>);
+
+        <span class="kw">for</span> <span class="ident">kmer</span> <span class="kw">in</span> <span class="ident">cocktail</span>::<span class="ident">tokenizer</span>::<span class="ident">Tokenizer</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">refe</span>, <span class="number">5</span>) {
+            <span class="ident">data</span>.<span class="ident">set</span>(<span class="ident">kmer</span>, <span class="bool-val">true</span>);
+        }
+
+        <span class="kw">let</span> <span class="ident">set</span>: <span class="ident">set</span>::<span class="ident">BoxKmerSet</span> <span class="op">=</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">set</span>::<span class="ident">Pcon</span>::<span class="ident">new</span>(<span class="ident">data</span>));
+
+        <span class="kw">let</span> <span class="ident">corrector</span> <span class="op">=</span> <span class="ident">Two</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">set</span>, <span class="number">2</span>);
+
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">read</span>, <span class="ident">corrector</span>.<span class="ident">correct</span>(<span class="kw-2">&amp;</span><span class="ident">read</span>).<span class="ident">as_slice</span>()); <span class="comment">// test correction work</span>
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
