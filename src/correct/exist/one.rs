@@ -64,7 +64,7 @@ impl Scenario for ScenarioOne {
 
     fn correct(&self, _valid_kmer: &set::BoxKmerSet, kmer: u64, _seq: &[u8]) -> (Vec<u8>, usize) {
         match self {
-            ScenarioOne::I(_, _) => (vec![], 2),
+            ScenarioOne::I(_, _) => (vec![cocktail::kmer::bit2nuc(kmer & 0b11)], 2),
             ScenarioOne::S(_, _) => (vec![cocktail::kmer::bit2nuc(kmer & 0b11)], 1),
             ScenarioOne::D(_, _) => (vec![cocktail::kmer::bit2nuc(kmer & 0b11)], 0),
         }
@@ -84,6 +84,13 @@ mod tests {
             .is_test(true)
             .filter_level(log::LevelFilter::Trace)
             .try_init();
+    }
+
+    fn filter<'a>(ori: &[u8]) -> Vec<u8> {
+        ori.iter()
+            .cloned()
+            .filter(|x| *x != b'-')
+            .collect::<Vec<u8>>()
     }
 
     #[test]
@@ -158,12 +165,12 @@ mod tests {
     fn cic() {
         init();
 
-        let refe = b"ACTGACGAC";
-        let read = b"ACTGATCGAC";
+        let refe = filter(b"ACTGA-CGAC");
+        let read = filter(b"ACTGATCGAC");
 
         let mut data = pcon::solid::Solid::new(5);
 
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+        for kmer in cocktail::tokenizer::Tokenizer::new(&refe, 5) {
             data.set(kmer, true);
         }
 
@@ -171,21 +178,24 @@ mod tests {
 
         let corrector = One::new(&set, 2);
 
-        assert_eq!(refe, corrector.correct(read).as_slice());
-        assert_eq!(refe, corrector.correct(refe).as_slice());
+        assert_eq!(refe, corrector.correct(&read).as_slice());
+        assert_eq!(refe, corrector.correct(&refe).as_slice());
     }
 
     #[test]
     fn cic_relaxe() {
         init();
 
-        let refe = b"GAGCGTACGTTGGAT";
-        let read = b"GAGCGTACTGTTGGAT";
+        //                    GCGTAC-G
+        //                   AGCGTAC
+        //                      GTACTTG
+        let refe = filter(b"GAGCGTAC-GTTGGAT");
+        let read = filter(b"GAGCGTACTGTTGGAT");
         let conf = b"GCGTACGTGA";
 
         let mut data = pcon::solid::Solid::new(7);
 
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 7) {
+        for kmer in cocktail::tokenizer::Tokenizer::new(&refe, 7) {
             data.set(kmer, true);
         }
 
@@ -197,8 +207,8 @@ mod tests {
 
         let corrector = One::new(&set, 2);
 
-        assert_eq!(refe, corrector.correct(read).as_slice());
-        assert_eq!(refe, corrector.correct(refe).as_slice());
+        assert_eq!(refe, corrector.correct(&read).as_slice());
+        assert_eq!(refe, corrector.correct(&refe).as_slice());
     }
 
     #[test]

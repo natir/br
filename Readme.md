@@ -1,9 +1,9 @@
-# Brutal Rewrite, a long read kmer corrector
-
 [![License](https://img.shields.io/badge/license-MIT-green)](https://github.com/natir/br/blob/master/LICENSE)
 ![CI](https://github.com/natir/br/workflows/CI/badge.svg)
 [![Documentation](https://github.com/natir/br/workflows/Documentation/badge.svg)](https://natir.github.io/br/br)
 [![CodeCov](https://codecov.io/gh/natir/br/branch/master/graph/badge.svg)](https://codecov.io/gh/natir/br)
+
+# Brutal Rewrite, a long read kmer corrector  🧬 💻
 
 - [Instalation](#instalation)
 - [Usage](#usage)

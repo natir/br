@@ -20,12 +20,6 @@ pub trait Scenario: std::fmt::Debug + Copy {
 
     fn get_score(&self, valid_kmer: &set::BoxKmerSet, ori: u64, seq: &[u8]) -> usize {
         if let Some((mut kmer, offset)) = self.apply(valid_kmer, ori, seq) {
-            debug!("Scenario {:?}", self);
-            debug!(
-                "correct kmer {} offset {}",
-                cocktail::kmer::kmer2seq(kmer, valid_kmer.k()),
-                offset
-            );
             if !valid_kmer.get(kmer) {
                 return 0;
             }
@@ -36,20 +30,9 @@ pub trait Scenario: std::fmt::Debug + Copy {
 
             let mut score = 0;
 
-            debug!("seq {:?}", seq);
-            debug!("sub seq {:?}", &seq[offset..offset + self.c()]);
             for nuc in &seq[offset..offset + self.c()] {
-                debug!(
-                    "before {} {}",
-                    cocktail::kmer::kmer2seq(kmer, valid_kmer.k()),
-                    *nuc as char
-                );
                 kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(*nuc), valid_kmer.k());
-                debug!(
-                    "after {} {}",
-                    cocktail::kmer::kmer2seq(kmer, valid_kmer.k()),
-                    *nuc as char
-                );
+
                 if valid_kmer.get(kmer) {
                     score += 1
                 } else {
@@ -64,25 +47,22 @@ pub trait Scenario: std::fmt::Debug + Copy {
     }
 
     fn one_more(&self, valid_kmer: &set::BoxKmerSet, mut kmer: u64, seq: &[u8]) -> bool {
-        let (_, offset) = self.correct(valid_kmer, kmer, seq);
-        debug!("{:?} offset {}", self, offset);
+        // Get correction
+        let (corr, offset) = self.correct(valid_kmer, kmer, seq);
 
+        // Can we read one base more
         if seq.len() > self.c() + offset + 1 {
-            debug!("seq[offset.. ] {:?}", &seq[offset..self.c() + offset + 1]);
-            debug!(
-                "correction {}",
-                cocktail::kmer::kmer2seq(kmer, valid_kmer.k())
-            );
-            seq[offset..self.c() + offset + 1].iter().for_each(|nuc| {
+            kmer >>= 2;
+            // Apply correction on kmer
+            corr.iter().for_each(|nuc| {
                 kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(*nuc), valid_kmer.k())
             });
-            debug!("check {}", cocktail::kmer::kmer2seq(kmer, valid_kmer.k()));
 
-            kmer = add_nuc_to_end(
-                kmer,
-                cocktail::kmer::nuc2bit(seq[self.c() + offset + 1]),
-                valid_kmer.k(),
-            );
+            // Apply base previously check
+            seq[offset..(offset + self.c() + 1)].iter().for_each(|nuc| {
+                kmer = add_nuc_to_end(kmer, cocktail::kmer::nuc2bit(*nuc), valid_kmer.k())
+            });
+
             valid_kmer.get(kmer)
         } else {
             false
