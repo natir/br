@@ -280,19 +280,6 @@
 <span id="277">277</span>
 <span id="278">278</span>
 <span id="279">279</span>
-<span id="280">280</span>
-<span id="281">281</span>
-<span id="282">282</span>
-<span id="283">283</span>
-<span id="284">284</span>
-<span id="285">285</span>
-<span id="286">286</span>
-<span id="287">287</span>
-<span id="288">288</span>
-<span id="289">289</span>
-<span id="290">290</span>
-<span id="291">291</span>
-<span id="292">292</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">/*
 Copyright (c) 2020 Pierre Marijon &lt;pmarijon@hhu.de&gt;
@@ -354,11 +341,20 @@ SOFTWARE.
             <span class="ident">alts</span> <span class="op">=</span> <span class="ident">next_nucs</span>(<span class="self">self</span>.<span class="ident">valid_kmer</span>, <span class="ident">corr</span>);
 
             <span class="kw">if</span> <span class="ident">alts</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="number">1</span> {
-                <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;failled multiple successor {:?} i: {}&quot;</span>, <span class="ident">alts</span>, <span class="ident">i</span>);
+                <span class="macro">debug</span><span class="macro">!</span>(
+                    <span class="string">&quot;failled multiple successor {} {:?} i: {}&quot;</span>,
+                    <span class="ident">cocktail</span>::<span class="ident">kmer</span>::<span class="ident">kmer2seq</span>(<span class="ident">corr</span>, <span class="self">self</span>.<span class="ident">valid_kmer</span>.<span class="ident">k</span>()),
+                    <span class="ident">alts</span>,
+                    <span class="ident">i</span>
+                );
                 <span class="kw">return</span> <span class="prelude-val">None</span>;
             }
 
             <span class="ident">corr</span> <span class="op">=</span> <span class="ident">add_nuc_to_end</span>(<span class="ident">corr</span>, <span class="ident">alts</span>[<span class="number">0</span>], <span class="self">self</span>.<span class="ident">k</span>());
+            <span class="macro">debug</span><span class="macro">!</span>(
+                <span class="string">&quot;kmer {}&quot;</span>,
+                <span class="ident">cocktail</span>::<span class="ident">kmer</span>::<span class="ident">kmer2seq</span>(<span class="ident">corr</span>, <span class="self">self</span>.<span class="ident">valid_kmer</span>.<span class="ident">k</span>())
+            );
             <span class="kw">if</span> <span class="ident">viewed_kmer</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">corr</span>) {
                 <span class="macro">debug</span><span class="macro">!</span>(
                     <span class="string">&quot;we view this kmer previously {}&quot;</span>,
@@ -549,28 +545,6 @@ SOFTWARE.
         <span class="kw">let</span> <span class="ident">refe</span> <span class="op">=</span> <span class="string">b&quot;GGATAACTCT&quot;</span>;
         <span class="comment">//           |||||</span>
         <span class="kw">let</span> <span class="ident">read</span> <span class="op">=</span> <span class="string">b&quot;GGATATACTCT&quot;</span>;
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span>: <span class="ident">pcon</span>::<span class="ident">solid</span>::<span class="ident">Solid</span> <span class="op">=</span> <span class="ident">pcon</span>::<span class="ident">solid</span>::<span class="ident">Solid</span>::<span class="ident">new</span>(<span class="number">5</span>);
-
-        <span class="kw">for</span> <span class="ident">kmer</span> <span class="kw">in</span> <span class="ident">cocktail</span>::<span class="ident">tokenizer</span>::<span class="ident">Tokenizer</span>::<span class="ident">new</span>(<span class="ident">refe</span>, <span class="number">5</span>) {
-            <span class="ident">data</span>.<span class="ident">set</span>(<span class="ident">kmer</span>, <span class="bool-val">true</span>);
-        }
-
-        <span class="kw">let</span> <span class="ident">set</span>: <span class="ident">set</span>::<span class="ident">BoxKmerSet</span> <span class="op">=</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">set</span>::<span class="ident">Pcon</span>::<span class="ident">new</span>(<span class="ident">data</span>));
-
-        <span class="kw">let</span> <span class="ident">corrector</span> <span class="op">=</span> <span class="ident">GapSize</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">set</span>, <span class="number">2</span>);
-
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">refe</span>, <span class="ident">corrector</span>.<span class="ident">correct</span>(<span class="ident">read</span>).<span class="ident">as_slice</span>()); <span class="comment">// test correction work</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">refe</span>, <span class="ident">corrector</span>.<span class="ident">correct</span>(<span class="ident">refe</span>).<span class="ident">as_slice</span>()); <span class="comment">// test not overcorrection</span>
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">ciic</span>() {
-        <span class="ident">init</span>();
-
-        <span class="kw">let</span> <span class="ident">refe</span> <span class="op">=</span> <span class="string">b&quot;GCGTAAATGGAT&quot;</span>;
-        <span class="comment">//           ||||||</span>
-        <span class="kw">let</span> <span class="ident">read</span> <span class="op">=</span> <span class="string">b&quot;GCGTAATTATGGAT&quot;</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span>: <span class="ident">pcon</span>::<span class="ident">solid</span>::<span class="ident">Solid</span> <span class="op">=</span> <span class="ident">pcon</span>::<span class="ident">solid</span>::<span class="ident">Solid</span>::<span class="ident">new</span>(<span class="number">5</span>);
 
