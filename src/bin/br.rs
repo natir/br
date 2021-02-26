@@ -67,6 +67,13 @@ pub struct Command {
     pub abundance: Option<u8>,
 
     #[clap(
+        short = 'A',
+        long = "abundance-method",
+        about = "Choose method to automaticly choose minimum abundance, format is {method}_{params}, method must be ['first-minimum', 'rarefaction', 'percent-most', 'percent-least'] params is a float between 0 to 1, default value is first-minimum_0.0, more information in pcon documentation"
+    )]
+    pub abundance_method: Option<AbundanceMethod>,
+
+    #[clap(
 	short = 'm',
 	long = "method",
 	possible_values = &["one", "two", "graph", "greedy", "gap_size"],
@@ -152,9 +159,16 @@ fn main() -> Result<()> {
     } else if let Some(kmer_size) = params.kmer_size {
         let count = count_kmer(&params.inputs, kmer_size, record_buffer)?;
 
-        let threshold = params
-            .abundance
-            .unwrap_or(compute_abundance_threshold(&count, std::io::stdout())?);
+        let abundance_method = params.abundance_method.unwrap_or(AbundanceMethod {
+            method: pcon::spectrum::ThresholdMethod::FirstMinimum,
+            params: 0.0,
+        });
+
+        let threshold = params.abundance.unwrap_or(compute_abundance_threshold(
+            &count,
+            abundance_method,
+            std::io::stdout(),
+        )?);
 
         Box::new(set::Pcon::new(pcon::solid::Solid::from_counter(
             &count, threshold,
@@ -212,14 +226,18 @@ fn count_kmer(
     Ok(counter)
 }
 
-fn compute_abundance_threshold<W>(count: &pcon::counter::Counter, out: W) -> Result<u8>
+fn compute_abundance_threshold<W>(
+    count: &pcon::counter::Counter,
+    method: AbundanceMethod,
+    out: W,
+) -> Result<u8>
 where
     W: std::io::Write,
 {
     let spectrum = pcon::spectrum::Spectrum::from_counter(&count);
 
     let abundance = spectrum
-        .get_threshold(pcon::spectrum::ThresholdMethod::FirstMinimum, 0.0)
+        .get_threshold(method.method, method.params)
         .ok_or(Error::CantComputeAbundance)?;
 
     spectrum
@@ -230,9 +248,51 @@ where
     Ok(abundance as u8)
 }
 
+#[derive(Debug)]
+pub struct AbundanceMethod {
+    pub method: pcon::spectrum::ThresholdMethod,
+    pub params: f64,
+}
+
+impl std::str::FromStr for AbundanceMethod {
+    type Err = br::error::Cli;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let elements: Vec<&str> = s.split('_').collect();
+
+        if elements.len() > 2 {
+            Err(Cli::CantParseAbundanceMethod)
+        } else {
+            let method = match elements[0] {
+                "first-minimum" => pcon::spectrum::ThresholdMethod::FirstMinimum,
+                "rarefaction" => pcon::spectrum::ThresholdMethod::Rarefaction,
+                "percent-most" => pcon::spectrum::ThresholdMethod::PercentAtMost,
+                "percent-least" => pcon::spectrum::ThresholdMethod::PercentAtLeast,
+                _ => return Err(Cli::CantParseAbundanceMethod),
+            };
+
+            let params = if method == pcon::spectrum::ThresholdMethod::FirstMinimum {
+                0.0
+            } else if let Ok(p) = f64::from_str(elements[1]) {
+                if p > 0.0 && p < 1.0 {
+                    p
+                } else {
+                    return Err(Cli::CantParseAbundanceMethod);
+                }
+            } else {
+                return Err(Cli::CantParseAbundanceMethod);
+            };
+
+            Ok(AbundanceMethod { method, params })
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    use std::str::FromStr;
 
     use std::io::Seek;
     use std::io::Write;
@@ -335,7 +395,15 @@ mod tests {
         let output = vec![];
         let count = pcon::counter::Counter::deserialize(COUNT).unwrap();
 
-        assert_eq!(2, compute_abundance_threshold(&count, output).unwrap());
+        let abu_method = AbundanceMethod {
+            method: pcon::spectrum::ThresholdMethod::FirstMinimum,
+            params: 0.0,
+        };
+
+        assert_eq!(
+            2,
+            compute_abundance_threshold(&count, abu_method, output).unwrap()
+        );
     }
 
     static SOLID: &[u8] = &[
@@ -366,5 +434,44 @@ mod tests {
         for kmer in 0..cocktail::kmer::get_kmer_space_size(5) {
             assert_eq!(compute.get(kmer), read.get(kmer));
         }
+    }
+
+    #[test]
+    fn abundance_method_parsing() {
+        init();
+
+        let tmp = AbundanceMethod::from_str("first-minimum").unwrap();
+        assert_eq!(tmp.method, pcon::spectrum::ThresholdMethod::FirstMinimum);
+        assert_eq!(tmp.params, 0.0);
+
+        let tmp = AbundanceMethod::from_str("rarefaction_0.5").unwrap();
+        assert_eq!(tmp.method, pcon::spectrum::ThresholdMethod::Rarefaction);
+        assert_eq!(tmp.params, 0.5);
+
+        let tmp = AbundanceMethod::from_str("percent-most_0.1").unwrap();
+        assert_eq!(tmp.method, pcon::spectrum::ThresholdMethod::PercentAtMost);
+        assert_eq!(tmp.params, 0.1);
+
+        let tmp = AbundanceMethod::from_str("percent-least_0.8").unwrap();
+        assert_eq!(tmp.method, pcon::spectrum::ThresholdMethod::PercentAtLeast);
+        assert_eq!(tmp.params, 0.8);
+
+        // First minimum params is always 0.0
+        let tmp = AbundanceMethod::from_str("first-minimum_0.8").unwrap();
+        assert_eq!(tmp.method, pcon::spectrum::ThresholdMethod::FirstMinimum);
+        assert_eq!(tmp.params, 0.0);
+
+        // name not match
+        assert!(AbundanceMethod::from_str("aesxàyxauie_0.8").is_err());
+
+        // to many field
+        assert!(AbundanceMethod::from_str("first-minimum_0.8_aiue_auie").is_err());
+
+        // params to large
+        assert!(AbundanceMethod::from_str("rarefaction_34.8").is_err());
+
+        // params don't care
+        assert!(AbundanceMethod::from_str("first-minimum_42.42").is_ok());
+        assert!(AbundanceMethod::from_str("first-minimum_auie").is_ok());
     }
 }

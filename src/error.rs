@@ -50,6 +50,9 @@ pub enum Cli {
 
     #[error("If you provide kmer solid path '-S' you must provide a kmer length '-k'")]
     KmerSolidNeedK,
+
+    #[error("Abundance method threshold can't be parse")]
+    CantParseAbundanceMethod,
 }
 
 /// Error emmit when pcon try to work with file
