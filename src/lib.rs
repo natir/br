@@ -160,6 +160,43 @@ mod tests {
     use super::*;
 
     #[test]
+    fn methods_list() {
+        // Not perfect test
+
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(pcon::solid::Solid::new(5)));
+        let mut methods = build_methods(None, &set, 2, 5);
+
+        assert_eq!(methods.len(), 1);
+
+        methods = build_methods(Some(vec!["one".to_string(), "two".to_string()]), &set, 2, 5);
+
+        assert_eq!(methods.len(), 2);
+
+        methods = build_methods(
+            Some(vec![
+                "one".to_string(),
+                "two".to_string(),
+                "graph".to_string(),
+                "greedy".to_string(),
+                "gap_size".to_string(),
+                "gap_size".to_string(),
+            ]),
+            &set,
+            2,
+            5,
+        );
+
+        assert_eq!(methods.len(), 6);
+    }
+
+    #[test]
+    #[should_panic]
+    fn methods_unreachable() {
+        let set: set::BoxKmerSet = Box::new(set::Pcon::new(pcon::solid::Solid::new(5)));
+        let _ = build_methods(Some(vec!["oe".to_string(), "tw".to_string()]), &set, 2, 5);
+    }
+
+    #[test]
     fn change_number_of_thread() {
         set_nb_threads(16);
         assert_eq!(rayon::current_num_threads(), 16);
