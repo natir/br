@@ -154,3 +154,14 @@ pub fn set_nb_threads(nb_threads: usize) {
         .build_global()
         .unwrap();
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn change_number_of_thread() {
+        set_nb_threads(16);
+        assert_eq!(rayon::current_num_threads(), 16);
+    }
+}
