@@ -349,11 +349,22 @@ mod tests {
         init();
 
         let count = pcon::counter::Counter::deserialize(COUNT).unwrap();
-        let solid = pcon::solid::Solid::from_counter(&count, 2);
+        let compute = pcon::solid::Solid::from_counter(&count, 2);
 
-        let mut output = vec![];
-        solid.serialize(&mut output).unwrap();
+        let mut compute_out = vec![];
+        compute.serialize(&mut compute_out).unwrap();
 
-        assert_eq!(SOLID, output.as_slice());
+        assert_eq!(SOLID, compute_out.as_slice());
+
+        let mut tmpfile = tempfile::NamedTempFile::new().unwrap();
+
+        tmpfile.write_all(SOLID).unwrap();
+
+        let path = tmpfile.path().to_str().unwrap().to_string();
+
+        let read = read_solidity(path).unwrap();
+        for kmer in 0..cocktail::kmer::get_kmer_space_size(5) {
+            assert_eq!(compute.get(kmer), read.get(kmer));
+        }
     }
 }
