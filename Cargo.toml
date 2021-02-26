@@ -5,6 +5,7 @@ version = "0.1.0"
 authors = ["Pierre Marijon <pierre@marijon.fr>"]
 edition = "2018"
 
+
 [lib]
 name = "br"
 crate-type = ["rlib", "cdylib", "staticlib"]
@@ -32,6 +33,11 @@ log 	       = "0.4"
 anyhow         = "1.0"
 thiserror      = "1.0"
 env_logger     = "0.7"
+
+
+[dev-dependencies]
+tempfile       = "3"
+rand           = { version = "0.8", features = ["small_rng"] }
 
 [profile.release]
 debug = true # uncomment for profiling

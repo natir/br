@@ -58,11 +58,20 @@ impl<'a> GapSize<'a> {
             alts = next_nucs(self.valid_kmer, corr);
 
             if alts.len() != 1 {
-                debug!("failled multiple successor {:?} i: {}", alts, i);
+                debug!(
+                    "failled multiple successor {} {:?} i: {}",
+                    cocktail::kmer::kmer2seq(corr, self.valid_kmer.k()),
+                    alts,
+                    i
+                );
                 return None;
             }
 
             corr = add_nuc_to_end(corr, alts[0], self.k());
+            debug!(
+                "kmer {}",
+                cocktail::kmer::kmer2seq(corr, self.valid_kmer.k())
+            );
             if viewed_kmer.contains(&corr) {
                 debug!(
                     "we view this kmer previously {}",
@@ -253,28 +262,6 @@ mod tests {
         let refe = b"GGATAACTCT";
         //           |||||
         let read = b"GGATATACTCT";
-
-        let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
-
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
-            data.set(kmer, true);
-        }
-
-        let set: set::BoxKmerSet = Box::new(set::Pcon::new(data));
-
-        let corrector = GapSize::new(&set, 2);
-
-        assert_eq!(refe, corrector.correct(read).as_slice()); // test correction work
-        assert_eq!(refe, corrector.correct(refe).as_slice()); // test not overcorrection
-    }
-
-    #[test]
-    fn ciic() {
-        init();
-
-        let refe = b"GCGTAAATGGAT";
-        //           ||||||
-        let read = b"GCGTAATTATGGAT";
 
         let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
 
