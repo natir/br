@@ -79,6 +79,9 @@
 <span id="76">76</span>
 <span id="77">77</span>
 <span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">/*
 Copyright (c) 2020 Pierre Marijon &lt;pmarijon@mpi-inf.mpg.de&gt;
@@ -132,6 +135,9 @@ SOFTWARE.
 
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;If you provide kmer solid path &#39;-S&#39; you must provide a kmer length &#39;-k&#39;&quot;</span>)]</span>
     <span class="ident">KmerSolidNeedK</span>,
+
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Abundance method threshold can&#39;t be parse&quot;</span>)]</span>
+    <span class="ident">CantParseAbundanceMethod</span>,
 }
 
 <span class="doccomment">/// Error emmit when pcon try to work with file</span>
