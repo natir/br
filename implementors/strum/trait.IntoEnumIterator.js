@@ -1,3 +1,3 @@
 (function() {var implementors = {};
-implementors["br"] = [{"text":"impl IntoEnumIterator for ScenarioOne","synthetic":false,"types":[]},{"text":"impl IntoEnumIterator for ScenarioTwo","synthetic":false,"types":[]}];
+implementors["br"] = [{"text":"impl IntoEnumIterator for <a class=\"enum\" href=\"br/correct/exist/one/enum.ScenarioOne.html\" title=\"enum br::correct::exist::one::ScenarioOne\">ScenarioOne</a>","synthetic":false,"types":["br::correct::exist::one::ScenarioOne"]},{"text":"impl IntoEnumIterator for <a class=\"enum\" href=\"br/correct/exist/two/enum.ScenarioTwo.html\" title=\"enum br::correct::exist::two::ScenarioTwo\">ScenarioTwo</a>","synthetic":false,"types":["br::correct::exist::two::ScenarioTwo"]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
