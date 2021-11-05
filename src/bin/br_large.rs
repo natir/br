@@ -22,13 +22,13 @@ SOFTWARE.
 
 /* crate use */
 use anyhow::{anyhow, Context, Result};
-use clap::Clap;
+use clap::Parser;
 
 use br::error::IO::*;
 use br::error::*;
 use br::*;
 
-#[derive(Clap, Debug)]
+#[derive(clap::Parser, Debug)]
 #[clap(
     version = "0.1",
     author = "Pierre Marijon <pierre.marijon@hhu.de>",

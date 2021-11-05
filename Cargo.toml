@@ -3,7 +3,7 @@ name = "br"
 description = "Brut Rewriting"
 version = "0.1.0"
 authors = ["Pierre Marijon <pierre@marijon.fr>"]
-edition = "2018"
+edition = "2021"
 
 
 [lib]
@@ -12,10 +12,10 @@ crate-type = ["rlib", "cdylib", "staticlib"]
 
 
 [dependencies]
-bio            = "0.32"
+bio            = "0.39"
 rustc-hash     = "1"
-strum          = "0.20"
-strum_macros   = "0.20"
+strum          = "0.22"
+strum_macros   = "0.22"
 cocktail       = { git = "https://github.com/natir/cocktail.git" }
 pcon	       = { git = "https://github.com/natir/pcon.git" }
 
@@ -26,13 +26,13 @@ rayon          = "1"
 niffler	       = { version = "2", features = ["bz2", "lzma", "gz"] }
 
 # CLI management
-clap           = "3.0.0-beta.2"
+clap           = "3.0.0-beta.5"
 
 # Logging and error management
 log 	       = "0.4"
-anyhow         = "1.0"
-thiserror      = "1.0"
-env_logger     = "0.7"
+anyhow         = "1"
+thiserror      = "1"
+env_logger     = "0.9"
 
 
 [dev-dependencies]
