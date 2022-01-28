@@ -35,93 +35,60 @@ use br::*;
     about = "Br: Brutal rewrite a simple long read corrector based on kmer spectrum methode"
 )]
 pub struct Command {
-    #[clap(
-        short = 's',
-        long = "solidity",
-        about = "solidity bitfield produce by pcon"
-    )]
+    /// solidity bitfield produce by pcon
+    #[clap(short = 's', long = "solidity")]
     pub solidity: Option<String>,
 
-    #[clap(
-        short = 'k',
-        long = "kmer",
-        about = "kmer length if you didn't provide solidity path you must give a kmer length"
-    )]
+    /// kmer length if you didn't provide solidity path you must give a kmer length
+    #[clap(short = 'k', long = "kmer")]
     pub kmer_size: Option<u8>,
 
-    #[clap(short = 'i', long = "inputs", about = "fasta file to be correct")]
+    /// fasta file to be correct
+    #[clap(short = 'i', long = "inputs")]
     pub inputs: Vec<String>,
 
-    #[clap(
-        short = 'o',
-        long = "outputs",
-        about = "path where corrected read was write"
-    )]
+    /// path where corrected read was write
+    #[clap(short = 'o', long = "outputs")]
     pub outputs: Vec<String>,
 
-    #[clap(
-        short = 'a',
-        long = "abundance",
-        about = "if you want choose the minimum abundance you can set this parameter"
-    )]
+    /// if you want choose the minimum abundance you can set this parameter
+    #[clap(short = 'a', long = "abundance")]
     pub abundance: Option<u8>,
 
-    #[clap(
-        short = 'A',
-        long = "abundance-method",
-        about = "Choose method to automaticly choose minimum abundance, format is {method}_{params}, method must be ['first-minimum', 'rarefaction', 'percent-most', 'percent-least'] params is a float between 0 to 1, default value is first-minimum_0.0, more information in pcon documentation"
-    )]
+    /// Choose method to automaticly choose minimum abundance, format is {method}_{params}, method must be ['first-minimum', 'rarefaction', 'percent-most', 'percent-least'] params is a float between 0 to 1, default value is first-minimum_0.0, more information in pcon documentation
+    #[clap(short = 'A', long = "abundance-method")]
     pub abundance_method: Option<AbundanceMethod>,
 
+    /// correction method used, methods are applied in the order you specify, default value is 'one'
     #[clap(
 	short = 'm',
 	long = "method",
 	possible_values = &["one", "two", "graph", "greedy", "gap_size"],
-	about = "correction method used, methods are applied in the order you specify, default value is 'one'"
     )]
     pub methods: Option<Vec<String>>,
 
-    #[clap(
-        short = 'c',
-        long = "confirm",
-        about = "number of kmer need to be solid after one, greedy correction to validate it, default value is '2'"
-    )]
+    /// number of kmer need to be solid after one, greedy correction to validate it, default value is '2'
+    #[clap(short = 'c', long = "confirm")]
     pub confirm: Option<u8>,
 
-    #[clap(
-        short = 'M',
-        long = "max-search",
-        about = "number of base we use to try correct error, default value is '7'"
-    )]
+    /// number of base we use to try correct error, default value is '7'
+    #[clap(short = 'M', long = "max-search")]
     pub max_search: Option<u8>,
 
-    #[clap(
-        short = 'n',
-        long = "not-two-side",
-        about = "if this flag is set br correct only in forward orientation"
-    )]
+    /// if this flag is set br correct only in forward orientation
+    #[clap(short = 'n', long = "not-two-side")]
     pub two_side: bool,
 
-    #[clap(
-        short = 't',
-        long = "threads",
-        about = "Number of thread use by br, 0 use all avaible core, default value 0"
-    )]
+    /// Number of thread use by br, 0 use all avaible core, default value 0
+    #[clap(short = 't', long = "threads")]
     pub threads: Option<usize>,
 
-    #[clap(
-        short = 'b',
-        long = "record_buffer",
-        about = "Number of sequence record load in buffer, default 8192"
-    )]
+    /// Number of sequence record load in buffer, default 8192
+    #[clap(short = 'b', long = "record_buffer")]
     pub record_buffer: Option<usize>,
 
-    #[clap(
-        short = 'v',
-        long = "verbosity",
-        parse(from_occurrences),
-        about = "verbosity level also control by environment variable BR_LOG if flag is set BR_LOG value is ignored"
-    )]
+    /// verbosity level also control by environment variable BR_LOG if flag is set BR_LOG value is ignored
+    #[clap(short = 'v', long = "verbosity", parse(from_occurrences))]
     pub verbosity: i8,
 }
 
@@ -234,7 +201,7 @@ fn compute_abundance_threshold<W>(
 where
     W: std::io::Write,
 {
-    let spectrum = pcon::spectrum::Spectrum::from_counter(&count);
+    let spectrum = pcon::spectrum::Spectrum::from_counter(count);
 
     let abundance = spectrum
         .get_threshold(method.method, method.params)

@@ -95,7 +95,7 @@ impl<'a> Corrector for GapSize<'a> {
     }
 
     fn correct_error(&self, kmer: u64, seq: &[u8]) -> Option<(Vec<u8>, usize)> {
-        let (error_len, _first_correct_kmer) = error_len(&seq, kmer, self.valid_kmer());
+        let (error_len, _first_correct_kmer) = error_len(seq, kmer, self.valid_kmer());
 
         debug!("error_len {}", error_len);
         match error_len.cmp(&(self.k() as usize)) {

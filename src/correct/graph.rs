@@ -42,7 +42,7 @@ impl<'a> Corrector for Graph<'a> {
     }
 
     fn correct_error(&self, mut kmer: u64, seq: &[u8]) -> Option<(Vec<u8>, usize)> {
-        let (error_len, first_correct_kmer) = error_len(&seq, kmer, self.valid_kmer());
+        let (error_len, first_correct_kmer) = error_len(seq, kmer, self.valid_kmer());
 
         let mut viewed_kmer = rustc_hash::FxHashSet::default();
 

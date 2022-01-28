@@ -132,16 +132,16 @@ pub fn build_methods<'a>(
             match &method[..] {
                 "one" => methods.push(Box::new(correct::One::new(solid, confirm))),
                 "two" => methods.push(Box::new(correct::Two::new(solid, confirm))),
-                "graph" => methods.push(Box::new(correct::Graph::new(&solid))),
+                "graph" => methods.push(Box::new(correct::Graph::new(solid))),
                 "greedy" => {
-                    methods.push(Box::new(correct::Greedy::new(&solid, max_search, confirm)))
+                    methods.push(Box::new(correct::Greedy::new(solid, max_search, confirm)))
                 }
-                "gap_size" => methods.push(Box::new(correct::GapSize::new(&solid, confirm))),
+                "gap_size" => methods.push(Box::new(correct::GapSize::new(solid, confirm))),
                 _ => unreachable!(),
             }
         }
     } else {
-        methods.push(Box::new(correct::One::new(&solid, confirm)));
+        methods.push(Box::new(correct::One::new(solid, confirm)));
     }
 
     methods
