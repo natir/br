@@ -1,3 +1,3 @@
 (function() {var implementors = {};
-implementors["br_large"] = [{"text":"impl <a class=\"trait\" href=\"https://docs.rs/clap/3.0.0-beta.5/clap/derive/trait.IntoApp.html\" title=\"trait clap::derive::IntoApp\">IntoApp</a> for <a class=\"struct\" href=\"br_large/struct.Command.html\" title=\"struct br_large::Command\">Command</a>","synthetic":false,"types":["br_large::Command"]}];
+implementors["br_large"] = [{"text":"impl IntoApp for <a class=\"struct\" href=\"br_large/struct.Command.html\" title=\"struct br_large::Command\">Command</a>","synthetic":false,"types":["br_large::Command"]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
