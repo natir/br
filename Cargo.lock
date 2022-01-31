@@ -268,7 +268,7 @@ dependencies = [
 [[package]]
 name = "cocktail"
 version = "0.1.0"
-source = "git+https://github.com/natir/cocktail.git#464dfba95b7995e590584466c4e7b700503289b9"
+source = "git+https://github.com/natir/cocktail.git#bdb37edffb5ddb9df34b15f5938a9f7794cf7b20"
 
 [[package]]
 name = "crc32fast"
@@ -568,9 +568,9 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
 name = "libc"
-version = "0.2.115"
+version = "0.2.116"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0a8d982fa7a96a000f6ec4cfe966de9703eccde29750df2bb8949da91b0e818d"
+checksum = "565dbd88872dbe4cc8a46e527f26483c1d1f7afa6b884a3bd6cd893d4f98da74"
 
 [[package]]
 name = "libm"
@@ -835,7 +835,7 @@ checksum = "0744126afe1a6dd7f394cb50a716dbe086cb06e255e53d8d0185d82828358fb5"
 [[package]]
 name = "pcon"
 version = "0.1.0"
-source = "git+https://github.com/natir/pcon.git#e98b0786df5027a7e954691304a975cb957ce263"
+source = "git+https://github.com/natir/pcon.git#95d3287b9e9ee3a512186c9898496397affd5551"
 dependencies = [
  "anyhow",
  "bitvec",

@@ -4,6 +4,7 @@ description = "Brut Rewriting"
 version = "0.1.0"
 authors = ["Pierre Marijon <pierre@marijon.fr>"]
 edition = "2021"
+rust-version = "1.56"
 
 
 [lib]
@@ -40,7 +41,7 @@ tempfile       = "3"
 rand           = { version = "0.8", features = ["small_rng"] }
 
 [profile.release]
-debug = true # uncomment for profiling
+#debug = true ## uncomment for profiling
 lto = 'thin'
 opt-level = 3
 overflow-checks = false
