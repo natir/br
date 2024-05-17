@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["i82level",""]]});
+window.SIDEBAR_ITEMS = {"fn":["u82level"]};

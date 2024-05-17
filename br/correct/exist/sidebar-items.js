@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["one",""],["two",""]],"struct":[["Exist",""]],"trait":[["Scenario",""]]});
+window.SIDEBAR_ITEMS = {"mod":["one","two"],"struct":["Exist"],"trait":["Scenario"]};

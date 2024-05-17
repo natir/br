@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Pcon",""]]});
+window.SIDEBAR_ITEMS = {"struct":["Pcon"]};

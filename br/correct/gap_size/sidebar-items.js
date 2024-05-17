@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["GapSize",""]]});
+window.SIDEBAR_ITEMS = {"struct":["GapSize"]};

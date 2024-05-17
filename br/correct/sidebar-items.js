@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["exist",""],["gap_size",""],["graph",""],["greedy",""]],"trait":[["Corrector",""]]});
+window.SIDEBAR_ITEMS = {"mod":["exist","gap_size","graph","greedy"],"trait":["Corrector"]};

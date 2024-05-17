@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["build_methods",""],["run_correction",""],["set_nb_threads","Set the number of threads use by count step"]],"mod":[["cli",""],["correct",""],["error",""],["set",""]]});
+window.SIDEBAR_ITEMS = {"enum":["CorrectionMethod"],"fn":["build_methods","run_correction","set_nb_threads"],"mod":["cli","correct","error","set"]};

@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["main",""]],"struct":[["Command",""]]});
+window.SIDEBAR_ITEMS = {"fn":["main"],"struct":["Command"]};

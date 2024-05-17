@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["hash",""],["pcon",""]],"trait":[["KmerSet",""]],"type":[["BoxKmerSet",""]]});
+window.SIDEBAR_ITEMS = {"mod":["hash","pcon"],"trait":["KmerSet"],"type":["BoxKmerSet"]};

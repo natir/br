@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["ScenarioTwo",""]],"struct":[["ScenarioTwoIter",""]],"type":[["Two",""]]});
+window.SIDEBAR_ITEMS = {"enum":["ScenarioTwo"],"struct":["ScenarioTwoIter"],"type":["Two"]};
