@@ -266,7 +266,7 @@ SOFTWARE.
         ));
 
         <span class="kw">let </span><span class="kw-2">mut </span>write = bio::io::fasta::Writer::new(std::io::BufWriter::new(
-            std::fs::File::create(<span class="kw-2">&amp;</span>output)
+            std::fs::File::create(output)
                 .with_context(|| error::Error::IO(CantCreateFile))
                 .with_context(|| <span class="macro">anyhow!</span>(<span class="string">"File {}"</span>, output.clone()))<span class="question-mark">?</span>,
         ));
