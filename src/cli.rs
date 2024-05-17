@@ -23,14 +23,14 @@ SOFTWARE.
 /* crate use */
 use log::Level;
 
-pub fn i82level(level: i8) -> Option<Level> {
+pub fn u82level(level: u8) -> Option<Level> {
     match level {
-        std::i8::MIN..=0 => None,
+        std::u8::MIN..=0 => None,
         1 => Some(log::Level::Error),
         2 => Some(log::Level::Warn),
         3 => Some(log::Level::Info),
         4 => Some(log::Level::Debug),
-        5..=std::i8::MAX => Some(log::Level::Trace),
+        5..=std::u8::MAX => Some(log::Level::Trace),
     }
 }
 
@@ -40,13 +40,13 @@ mod tests {
 
     #[test]
     fn loglevel() {
-        assert_eq!(i82level(i8::MIN), None);
-        assert_eq!(i82level(-3), None);
-        assert_eq!(i82level(1), Some(log::Level::Error));
-        assert_eq!(i82level(2), Some(log::Level::Warn));
-        assert_eq!(i82level(3), Some(log::Level::Info));
-        assert_eq!(i82level(4), Some(log::Level::Debug));
-        assert_eq!(i82level(5), Some(log::Level::Trace));
-        assert_eq!(i82level(i8::MAX), Some(log::Level::Trace));
+        assert_eq!(u82level(u8::MIN), None);
+        assert_eq!(u82level(0), None);
+        assert_eq!(u82level(1), Some(log::Level::Error));
+        assert_eq!(u82level(2), Some(log::Level::Warn));
+        assert_eq!(u82level(3), Some(log::Level::Info));
+        assert_eq!(u82level(4), Some(log::Level::Debug));
+        assert_eq!(u82level(5), Some(log::Level::Trace));
+        assert_eq!(u82level(u8::MAX), Some(log::Level::Trace));
     }
 }

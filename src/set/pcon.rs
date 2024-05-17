@@ -39,7 +39,7 @@ impl KmerSet for Pcon {
     }
 
     fn k(&self) -> u8 {
-        self.set.k
+        self.set.k()
     }
 }
 

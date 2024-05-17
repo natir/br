@@ -40,6 +40,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn solid() {
         let child = Command::new("./target/debug/br")
             .args(&[

@@ -52,12 +52,8 @@ pub struct Command {
     pub kmer_size: Option<u8>,
 
     /// correction method used, methods are applied in the order you specify, default value is 'one'
-    #[clap(
-	short = 'm',
-	long = "method",
-	possible_values = &["one", "two", "graph", "greedy", "gap_size"],
-    )]
-    pub methods: Option<Vec<String>>,
+    #[clap(short = 'm', long = "method")]
+    pub methods: Option<Vec<br::CorrectionMethod>>,
 
     /// number of kmer need to be solid after one, greedy correction to validate it, default value is '2'
     #[clap(short = 'c', long = "confirm")]
@@ -77,11 +73,11 @@ pub struct Command {
 
     /// Number of sequence record load in buffer, default 8192
     #[clap(short = 'b', long = "record_buffer")]
-    pub record_buffer: Option<usize>,
+    pub record_buffer: Option<u64>,
 
     /// verbosity level also control by environment variable BR_LOG if flag is set BR_LOG value is ignored
-    #[clap(short = 'v', long = "verbosity", parse(from_occurrences))]
-    pub verbosity: i8,
+    #[clap(short = 'v', long = "verbosity", action =  clap::ArgAction::Count)]
+    pub verbosity: u8,
 }
 
 #[cfg(not(tarpaulin_include))]

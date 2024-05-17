@@ -40,7 +40,7 @@ pub fn run_correction<'a>(
     outputs: &[String],
     methods: Vec<Box<dyn correct::Corrector + Sync + Send + 'a>>,
     two_side: bool,
-    record_buffer_len: usize,
+    record_buffer_len: u64,
 ) -> Result<()> {
     for (input, output) in inputs.iter().zip(outputs) {
         log::info!("Read file {} write in {}", input, output);
@@ -58,7 +58,7 @@ pub fn run_correction<'a>(
         ));
 
         let mut iter = reader.records();
-        let mut records = Vec::with_capacity(record_buffer_len);
+        let mut records = Vec::with_capacity(record_buffer_len as usize);
         let mut corrected: Vec<bio::io::fasta::Record>;
 
         let mut end = false;
@@ -119,8 +119,17 @@ pub fn run_correction<'a>(
     Ok(())
 }
 
+#[derive(Clone, Debug, clap::ValueEnum)]
+pub enum CorrectionMethod {
+    One,
+    Two,
+    Graph,
+    Greedy,
+    GapSize,
+}
+
 pub fn build_methods<'a>(
-    params: Option<Vec<String>>,
+    params: Option<Vec<CorrectionMethod>>,
     solid: &'a set::BoxKmerSet,
     confirm: u8,
     max_search: u8,
@@ -129,15 +138,16 @@ pub fn build_methods<'a>(
 
     if let Some(ms) = params {
         for method in ms {
-            match &method[..] {
-                "one" => methods.push(Box::new(correct::One::new(solid, confirm))),
-                "two" => methods.push(Box::new(correct::Two::new(solid, confirm))),
-                "graph" => methods.push(Box::new(correct::Graph::new(solid))),
-                "greedy" => {
+            match method {
+                CorrectionMethod::One => methods.push(Box::new(correct::One::new(solid, confirm))),
+                CorrectionMethod::Two => methods.push(Box::new(correct::Two::new(solid, confirm))),
+                CorrectionMethod::Graph => methods.push(Box::new(correct::Graph::new(solid))),
+                CorrectionMethod::Greedy => {
                     methods.push(Box::new(correct::Greedy::new(solid, max_search, confirm)))
                 }
-                "gap_size" => methods.push(Box::new(correct::GapSize::new(solid, confirm))),
-                _ => unreachable!(),
+                CorrectionMethod::GapSize => {
+                    methods.push(Box::new(correct::GapSize::new(solid, confirm)))
+                }
             }
         }
     } else {
@@ -168,18 +178,23 @@ mod tests {
 
         assert_eq!(methods.len(), 1);
 
-        methods = build_methods(Some(vec!["one".to_string(), "two".to_string()]), &set, 2, 5);
+        methods = build_methods(
+            Some(vec![CorrectionMethod::One, CorrectionMethod::Two]),
+            &set,
+            2,
+            5,
+        );
 
         assert_eq!(methods.len(), 2);
 
         methods = build_methods(
             Some(vec![
-                "one".to_string(),
-                "two".to_string(),
-                "graph".to_string(),
-                "greedy".to_string(),
-                "gap_size".to_string(),
-                "gap_size".to_string(),
+                CorrectionMethod::One,
+                CorrectionMethod::Two,
+                CorrectionMethod::Graph,
+                CorrectionMethod::Greedy,
+                CorrectionMethod::GapSize,
+                CorrectionMethod::GapSize,
             ]),
             &set,
             2,
@@ -187,13 +202,6 @@ mod tests {
         );
 
         assert_eq!(methods.len(), 6);
-    }
-
-    #[test]
-    #[should_panic]
-    fn methods_unreachable() {
-        let set: set::BoxKmerSet = Box::new(set::Pcon::new(pcon::solid::Solid::new(5)));
-        let _ = build_methods(Some(vec!["oe".to_string(), "tw".to_string()]), &set, 2, 5);
     }
 
     #[test]

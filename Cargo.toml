@@ -13,12 +13,12 @@ crate-type = ["rlib", "cdylib", "staticlib"]
 
 
 [dependencies]
-bio            = "0.39"
+bio            = "1"
 rustc-hash     = "1"
-strum          = "0.22"
-strum_macros   = "0.22"
+strum          = "0.26"
+strum_macros   = "0.26"
 cocktail       = { git = "https://github.com/natir/cocktail.git" }
-pcon	       = { git = "https://github.com/natir/pcon.git" }
+pcon	       = { git = "https://github.com/natir/pcon.git", features = ["count_u8", "parallel"] }
 
 # parallel
 rayon          = "1"
@@ -27,13 +27,13 @@ rayon          = "1"
 niffler	       = { version = "2", features = ["bz2", "lzma", "gz"] }
 
 # CLI management
-clap           = "3"
+clap           = { version = "4", features = ["derive"] }
 
 # Logging and error management
 log 	       = "0.4"
 anyhow         = "1"
 thiserror      = "1"
-env_logger     = "0.9"
+env_logger     = "0.11"
 
 
 [dev-dependencies]
