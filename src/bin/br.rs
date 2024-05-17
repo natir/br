@@ -213,7 +213,7 @@ where
     //     .with_context(|| anyhow!("Error durring write of kmer histograme"))?;
     // println!("If this curve seems bad or minimum abundance choose (marked by *) not apopriate set parameter -a");
 
-    Ok(abundance as u8)
+    Ok(abundance)
 }
 
 #[derive(Debug, Clone)]

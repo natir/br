@@ -52,7 +52,7 @@ pub fn run_correction<'a>(
         ));
 
         let mut write = bio::io::fasta::Writer::new(std::io::BufWriter::new(
-            std::fs::File::create(&output)
+            std::fs::File::create(output)
                 .with_context(|| error::Error::IO(CantCreateFile))
                 .with_context(|| anyhow!("File {}", output.clone()))?,
         ));

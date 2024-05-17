@@ -157,7 +157,7 @@ impl<'a> Corrector for Greedy<'a> {
             }
             viewed_kmer.insert(kmer);
 
-            if seq.len() < i as usize {
+            if seq.len() < i {
                 return None;
             }
 
