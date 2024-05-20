@@ -90,17 +90,8 @@ mod tests {
 
     use super::*;
 
-    fn init() {
-        let _ = env_logger::builder()
-            .is_test(true)
-            .filter_level(log::LevelFilter::Trace)
-            .try_init();
-    }
-
     #[test]
     fn branching_path_csc() {
-        init();
-
         let refe = b"TCTTTATTTTC";
         //           ||||| |||||
         let read = b"TCTTTGTTTTC";
@@ -123,8 +114,6 @@ mod tests {
 
     #[test]
     fn branching_path_cdc() {
-        init();
-
         let refe = b"GATACATGGACACTAGTATG";
         //           ||||||||||
         let read = b"GATACATGGAACTAGTATG";
@@ -147,8 +136,6 @@ mod tests {
 
     #[test]
     fn branching_path_cic() {
-        init();
-
         let refe = b"GATACATGGACACTAGTATG";
         //           ||||||||||
         let read = b"GATACATGGATCACTAGTATG";
@@ -171,8 +158,6 @@ mod tests {
 
     #[test]
     fn csc() {
-        init();
-
         let refe = b"TCTTTATTTTC";
         //           ||||| |||||
         let read = b"TCTTTGTTTTC";
@@ -193,8 +178,6 @@ mod tests {
 
     #[test]
     fn cssc() {
-        init();
-
         let refe = b"TCTCTAATCTTC";
         //           |||||  |||||
         let read = b"TCTCTGGTCTTC";
@@ -215,8 +198,6 @@ mod tests {
 
     #[test]
     fn csssc() {
-        init();
-
         let refe = b"TCTCTAAATCTTC";
         //           |||||  |||||
         let read = b"TCTCTGGGTCTTC";
@@ -237,8 +218,6 @@ mod tests {
 
     #[test]
     fn cscsc() {
-        init();
-
         let refe = b"TCTTTACATTTTT";
         //           ||||| | |||||
         let read = b"TCTTTGCGTTTTT";
@@ -259,8 +238,6 @@ mod tests {
 
     #[test]
     fn cdc() {
-        init();
-
         let refe = b"GATACATGGACACTAGTATG";
         //           ||||||||||
         let read = b"GATACATGGAACTAGTATG";
@@ -281,8 +258,6 @@ mod tests {
 
     #[test]
     fn cddc() {
-        init();
-
         let refe = b"CAAAGCATTTTT";
         //           |||||
         let read = b"CAAAGTTTTT";
@@ -303,8 +278,6 @@ mod tests {
 
     #[test]
     fn cic() {
-        init();
-
         let refe = b"GATACATGGACACTAGTATG";
         //           ||||||||||
         let read = b"GATACATGGATCACTAGTATG";
@@ -325,8 +298,6 @@ mod tests {
 
     #[test]
     fn ciic() {
-        init();
-
         let refe = b"GATACATGGACACTAGTATG";
         //           ||||||||||
         let read = b"GATACATGGATTCACTAGTATG";

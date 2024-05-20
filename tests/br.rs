@@ -1,73 +1,76 @@
+/* std use */
+
+/* 3rd party use */
+
 #[cfg(test)]
 mod tests {
-    use std::io::Read;
-    use std::process::{Command, Stdio};
 
-    fn run_finish(mut child: std::process::Child) -> bool {
-        if !child.wait().expect("Error durring br run").success() {
-            let mut stdout = String::new();
-            let mut stderr = String::new();
+    #[test]
+    fn fasta_count() -> std::io::Result<()> {
+        let mut cmd = assert_cmd::Command::cargo_bin("br").unwrap();
+        cmd.args(&[
+            "-i",
+            "tests/data/raw.fasta",
+            "-o",
+            "tests/data/corr.fasta",
+            "fasta",
+            "-i",
+            "tests/data/raw.fasta",
+            "-k",
+            "11",
+            "first-minimum",
+        ]);
 
-            child.stdout.unwrap().read_to_string(&mut stdout).unwrap();
-            child.stderr.unwrap().read_to_string(&mut stderr).unwrap();
+        let assert = cmd.assert();
 
-            println!("stdout: {}", stdout);
-            println!("stderr: {}", stderr);
+        assert.success().stderr(b"" as &[u8]);
 
-            false
-        } else {
-            true
-        }
+        Ok(())
     }
 
     #[test]
-    fn count() {
-        let child = Command::new("./target/debug/br")
-            .args(&[
-                "-i",
-                "tests/data/raw.fasta",
-                "-o",
-                "tests/data/corr.fasta",
-                "-k",
-                "11",
-            ])
-            .stderr(Stdio::piped())
-            .stdout(Stdio::piped())
-            .spawn()
-            .expect("Couldn't create br subprocess");
+    fn solid() -> std::io::Result<()> {
+        let mut cmd = assert_cmd::Command::cargo_bin("br").unwrap();
+        cmd.args(&[
+            "-i",
+            "tests/data/raw.fasta",
+            "-o",
+            "tests/data/corr.fasta",
+            "solid",
+            "-i",
+            "tests/data/raw.k11.a2.solid",
+            "-f",
+            "solid",
+        ]);
 
-        assert!(run_finish(child));
+        let assert = cmd.assert();
+
+        assert.success().stderr(b"" as &[u8]);
+
+        Ok(())
     }
 
     #[test]
-    #[ignore]
-    fn solid() {
-        let child = Command::new("./target/debug/br")
-            .args(&[
-                "-i",
-                "tests/data/raw.fasta",
-                "-o",
-                "tests/data/corr.fasta",
-                "-s",
-                "tests/data/raw.k11.a2.solid",
-            ])
-            .stderr(Stdio::piped())
-            .stdout(Stdio::piped())
-            .spawn()
-            .expect("Couldn't create br subprocess");
+    fn large_kmer() -> std::io::Result<()> {
+        let mut cmd = assert_cmd::Command::cargo_bin("br").unwrap();
+        cmd.args(&[
+            "-i",
+            "tests/data/raw.fasta",
+            "-o",
+            "tests/data/corr.fasta",
+            "large-kmer",
+            "-i",
+            "tests/data/raw.k31.fasta",
+            "-f",
+            "fasta",
+            "-k",
+            "31",
+        ]);
 
-        assert!(run_finish(child));
-    }
+        let assert = cmd.assert();
 
-    #[test]
-    fn no_count_no_solid() {
-        let child = Command::new("./target/debug/br")
-            .args(&["-i", "tests/data/raw.fasta", "-o", "tests/data/corr.fasta"])
-            .stderr(Stdio::piped())
-            .stdout(Stdio::piped())
-            .spawn()
-            .expect("Couldn't create br subprocess");
+        assert.success().stderr(b"" as &[u8]);
 
-        assert!(!run_finish(child));
+        Ok(())
     }
 }

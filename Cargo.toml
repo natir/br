@@ -6,44 +6,68 @@ authors = ["Pierre Marijon <pierre@marijon.fr>"]
 edition = "2021"
 rust-version = "1.74"
 
+homepage = "https://github.com/natir/br"
+repository = "https://github.com/natir/br"
+documentation = "https://natir.github.io/br/br"
 
-[lib]
-name = "br"
-crate-type = ["rlib", "cdylib", "staticlib"]
+readme = "Readme.md"
+license-file = "LICENSE"
 
 
 [dependencies]
-bio            = "1"
-rustc-hash     = "1"
-strum          = "0.26"
-strum_macros   = "0.26"
+rustc-hash     = { version = "1" }
+strum          = { version = "0.26" }
+strum_macros   = { version = "0.26" }
+bio            = { version = "1" }
 cocktail       = { git = "https://github.com/natir/cocktail.git" }
 pcon	       = { git = "https://github.com/natir/pcon.git", features = ["count_u8", "parallel"] }
 
-# parallel
-rayon          = "1"
-
-# input output management
-niffler	       = { version = "2", features = ["bz2", "lzma", "gz"] }
+# multi-threading management
+rayon          = { version = "1", optional = true}
 
 # CLI management
 clap           = { version = "4", features = ["derive"] }
 
+# Error management
+thiserror      = { version = "1" }
+anyhow         = { version = "1" }
+
 # Logging and error management
-log 	       = "0.4"
-anyhow         = "1"
-thiserror      = "1"
-env_logger     = "0.11"
+log            = { version = "0.4" }
+stderrlog      = { version = "0.6" }
+
+# IO management
+csv            = { version = "1" }
+kff            = { version = "0.9", optional = true }
+niffler	       = { version = "2", features = ["bz2", "lzma", "gz"] }
+noodles        = { version = "0.74", features = ["fasta", "fastq"] }
 
 
 [dev-dependencies]
-tempfile       = "3"
-rand           = { version = "0.8", features = ["small_rng"] }
+criterion      = { version = "0.5" }
+tempfile       = { version = "3" }
+rand           = { version = "0.8" }
+assert_cmd     = { version = "2" }
+
+
+[features]
+default   = ["count_u8"]
+parallel  = ["dep:rayon", "pcon/parallel"]
+kff       = ["dep:kff", "pcon/kff"]
+count_u8  = ["pcon/count_u8"]
+count_u16 = ["pcon/count_u16"]
+count_u32 = ["pcon/count_u32"]
+count_u64 = ["pcon/count_u64"]
+
 
 [profile.release]
-#debug = true ## uncomment for profiling
 lto = 'thin'
 opt-level = 3
 overflow-checks = false
 panic = 'abort'
 incremental = false
+
+
+[profile.profiling]
+inherits = "release"
+debug = true

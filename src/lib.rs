@@ -1,68 +1,91 @@
-/*
-Copyright (c) 2020 Pierre Marijon <pmarijon@mmci.uni-saarland.de>
+//! Brutal rewrite
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+/* std use */
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+/* crates use */
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
- */
+/* project use */
 
-/* local mod */
+/* mod declaration */
 pub mod cli;
 pub mod correct;
 pub mod error;
 pub mod set;
 
 /* crate use */
-use anyhow::{anyhow, Context, Result};
-use rayon::iter::ParallelBridge;
+#[cfg(feature = "parallel")]
 use rayon::prelude::*;
 
 /* local use */
-use error::IO::*;
-use error::*;
 
+#[cfg(not(feature = "parallel"))]
 pub fn run_correction<'a>(
-    inputs: &[String],
-    outputs: &[String],
+    inputs: &mut [Box<dyn std::io::BufRead>],
+    outputs: &mut [Box<dyn std::io::Write>],
+    methods: Vec<Box<dyn correct::Corrector + Sync + Send + 'a>>,
+    two_side: bool,
+    _record_buffer_len: u64,
+) -> error::Result<()> {
+    for (input, output) in inputs.iter_mut().zip(outputs.iter_mut()) {
+        let mut reader = noodles::fasta::Reader::new(input);
+        let mut writer = noodles::fasta::Writer::new(output);
+
+        let mut records = reader.records();
+
+        while let Some(Ok(record)) = records.next() {
+            log::debug!(
+                "begin correct read {} {}",
+                String::from_utf8(record.name().to_vec()).unwrap(),
+                record.sequence().len()
+            );
+            let seq = record.sequence();
+
+            let mut correct = seq.as_ref().to_vec();
+            methods
+                .iter()
+                .for_each(|x| correct = x.correct(correct.as_slice()));
+
+            if !two_side {
+                correct.reverse();
+                methods
+                    .iter()
+                    .for_each(|x| correct = x.correct(correct.as_slice()));
+
+                correct.reverse();
+            }
+
+            writer.write_record(&noodles::fasta::Record::new(
+                record.definition().clone(),
+                correct.into(),
+            ))?;
+            log::debug!(
+                "end correct read {}",
+                String::from_utf8(record.name().to_vec()).unwrap()
+            );
+        }
+    }
+
+    Ok(())
+}
+
+#[cfg(feature = "parallel")]
+pub fn run_correction<'a>(
+    inputs: &mut [Box<dyn std::io::BufRead>],
+    outputs: &mut [Box<dyn std::io::Write>],
     methods: Vec<Box<dyn correct::Corrector + Sync + Send + 'a>>,
     two_side: bool,
     record_buffer_len: u64,
-) -> Result<()> {
-    for (input, output) in inputs.iter().zip(outputs) {
-        log::info!("Read file {} write in {}", input, output);
-
-        let reader = bio::io::fasta::Reader::new(std::io::BufReader::new(
-            std::fs::File::open(input)
-                .with_context(|| error::Error::IO(CantOpenFile))
-                .with_context(|| anyhow!("File {}", input.clone()))?,
-        ));
-
-        let mut write = bio::io::fasta::Writer::new(std::io::BufWriter::new(
-            std::fs::File::create(output)
-                .with_context(|| error::Error::IO(CantCreateFile))
-                .with_context(|| anyhow!("File {}", output.clone()))?,
-        ));
+) -> error::Result<()> {
+    for (input, output) in inputs.iter_mut().zip(outputs.iter_mut()) {
+        let mut reader = noodles::fasta::Reader::new(input);
+        let mut writer = noodles::fasta::Writer::new(output);
 
         let mut iter = reader.records();
         let mut records = Vec::with_capacity(record_buffer_len as usize);
         let mut corrected: Vec<bio::io::fasta::Record>;
 
         let mut end = false;
-        loop {
+        while !end {
             for _ in 0..record_buffer_len {
                 if let Some(Ok(record)) = iter.next() {
                     records.push(record);
@@ -109,60 +132,33 @@ pub fn run_correction<'a>(
             }
 
             records.clear();
-
-            if end {
-                break;
-            }
         }
     }
-
-    Ok(())
-}
-
-#[derive(Clone, Debug, clap::ValueEnum)]
-pub enum CorrectionMethod {
-    One,
-    Two,
-    Graph,
-    Greedy,
-    GapSize,
 }
 
 pub fn build_methods<'a>(
-    params: Option<Vec<CorrectionMethod>>,
+    params: Vec<cli::CorrectionMethod>,
     solid: &'a set::BoxKmerSet,
     confirm: u8,
     max_search: u8,
 ) -> Vec<Box<dyn correct::Corrector + Sync + Send + 'a>> {
     let mut methods: Vec<Box<dyn correct::Corrector + Sync + Send + 'a>> = Vec::new();
 
-    if let Some(ms) = params {
-        for method in ms {
-            match method {
-                CorrectionMethod::One => methods.push(Box::new(correct::One::new(solid, confirm))),
-                CorrectionMethod::Two => methods.push(Box::new(correct::Two::new(solid, confirm))),
-                CorrectionMethod::Graph => methods.push(Box::new(correct::Graph::new(solid))),
-                CorrectionMethod::Greedy => {
-                    methods.push(Box::new(correct::Greedy::new(solid, max_search, confirm)))
-                }
-                CorrectionMethod::GapSize => {
-                    methods.push(Box::new(correct::GapSize::new(solid, confirm)))
-                }
+    for method in params {
+        match method {
+            cli::CorrectionMethod::One => methods.push(Box::new(correct::One::new(solid, confirm))),
+            cli::CorrectionMethod::Two => methods.push(Box::new(correct::Two::new(solid, confirm))),
+            cli::CorrectionMethod::Graph => methods.push(Box::new(correct::Graph::new(solid))),
+            cli::CorrectionMethod::Greedy => {
+                methods.push(Box::new(correct::Greedy::new(solid, max_search, confirm)))
+            }
+            cli::CorrectionMethod::GapSize => {
+                methods.push(Box::new(correct::GapSize::new(solid, confirm)))
             }
         }
-    } else {
-        methods.push(Box::new(correct::One::new(solid, confirm)));
     }
 
     methods
-}
-
-/// Set the number of threads use by count step
-pub fn set_nb_threads(nb_threads: usize) {
-    rayon::ThreadPoolBuilder::new()
-        .num_threads(nb_threads)
-        .build_global()
-        .unwrap();
 }
 
 #[cfg(test)]
@@ -174,12 +170,9 @@ mod tests {
         // Not perfect test
 
         let set: set::BoxKmerSet = Box::new(set::Pcon::new(pcon::solid::Solid::new(5)));
-        let mut methods = build_methods(None, &set, 2, 5);
 
-        assert_eq!(methods.len(), 1);
-
-        methods = build_methods(
-            Some(vec![CorrectionMethod::One, CorrectionMethod::Two]),
+        let methods = build_methods(
+            vec![cli::CorrectionMethod::One, cli::CorrectionMethod::Two],
             &set,
             2,
             5,
@@ -187,26 +180,20 @@ mod tests {
 
         assert_eq!(methods.len(), 2);
 
-        methods = build_methods(
-            Some(vec![
-                CorrectionMethod::One,
-                CorrectionMethod::Two,
-                CorrectionMethod::Graph,
-                CorrectionMethod::Greedy,
-                CorrectionMethod::GapSize,
-                CorrectionMethod::GapSize,
-            ]),
+        let methods = build_methods(
+            vec![
+                cli::CorrectionMethod::One,
+                cli::CorrectionMethod::Two,
+                cli::CorrectionMethod::Graph,
+                cli::CorrectionMethod::Greedy,
+                cli::CorrectionMethod::GapSize,
+                cli::CorrectionMethod::GapSize,
+            ],
             &set,
             2,
             5,
         );
 
         assert_eq!(methods.len(), 6);
-    }
-
-    #[test]
-    fn change_number_of_thread() {
-        set_nb_threads(16);
-        assert_eq!(rayon::current_num_threads(), 16);
     }
 }

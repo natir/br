@@ -79,13 +79,6 @@ mod tests {
     use super::*;
     use crate::correct::Corrector;
 
-    fn init() {
-        let _ = env_logger::builder()
-            .is_test(true)
-            .filter_level(log::LevelFilter::Trace)
-            .try_init();
-    }
-
     fn filter<'a>(ori: &[u8]) -> Vec<u8> {
         ori.iter()
             .cloned()
@@ -95,8 +88,6 @@ mod tests {
 
     #[test]
     fn csc() {
-        init();
-
         let refe = b"ACTGACGAC";
         let read = b"ACTGATGAC";
 
@@ -116,8 +107,6 @@ mod tests {
 
     #[test]
     fn csc_relaxe() {
-        init();
-
         let refe = b"ACTGACCACT";
         let read = b"ACTGATCACT";
         let conf = b"ACTGACAC";
@@ -142,8 +131,6 @@ mod tests {
 
     #[test]
     fn cssc() {
-        init();
-
         let refe = b"ACTGACGAG";
         let read = b"ACTGATAAG";
 
@@ -163,8 +150,6 @@ mod tests {
 
     #[test]
     fn cic() {
-        init();
-
         let refe = filter(b"ACTGA-CGAC");
         let read = filter(b"ACTGATCGAC");
 
@@ -184,8 +169,6 @@ mod tests {
 
     #[test]
     fn cic_relaxe() {
-        init();
-
         //                    GCGTAC-G
         //                   AGCGTAC
         //                      GTACTTG
@@ -213,8 +196,6 @@ mod tests {
 
     #[test]
     fn ciic() {
-        init();
-
         let refe = b"ACTGACGA";
         let read = b"ACTGATTCGA";
 
@@ -234,8 +215,6 @@ mod tests {
 
     #[test]
     fn cdc() {
-        init();
-
         let refe = b"ACTGACGACCC";
         let read = b"ACTGAGACCC";
 
@@ -255,8 +234,6 @@ mod tests {
 
     #[test]
     fn cdc_relaxe() {
-        init();
-
         let refe = b"GAGCGTACGTTGGAT";
         let read = b"GAGCGTAGTTGGAT";
         let conf = b"GCGTACTT";
@@ -281,8 +258,6 @@ mod tests {
 
     #[test]
     fn cddc() {
-        init();
-
         let refe = b"ACTGACGAG";
         let read = b"ACTGAAG";
 

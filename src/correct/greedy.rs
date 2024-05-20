@@ -181,13 +181,6 @@ mod tests {
     static K: u8 = 11;
     static REFE: &[u8] = b"TAAGGCGCGTCCCGCACACATTTCGCTGCCCGATACGCAGATGAAAGAGG";
 
-    fn init() {
-        let _ = env_logger::builder()
-            .is_test(true)
-            .filter_level(log::LevelFilter::Trace)
-            .try_init();
-    }
-
     fn get_solid() -> pcon::solid::Solid {
         let mut data: pcon::solid::Solid = pcon::solid::Solid::new(K);
 
@@ -200,8 +193,6 @@ mod tests {
 
     #[test]
     fn branching_path_csc() {
-        init();
-
         //           TAAGGCGCGTCCCGCACACATTTCGCTGCCCGATACGCAGATGAAAGAGG
         //           |||||||||||||||||||||||| |||||||||||||||||||||||||
         let read = b"TAAGGCGCGTCCCGCACACATTTCACTGCCCGATACGCAGATGAAAGAGG";
@@ -220,8 +211,6 @@ mod tests {
 
     #[test]
     fn branching_path_cdc() {
-        init();
-
         //           TAAGGCGCGTCCCGCACACATTTCGCTGCCCGATACGCAGATGAAAGAGG
         //           ||||||||||||||||||||||||//////////////////////////
         let read = b"TAAGGCGCGTCCCGCACACATTTCCTGCCCGATACGCAGATGAAAGAGG";
@@ -240,8 +229,6 @@ mod tests {
 
     #[test]
     fn branching_path_cic() {
-        init();
-
         //           TAAGGCGCGTCCCGCACACATTTCGCTGCCCGATACGCAGATGAAAGAGG
         //           ||||||||||||||||||||||||\\\\\\\\\\\\\\\\\\\\\\\\\\
         let read = b"TAAGGCGCGTCCCGCACACATTTCAGCTGCCCGATACGCAGATGAAAGAGG";
@@ -260,8 +247,6 @@ mod tests {
 
     #[test]
     fn csc() {
-        init();
-
         //           TAAGGCGCGTCCCGCACACATTTCGCTGCCCGATACGCAGATGAAAGAGG
         //           |||||||||||||||||||||||| |||||||||||||||||||||||||
         let read = b"TAAGGCGCGTCCCGCACACATTTCACTGCCCGATACGCAGATGAAAGAGG";
@@ -278,8 +263,6 @@ mod tests {
 
     #[test]
     fn cssc() {
-        init();
-
         //           TAAGGCGCGTCCCGCACACATTTCGCTGCCCGATACGCAGATGAAAGAGG
         //           |||||||||||||||||||||||  |||||||||||||||||||||||||
         let read = b"TAAGGCGCGTCCCGCACACATTTGACTGCCCGATACGCAGATGAAAGAGG";
@@ -296,8 +279,6 @@ mod tests {
 
     #[test]
     fn csssc() {
-        init();
-
         //           TAAGGCGCGTCCCGCACACATTTCGCTGCCCGATACGCAGATGAAAGAGG
         //           |||||||||||||||||||||||   ||||||||||||||||||||||||
         let read = b"TAAGGCGCGTCCCGCACACATTTGATTGCCCGATACGCAGATGAAAGAGG";
@@ -314,8 +295,6 @@ mod tests {
 
     #[test]
     fn cscsc() {
-        init();
-
         //           TAAGGCGCGTCCCGCACACATTTCGCTGCCCGATACGCAGATGAAAGAGG
         //           |||||||||||||||||||||||   ||||||||||||||||||||||||
         let read = b"TAAGGCGCGTCCCGCACACATTTGATTGCCCGATACGCAGATGAAAGAGG";
@@ -333,8 +312,6 @@ mod tests {
     #[test]
     #[ignore]
     fn cdc() {
-        init();
-
         //                               TTTCGCTGCCCG
         //           TAAGGCGCGTCCCGCACACATTTCGCTGCCCGATACGCAGATGAAAGAGG
         //           ||||||||||||||||||||||||//////////////////////////
@@ -353,8 +330,6 @@ mod tests {
     #[test]
     #[ignore]
     fn cddc() {
-        init();
-
         //           TAAGGCGCGTCCCGCACACATTTCGCTGCCCGATACGCAGATGAAAGAGG
         //           ||||||||||||||||||||||||
         let read = b"TAAGGCGCGTCCCGCACACATCGCTGCCCGATACGCAGATGAAAGAGG";
@@ -372,8 +347,6 @@ mod tests {
     #[test]
     #[ignore]
     fn cdddc() {
-        init();
-
         //           TAAGGCGCGTCCCGCACACATTTCGCTGCCCGATACGCAGATGAAAGAGG
         //           ||||||||||||||||||||
         let read = b"TAAGGCGCGTCCCGCACACACGCTGCCCGATACGCAGATGAAAGAGG";
@@ -390,8 +363,6 @@ mod tests {
 
     #[test]
     fn cic() {
-        init();
-
         //           TAAGGCGCGTCCCGCACACATTTCGCTGCCCGATACGCAGATGAAAGAGG
         //           ||||||||||||||||||||||||\\\\\\\\\\\\\\\\\\\\\\\\\\\
         let read = b"TAAGGCGCGTCCCGCACACATTTCAGCTGCCCGATACGCAGATGAAAGAGG";
@@ -408,8 +379,6 @@ mod tests {
 
     #[test]
     fn ciic() {
-        init();
-
         //           TAAGGCGCGTCCCGCACACATTTC--GCTGCCCGATACGCAGATGAAAGAGG
         //           ||||||||||||||||||||||||  ||||||||||||||||||||||||||
         let read = b"TAAGGCGCGTCCCGCACACATTTCAAGCTGCCCGATACGCAGATGAAAGAGG";
@@ -426,8 +395,6 @@ mod tests {
 
     #[test]
     fn ciiic() {
-        init();
-
         //           TAAGGCGCGTCCCGCACACATTTC---GCTGCCCGATACGCAGATGAAAGAGG
         //           ||||||||||||||||||||||||   ||||||||||||||||||||||||||
         let read = b"TAAGGCGCGTCCCGCACACATTTCAAAGCTGCCCGATACGCAGATGAAAGAGG";

@@ -334,13 +334,6 @@ mod tests {
 
     use crate::correct::Corrector;
 
-    fn init() {
-        let _ = env_logger::builder()
-            .is_test(true)
-            .filter_level(log::LevelFilter::Trace)
-            .try_init();
-    }
-
     fn filter<'a>(ori: &[u8]) -> Vec<u8> {
         ori.iter()
             .cloned()
@@ -350,8 +343,6 @@ mod tests {
 
     #[test]
     fn short() {
-        init();
-
         let refe = filter(b"CTGGTGCACTACCGGATAGG");
         //                         |||||| |
         let read = filter(b"-------ACTACCTG");
@@ -371,8 +362,6 @@ mod tests {
 
     #[test]
     fn ciic() {
-        init();
-
         let refe = filter(b"GATACATGGA--CACTAGTATG");
         //                  ||||||||||  ||||||||||
         let read = filter(b"GATACATGGATTCACTAGTATG");
@@ -393,8 +382,6 @@ mod tests {
 
     #[test]
     fn cisc() {
-        init();
-
         let refe = filter(b"GATACATGGA-CACTAGTATG");
         //                  ||||||||||  |||||||||
         let read = filter(b"GATACATGGATGACTAGTATG");
@@ -415,8 +402,6 @@ mod tests {
 
     #[test]
     fn cssc() {
-        init();
-
         let refe = b"TCGTTATTCGGTGGACTCCT";
         //           ||||||||||  ||||||||
         let read = b"TCGTTATTCGAAGGACTCCT";
@@ -437,8 +422,6 @@ mod tests {
 
     #[test]
     fn csdc() {
-        init();
-
         let refe = b"AACAGCTGAATCTACCATTG";
         //           |||||||||| /////////
         let read = b"AACAGCTGAAGTACCATTG";
@@ -459,8 +442,6 @@ mod tests {
 
     #[test]
     fn cddc() {
-        init();
-
         let refe = b"TGCCGTAGGCCATTGCGGCT";
         //           ||||||||||  ||||||||
         let read = b"TGCCGTAGGC--TTGCGGCT";
@@ -481,8 +462,6 @@ mod tests {
 
     #[test]
     fn cicic() {
-        init();
-
         let refe = filter(b"ATAGTAACGG-A-CACACTT");
         //                  |||||||||| | |||||||
         let read = filter(b"ATAGTAACGGAAGCACACTT");
@@ -503,8 +482,6 @@ mod tests {
 
     #[test]
     fn cicsc() {
-        init();
-
         let refe = filter(b"GAGCCCAGAG-CGATATTCT");
         //                  |||||||||| | |||||||
         let read = filter(b"GAGCCCAGAGACTATATTCT");
@@ -525,8 +502,6 @@ mod tests {
 
     #[test]
     fn cicdc() {
-        init();
-
         let refe = filter(b"TCGAAAGCAT-GGGTACGTT");
         //                  |||||||||| | |||||||
         let read = filter(b"TCGAAAGCATAG-GTACGTT");
@@ -547,8 +522,6 @@ mod tests {
 
     #[test]
     fn cscic() {
-        init();
-
         let refe = filter(b"AAGGATGCATCG-ACTCAAG");
         //                  |||||||||| | |||||||
         let read = filter(b"AAGGATGCATGGAACTCAAG");
@@ -569,8 +542,6 @@ mod tests {
 
     #[test]
     fn cscsc() {
-        init();
-
         let refe = filter(b"ACACGTGCGCTTGGAGGTAC");
         //                  |||||||||| | |||||||
         let read = filter(b"ACACGTGCGCATCGAGGTAC");
@@ -591,8 +562,6 @@ mod tests {
 
     #[test]
     fn cscdc() {
-        init();
-
         let refe = filter(b"TATGCTCTGCGTAATCATAG");
         //                  |||||||||| | |||||||
         let read = filter(b"TATGCTCTGCAT-ATCATAG");
@@ -613,8 +582,6 @@ mod tests {
 
     #[test]
     fn cdcic() {
-        init();
-
         let refe = filter(b"GCTTCGTGATAG-TACGCTT");
         //                  |||||||||| | |||||||
         let read = filter(b"GCTTCGTGAT-GATACGCTT");
@@ -635,8 +602,6 @@ mod tests {
 
     #[test]
     fn cdcsc() {
-        init();
-
         let refe = filter(b"GGACCTGATCACGTCAATTA");
         //                  |||||||||| | |||||||
         let read = filter(b"GGACCTGATC-CCTCAATTA");
@@ -657,8 +622,6 @@ mod tests {
 
     #[test]
     fn cdcdc() {
-        init();
-
         let refe = filter(b"GGAATACGTGCGTTGGGTAA");
         //                  |||||||||| | |||||||
         let read = filter(b"GGAATACGTG-G-TGGGTAA");
