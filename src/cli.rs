@@ -365,7 +365,7 @@ impl LargeKmer {
             LargeKmerInput::Fasta => open_send(&self.input),
             LargeKmerInput::Fastq => open_send(&self.input),
             #[cfg(feature = "kff")]
-            LargeKmerInput::Kff => open(&self.input),
+            LargeKmerInput::Kff => open_send(&self.input),
         }
     }
 
@@ -491,7 +491,7 @@ mod tests {
         match cmd.subcommand {
             SubCommand::Fasta(subcmd) => {
                 assert_eq!(subcmd.kmer_size(), 13);
-                assert_eq!(subcmd.abundance(), 2);
+                assert_eq!(subcmd.abundance(), Some(2));
                 assert!(matches!(subcmd.abundance_selection(), None));
             }
             _ => unreachable!(),

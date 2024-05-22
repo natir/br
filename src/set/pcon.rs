@@ -41,7 +41,6 @@ impl Pcon {
         Ok(Self { set })
     }
 
-    #[cfg(not(feature = "parallel"))]
     pub fn from_fasta<R>(input: R, k: u8) -> Self
     where
         R: std::io::BufRead,
@@ -64,7 +63,6 @@ impl Pcon {
         Self { set }
     }
 
-    #[cfg(not(feature = "parallel"))]
     pub fn from_fastq<R>(input: R, k: u8) -> Self
     where
         R: std::io::BufRead,

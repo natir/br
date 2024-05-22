@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [master]
+    branches: [main]
   pull_request:
     branches: ["**"]
 
@@ -111,7 +111,7 @@ jobs:
 
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: 1.74.0
+          toolchain: 1.74
           override: true
 
       - name: check if Readme matches MSRV defined here

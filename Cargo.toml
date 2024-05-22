@@ -1,6 +1,6 @@
 [package]
 name = "br"
-description = "Brut Rewriting"
+description = "Brutal Rewrite"
 version = "0.1.0"
 authors = ["Pierre Marijon <pierre@marijon.fr>"]
 edition = "2021"

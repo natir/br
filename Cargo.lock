@@ -982,6 +982,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1e23ca72bd6a19e744f7f887434e2adc1d3eccdedbe619b4a45e8743656fd08c"
 dependencies = [
  "noodles-fasta",
+ "noodles-fastq",
 ]
 
 [[package]]
@@ -1104,7 +1105,7 @@ checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
 [[package]]
 name = "pcon"
 version = "0.1.0"
-source = "git+https://github.com/natir/pcon.git#4c4ba556122ef6ff62df1e3cccf2e7f257604b60"
+source = "git+https://github.com/natir/pcon.git#4584f753b7289f891733bd925311d5cbdd4af6a1"
 dependencies = [
  "anyhow",
  "bitvec",

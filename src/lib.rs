@@ -82,7 +82,7 @@ pub fn run_correction<'a>(
 
         let mut iter = reader.records();
         let mut records = Vec::with_capacity(record_buffer_len as usize);
-        let mut corrected: Vec<bio::io::fasta::Record>;
+        let mut corrected: Vec<error::Result<noodles::fasta::Record>>;
 
         let mut end = false;
         while !end {
@@ -101,11 +101,15 @@ pub fn run_correction<'a>(
                 .drain(..)
                 .par_bridge()
                 .map(|record| {
-                    log::debug!("begin correct read {} {}", record.id(), record.seq().len());
+                    log::debug!(
+                        "begin correct read {} {}",
+                        String::from_utf8(record.name().to_vec()).unwrap(),
+                        record.sequence().len()
+                    );
 
-                    let seq = record.seq();
+                    let seq = record.sequence();
 
-                    let mut correct = seq.to_vec();
+                    let mut correct = seq.as_ref().to_vec();
                     methods
                         .iter()
                         .for_each(|x| correct = x.correct(correct.as_slice()));
@@ -119,21 +123,26 @@ pub fn run_correction<'a>(
                         correct.reverse();
                     }
 
-                    log::debug!("end correct read {}", record.id());
-                    bio::io::fasta::Record::with_attrs(record.id(), record.desc(), &correct)
+                    log::debug!(
+                        "end correct read {}",
+                        String::from_utf8(record.name().to_vec()).unwrap()
+                    );
+                    Ok(noodles::fasta::Record::new(
+                        record.definition().clone(),
+                        correct.into(),
+                    ))
                 })
                 .collect();
 
             for corr in corrected {
-                write
-                    .write_record(&corr)
-                    .with_context(|| Error::IO(IO::ErrorDurringWrite))
-                    .with_context(|| anyhow!("File {}", output.clone()))?
+                writer.write_record(&corr?)?
             }
 
             records.clear();
         }
     }
+
+    Ok(())
 }
 
 pub fn build_methods<'a>(
