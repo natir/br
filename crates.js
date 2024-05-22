@@ -1,1 +1,1 @@
-window.ALL_CRATES = ["br","br_large"];
+window.ALL_CRATES = ["br"];

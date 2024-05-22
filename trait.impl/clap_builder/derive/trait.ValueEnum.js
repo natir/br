@@ -1,3 +1,3 @@
 (function() {var implementors = {
-"br":[["impl ValueEnum for <a class=\"enum\" href=\"br/enum.CorrectionMethod.html\" title=\"enum br::CorrectionMethod\">CorrectionMethod</a>"]]
+"br":[["impl ValueEnum for <a class=\"enum\" href=\"br/cli/enum.CorrectionMethod.html\" title=\"enum br::cli::CorrectionMethod\">CorrectionMethod</a>"],["impl ValueEnum for <a class=\"enum\" href=\"br/cli/enum.LargeKmerInput.html\" title=\"enum br::cli::LargeKmerInput\">LargeKmerInput</a>"],["impl ValueEnum for <a class=\"enum\" href=\"br/cli/enum.SolidInput.html\" title=\"enum br::cli::SolidInput\">SolidInput</a>"]]
 };if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

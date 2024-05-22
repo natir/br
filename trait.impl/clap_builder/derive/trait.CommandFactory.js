@@ -1,3 +1,3 @@
 (function() {var implementors = {
-"br_large":[["impl CommandFactory for <a class=\"struct\" href=\"br_large/struct.Command.html\" title=\"struct br_large::Command\">Command</a>"]]
+"br":[["impl CommandFactory for <a class=\"struct\" href=\"br/cli/struct.Command.html\" title=\"struct br::cli::Command\">Command</a>"]]
 };if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

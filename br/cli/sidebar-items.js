@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["u82level"]};
+window.SIDEBAR_ITEMS = {"enum":["AbundanceSelection","CorrectionMethod","LargeKmerInput","SolidInput","SubCommand"],"struct":["Command","Count","Fasta","LargeKmer","Solid"]};

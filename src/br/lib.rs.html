@@ -199,84 +199,94 @@
 <a href="#197" id="197">197</a>
 <a href="#198" id="198">198</a>
 <a href="#199" id="199">199</a>
-<a href="#200" id="200">200</a>
-<a href="#201" id="201">201</a>
-<a href="#202" id="202">202</a>
-<a href="#203" id="203">203</a>
-<a href="#204" id="204">204</a>
-<a href="#205" id="205">205</a>
-<a href="#206" id="206">206</a>
-<a href="#207" id="207">207</a>
-<a href="#208" id="208">208</a>
-<a href="#209" id="209">209</a>
-<a href="#210" id="210">210</a>
-<a href="#211" id="211">211</a>
-<a href="#212" id="212">212</a>
-</pre></div><pre class="rust"><code><span class="comment">/*
-Copyright (c) 2020 Pierre Marijon &lt;pmarijon@mmci.uni-saarland.de&gt;
+</pre></div><pre class="rust"><code><span class="doccomment">//! Brutal rewrite
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+</span><span class="comment">/* std use */
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+/* crates use */
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
- */
+/* project use */
 
-/* local mod */
+/* mod declaration */
 </span><span class="kw">pub mod </span>cli;
 <span class="kw">pub mod </span>correct;
 <span class="kw">pub mod </span>error;
 <span class="kw">pub mod </span>set;
 
 <span class="comment">/* crate use */
-</span><span class="kw">use </span>anyhow::{anyhow, Context, <span class="prelude-ty">Result</span>};
-<span class="kw">use </span>rayon::iter::ParallelBridge;
-<span class="kw">use </span>rayon::prelude::<span class="kw-2">*</span>;
+</span><span class="attr">#[cfg(feature = <span class="string">"parallel"</span>)]
+</span><span class="kw">use </span>rayon::prelude::<span class="kw-2">*</span>;
 
 <span class="comment">/* local use */
-</span><span class="kw">use </span>error::IO::<span class="kw-2">*</span>;
-<span class="kw">use </span>error::<span class="kw-2">*</span>;
 
-<span class="kw">pub fn </span>run_correction&lt;<span class="lifetime">'a</span>&gt;(
-    inputs: <span class="kw-2">&amp;</span>[String],
-    outputs: <span class="kw-2">&amp;</span>[String],
+</span><span class="attr">#[cfg(not(feature = <span class="string">"parallel"</span>))]
+</span><span class="kw">pub fn </span>run_correction&lt;<span class="lifetime">'a</span>&gt;(
+    inputs: <span class="kw-2">&amp;mut </span>[Box&lt;<span class="kw">dyn </span>std::io::BufRead&gt;],
+    outputs: <span class="kw-2">&amp;mut </span>[Box&lt;<span class="kw">dyn </span>std::io::Write&gt;],
+    methods: Vec&lt;Box&lt;<span class="kw">dyn </span>correct::Corrector + Sync + Send + <span class="lifetime">'a</span>&gt;&gt;,
+    two_side: bool,
+    _record_buffer_len: u64,
+) -&gt; error::Result&lt;()&gt; {
+    <span class="kw">for </span>(input, output) <span class="kw">in </span>inputs.iter_mut().zip(outputs.iter_mut()) {
+        <span class="kw">let </span><span class="kw-2">mut </span>reader = noodles::fasta::Reader::new(input);
+        <span class="kw">let </span><span class="kw-2">mut </span>writer = noodles::fasta::Writer::new(output);
+
+        <span class="kw">let </span><span class="kw-2">mut </span>records = reader.records();
+
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(record)) = records.next() {
+            <span class="macro">log::debug!</span>(
+                <span class="string">"begin correct read {} {}"</span>,
+                String::from_utf8(record.name().to_vec()).unwrap(),
+                record.sequence().len()
+            );
+            <span class="kw">let </span>seq = record.sequence();
+
+            <span class="kw">let </span><span class="kw-2">mut </span>correct = seq.as_ref().to_vec();
+            methods
+                .iter()
+                .for_each(|x| correct = x.correct(correct.as_slice()));
+
+            <span class="kw">if </span>!two_side {
+                correct.reverse();
+                methods
+                    .iter()
+                    .for_each(|x| correct = x.correct(correct.as_slice()));
+
+                correct.reverse();
+            }
+
+            writer.write_record(<span class="kw-2">&amp;</span>noodles::fasta::Record::new(
+                record.definition().clone(),
+                correct.into(),
+            ))<span class="question-mark">?</span>;
+            <span class="macro">log::debug!</span>(
+                <span class="string">"end correct read {}"</span>,
+                String::from_utf8(record.name().to_vec()).unwrap()
+            );
+        }
+    }
+
+    <span class="prelude-val">Ok</span>(())
+}
+
+<span class="attr">#[cfg(feature = <span class="string">"parallel"</span>)]
+</span><span class="kw">pub fn </span>run_correction&lt;<span class="lifetime">'a</span>&gt;(
+    inputs: <span class="kw-2">&amp;mut </span>[Box&lt;<span class="kw">dyn </span>std::io::BufRead&gt;],
+    outputs: <span class="kw-2">&amp;mut </span>[Box&lt;<span class="kw">dyn </span>std::io::Write&gt;],
     methods: Vec&lt;Box&lt;<span class="kw">dyn </span>correct::Corrector + Sync + Send + <span class="lifetime">'a</span>&gt;&gt;,
     two_side: bool,
     record_buffer_len: u64,
-) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">for </span>(input, output) <span class="kw">in </span>inputs.iter().zip(outputs) {
-        <span class="macro">log::info!</span>(<span class="string">"Read file {} write in {}"</span>, input, output);
-
-        <span class="kw">let </span>reader = bio::io::fasta::Reader::new(std::io::BufReader::new(
-            std::fs::File::open(input)
-                .with_context(|| error::Error::IO(CantOpenFile))
-                .with_context(|| <span class="macro">anyhow!</span>(<span class="string">"File {}"</span>, input.clone()))<span class="question-mark">?</span>,
-        ));
-
-        <span class="kw">let </span><span class="kw-2">mut </span>write = bio::io::fasta::Writer::new(std::io::BufWriter::new(
-            std::fs::File::create(output)
-                .with_context(|| error::Error::IO(CantCreateFile))
-                .with_context(|| <span class="macro">anyhow!</span>(<span class="string">"File {}"</span>, output.clone()))<span class="question-mark">?</span>,
-        ));
+) -&gt; error::Result&lt;()&gt; {
+    <span class="kw">for </span>(input, output) <span class="kw">in </span>inputs.iter_mut().zip(outputs.iter_mut()) {
+        <span class="kw">let </span><span class="kw-2">mut </span>reader = noodles::fasta::Reader::new(input);
+        <span class="kw">let </span><span class="kw-2">mut </span>writer = noodles::fasta::Writer::new(output);
 
         <span class="kw">let </span><span class="kw-2">mut </span>iter = reader.records();
         <span class="kw">let </span><span class="kw-2">mut </span>records = Vec::with_capacity(record_buffer_len <span class="kw">as </span>usize);
         <span class="kw">let </span><span class="kw-2">mut </span>corrected: Vec&lt;bio::io::fasta::Record&gt;;
 
         <span class="kw">let </span><span class="kw-2">mut </span>end = <span class="bool-val">false</span>;
-        <span class="kw">loop </span>{
+        <span class="kw">while </span>!end {
             <span class="kw">for _ in </span><span class="number">0</span>..record_buffer_len {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(record)) = iter.next() {
                     records.push(record);
@@ -323,60 +333,33 @@ SOFTWARE.
             </span>}
 
             records.clear();
-
-            <span class="kw">if </span>end {
-                <span class="kw">break</span>;
-            }
         }
     }
-
-    <span class="prelude-val">Ok</span>(())
-}
-
-<span class="attr">#[derive(Clone, Debug, clap::ValueEnum)]
-</span><span class="kw">pub enum </span>CorrectionMethod {
-    One,
-    Two,
-    Graph,
-    Greedy,
-    GapSize,
 }
 
 <span class="kw">pub fn </span>build_methods&lt;<span class="lifetime">'a</span>&gt;(
-    params: <span class="prelude-ty">Option</span>&lt;Vec&lt;CorrectionMethod&gt;&gt;,
+    params: Vec&lt;cli::CorrectionMethod&gt;,
     solid: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>set::BoxKmerSet,
     confirm: u8,
     max_search: u8,
 ) -&gt; Vec&lt;Box&lt;<span class="kw">dyn </span>correct::Corrector + Sync + Send + <span class="lifetime">'a</span>&gt;&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>methods: Vec&lt;Box&lt;<span class="kw">dyn </span>correct::Corrector + Sync + Send + <span class="lifetime">'a</span>&gt;&gt; = Vec::new();
 
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(ms) = params {
-        <span class="kw">for </span>method <span class="kw">in </span>ms {
-            <span class="kw">match </span>method {
-                CorrectionMethod::One =&gt; methods.push(Box::new(correct::One::new(solid, confirm))),
-                CorrectionMethod::Two =&gt; methods.push(Box::new(correct::Two::new(solid, confirm))),
-                CorrectionMethod::Graph =&gt; methods.push(Box::new(correct::Graph::new(solid))),
-                CorrectionMethod::Greedy =&gt; {
-                    methods.push(Box::new(correct::Greedy::new(solid, max_search, confirm)))
-                }
-                CorrectionMethod::GapSize =&gt; {
-                    methods.push(Box::new(correct::GapSize::new(solid, confirm)))
-                }
+    <span class="kw">for </span>method <span class="kw">in </span>params {
+        <span class="kw">match </span>method {
+            cli::CorrectionMethod::One =&gt; methods.push(Box::new(correct::One::new(solid, confirm))),
+            cli::CorrectionMethod::Two =&gt; methods.push(Box::new(correct::Two::new(solid, confirm))),
+            cli::CorrectionMethod::Graph =&gt; methods.push(Box::new(correct::Graph::new(solid))),
+            cli::CorrectionMethod::Greedy =&gt; {
+                methods.push(Box::new(correct::Greedy::new(solid, max_search, confirm)))
+            }
+            cli::CorrectionMethod::GapSize =&gt; {
+                methods.push(Box::new(correct::GapSize::new(solid, confirm)))
             }
         }
-    } <span class="kw">else </span>{
-        methods.push(Box::new(correct::One::new(solid, confirm)));
     }
 
     methods
-}
-
-<span class="doccomment">/// Set the number of threads use by count step
-</span><span class="kw">pub fn </span>set_nb_threads(nb_threads: usize) {
-    rayon::ThreadPoolBuilder::new()
-        .num_threads(nb_threads)
-        .build_global()
-        .unwrap();
 }
 
 <span class="attr">#[cfg(test)]
@@ -388,12 +371,9 @@ SOFTWARE.
         <span class="comment">// Not perfect test
 
         </span><span class="kw">let </span>set: set::BoxKmerSet = Box::new(set::Pcon::new(pcon::solid::Solid::new(<span class="number">5</span>)));
-        <span class="kw">let </span><span class="kw-2">mut </span>methods = build_methods(<span class="prelude-val">None</span>, <span class="kw-2">&amp;</span>set, <span class="number">2</span>, <span class="number">5</span>);
 
-        <span class="macro">assert_eq!</span>(methods.len(), <span class="number">1</span>);
-
-        methods = build_methods(
-            <span class="prelude-val">Some</span>(<span class="macro">vec!</span>[CorrectionMethod::One, CorrectionMethod::Two]),
+        <span class="kw">let </span>methods = build_methods(
+            <span class="macro">vec!</span>[cli::CorrectionMethod::One, cli::CorrectionMethod::Two],
             <span class="kw-2">&amp;</span>set,
             <span class="number">2</span>,
             <span class="number">5</span>,
@@ -401,27 +381,21 @@ SOFTWARE.
 
         <span class="macro">assert_eq!</span>(methods.len(), <span class="number">2</span>);
 
-        methods = build_methods(
-            <span class="prelude-val">Some</span>(<span class="macro">vec!</span>[
-                CorrectionMethod::One,
-                CorrectionMethod::Two,
-                CorrectionMethod::Graph,
-                CorrectionMethod::Greedy,
-                CorrectionMethod::GapSize,
-                CorrectionMethod::GapSize,
-            ]),
+        <span class="kw">let </span>methods = build_methods(
+            <span class="macro">vec!</span>[
+                cli::CorrectionMethod::One,
+                cli::CorrectionMethod::Two,
+                cli::CorrectionMethod::Graph,
+                cli::CorrectionMethod::Greedy,
+                cli::CorrectionMethod::GapSize,
+                cli::CorrectionMethod::GapSize,
+            ],
             <span class="kw-2">&amp;</span>set,
             <span class="number">2</span>,
             <span class="number">5</span>,
         );
 
         <span class="macro">assert_eq!</span>(methods.len(), <span class="number">6</span>);
-    }
-
-    <span class="attr">#[test]
-    </span><span class="kw">fn </span>change_number_of_thread() {
-        set_nb_threads(<span class="number">16</span>);
-        <span class="macro">assert_eq!</span>(rayon::current_num_threads(), <span class="number">16</span>);
     }
 }
 </code></pre></div></section></main></body></html>

@@ -258,27 +258,6 @@
 <a href="#256" id="256">256</a>
 <a href="#257" id="257">257</a>
 <a href="#258" id="258">258</a>
-<a href="#259" id="259">259</a>
-<a href="#260" id="260">260</a>
-<a href="#261" id="261">261</a>
-<a href="#262" id="262">262</a>
-<a href="#263" id="263">263</a>
-<a href="#264" id="264">264</a>
-<a href="#265" id="265">265</a>
-<a href="#266" id="266">266</a>
-<a href="#267" id="267">267</a>
-<a href="#268" id="268">268</a>
-<a href="#269" id="269">269</a>
-<a href="#270" id="270">270</a>
-<a href="#271" id="271">271</a>
-<a href="#272" id="272">272</a>
-<a href="#273" id="273">273</a>
-<a href="#274" id="274">274</a>
-<a href="#275" id="275">275</a>
-<a href="#276" id="276">276</a>
-<a href="#277" id="277">277</a>
-<a href="#278" id="278">278</a>
-<a href="#279" id="279">279</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
 Copyright (c) 2020 Pierre Marijon &lt;pmarijon@hhu.de&gt;
 
@@ -394,17 +373,8 @@ SOFTWARE.
 
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="kw">fn </span>init() {
-        <span class="kw">let _ </span>= env_logger::builder()
-            .is_test(<span class="bool-val">true</span>)
-            .filter_level(log::LevelFilter::Trace)
-            .try_init();
-    }
-
     <span class="attr">#[test]
     </span><span class="kw">fn </span>csc() {
-        init();
-
         <span class="kw">let </span>refe = <span class="string">b"AGCGTATCTT"</span>;
         <span class="comment">//           ||||| |||||
         </span><span class="kw">let </span>read = <span class="string">b"AGCGTTTCTT"</span>;
@@ -425,8 +395,6 @@ SOFTWARE.
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>cssc() {
-        init();
-
         <span class="kw">let </span>refe = <span class="string">b"TCTCTAATCTTC"</span>;
         <span class="comment">//           |||||  |||||
         </span><span class="kw">let </span>read = <span class="string">b"TCTCTGGTCTTC"</span>;
@@ -447,8 +415,6 @@ SOFTWARE.
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>csssc() {
-        init();
-
         <span class="kw">let </span>refe = <span class="string">b"TCTCTAAATCTTC"</span>;
         <span class="comment">//           |||||  |||||
         </span><span class="kw">let </span>read = <span class="string">b"TCTCTGGGTCTTC"</span>;
@@ -469,8 +435,6 @@ SOFTWARE.
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>cscsc() {
-        init();
-
         <span class="kw">let </span>refe = <span class="string">b"GTGTGACTTACACCTCGTTGAGCACCCGATGTTGGTATAGTCCGAACAAC"</span>;
         <span class="comment">//                            ||||| | |||||
         </span><span class="kw">let </span>read = <span class="string">b"GTGTGACTTACACCTCGTTGAGTAGCCGATGTTGGTATAGTCCGAACAAC"</span>;
@@ -494,8 +458,6 @@ SOFTWARE.
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>cdc() {
-        init();
-
         <span class="kw">let </span>refe = <span class="string">b"GATACATGGACACTAGTATG"</span>;
         <span class="comment">//           ||||||||||
         </span><span class="kw">let </span>read = <span class="string">b"GATACATGGAACTAGTATG"</span>;
@@ -516,8 +478,6 @@ SOFTWARE.
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>cddc() {
-        init();
-
         <span class="kw">let </span>refe = <span class="string">b"CAAAGCATTTTT"</span>;
         <span class="comment">//           |||||
         </span><span class="kw">let </span>read = <span class="string">b"CAAAGTTTTT"</span>;
@@ -538,8 +498,6 @@ SOFTWARE.
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>cic() {
-        init();
-
         <span class="kw">let </span>refe = <span class="string">b"GGATAACTCT"</span>;
         <span class="comment">//           |||||
         </span><span class="kw">let </span>read = <span class="string">b"GGATATACTCT"</span>;

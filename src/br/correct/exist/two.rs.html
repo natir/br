@@ -642,43 +642,6 @@
 <a href="#640" id="640">640</a>
 <a href="#641" id="641">641</a>
 <a href="#642" id="642">642</a>
-<a href="#643" id="643">643</a>
-<a href="#644" id="644">644</a>
-<a href="#645" id="645">645</a>
-<a href="#646" id="646">646</a>
-<a href="#647" id="647">647</a>
-<a href="#648" id="648">648</a>
-<a href="#649" id="649">649</a>
-<a href="#650" id="650">650</a>
-<a href="#651" id="651">651</a>
-<a href="#652" id="652">652</a>
-<a href="#653" id="653">653</a>
-<a href="#654" id="654">654</a>
-<a href="#655" id="655">655</a>
-<a href="#656" id="656">656</a>
-<a href="#657" id="657">657</a>
-<a href="#658" id="658">658</a>
-<a href="#659" id="659">659</a>
-<a href="#660" id="660">660</a>
-<a href="#661" id="661">661</a>
-<a href="#662" id="662">662</a>
-<a href="#663" id="663">663</a>
-<a href="#664" id="664">664</a>
-<a href="#665" id="665">665</a>
-<a href="#666" id="666">666</a>
-<a href="#667" id="667">667</a>
-<a href="#668" id="668">668</a>
-<a href="#669" id="669">669</a>
-<a href="#670" id="670">670</a>
-<a href="#671" id="671">671</a>
-<a href="#672" id="672">672</a>
-<a href="#673" id="673">673</a>
-<a href="#674" id="674">674</a>
-<a href="#675" id="675">675</a>
-<a href="#676" id="676">676</a>
-<a href="#677" id="677">677</a>
-<a href="#678" id="678">678</a>
-<a href="#679" id="679">679</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
 Copyright (c) 2020 Pierre Marijon &lt;pierre.marijon@hhu.de&gt;
 
@@ -1015,13 +978,6 @@ SOFTWARE.
 
     <span class="kw">use </span><span class="kw">crate</span>::correct::Corrector;
 
-    <span class="kw">fn </span>init() {
-        <span class="kw">let _ </span>= env_logger::builder()
-            .is_test(<span class="bool-val">true</span>)
-            .filter_level(log::LevelFilter::Trace)
-            .try_init();
-    }
-
     <span class="kw">fn </span>filter&lt;<span class="lifetime">'a</span>&gt;(ori: <span class="kw-2">&amp;</span>[u8]) -&gt; Vec&lt;u8&gt; {
         ori.iter()
             .cloned()
@@ -1031,8 +987,6 @@ SOFTWARE.
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>short() {
-        init();
-
         <span class="kw">let </span>refe = filter(<span class="string">b"CTGGTGCACTACCGGATAGG"</span>);
         <span class="comment">//                         |||||| |
         </span><span class="kw">let </span>read = filter(<span class="string">b"-------ACTACCTG"</span>);
@@ -1052,8 +1006,6 @@ SOFTWARE.
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>ciic() {
-        init();
-
         <span class="kw">let </span>refe = filter(<span class="string">b"GATACATGGA--CACTAGTATG"</span>);
         <span class="comment">//                  ||||||||||  ||||||||||
         </span><span class="kw">let </span>read = filter(<span class="string">b"GATACATGGATTCACTAGTATG"</span>);
@@ -1074,8 +1026,6 @@ SOFTWARE.
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>cisc() {
-        init();
-
         <span class="kw">let </span>refe = filter(<span class="string">b"GATACATGGA-CACTAGTATG"</span>);
         <span class="comment">//                  ||||||||||  |||||||||
         </span><span class="kw">let </span>read = filter(<span class="string">b"GATACATGGATGACTAGTATG"</span>);
@@ -1096,8 +1046,6 @@ SOFTWARE.
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>cssc() {
-        init();
-
         <span class="kw">let </span>refe = <span class="string">b"TCGTTATTCGGTGGACTCCT"</span>;
         <span class="comment">//           ||||||||||  ||||||||
         </span><span class="kw">let </span>read = <span class="string">b"TCGTTATTCGAAGGACTCCT"</span>;
@@ -1118,8 +1066,6 @@ SOFTWARE.
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>csdc() {
-        init();
-
         <span class="kw">let </span>refe = <span class="string">b"AACAGCTGAATCTACCATTG"</span>;
         <span class="comment">//           |||||||||| /////////
         </span><span class="kw">let </span>read = <span class="string">b"AACAGCTGAAGTACCATTG"</span>;
@@ -1140,8 +1086,6 @@ SOFTWARE.
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>cddc() {
-        init();
-
         <span class="kw">let </span>refe = <span class="string">b"TGCCGTAGGCCATTGCGGCT"</span>;
         <span class="comment">//           ||||||||||  ||||||||
         </span><span class="kw">let </span>read = <span class="string">b"TGCCGTAGGC--TTGCGGCT"</span>;
@@ -1162,8 +1106,6 @@ SOFTWARE.
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>cicic() {
-        init();
-
         <span class="kw">let </span>refe = filter(<span class="string">b"ATAGTAACGG-A-CACACTT"</span>);
         <span class="comment">//                  |||||||||| | |||||||
         </span><span class="kw">let </span>read = filter(<span class="string">b"ATAGTAACGGAAGCACACTT"</span>);
@@ -1184,8 +1126,6 @@ SOFTWARE.
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>cicsc() {
-        init();
-
         <span class="kw">let </span>refe = filter(<span class="string">b"GAGCCCAGAG-CGATATTCT"</span>);
         <span class="comment">//                  |||||||||| | |||||||
         </span><span class="kw">let </span>read = filter(<span class="string">b"GAGCCCAGAGACTATATTCT"</span>);
@@ -1206,8 +1146,6 @@ SOFTWARE.
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>cicdc() {
-        init();
-
         <span class="kw">let </span>refe = filter(<span class="string">b"TCGAAAGCAT-GGGTACGTT"</span>);
         <span class="comment">//                  |||||||||| | |||||||
         </span><span class="kw">let </span>read = filter(<span class="string">b"TCGAAAGCATAG-GTACGTT"</span>);
@@ -1228,8 +1166,6 @@ SOFTWARE.
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>cscic() {
-        init();
-
         <span class="kw">let </span>refe = filter(<span class="string">b"AAGGATGCATCG-ACTCAAG"</span>);
         <span class="comment">//                  |||||||||| | |||||||
         </span><span class="kw">let </span>read = filter(<span class="string">b"AAGGATGCATGGAACTCAAG"</span>);
@@ -1250,8 +1186,6 @@ SOFTWARE.
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>cscsc() {
-        init();
-
         <span class="kw">let </span>refe = filter(<span class="string">b"ACACGTGCGCTTGGAGGTAC"</span>);
         <span class="comment">//                  |||||||||| | |||||||
         </span><span class="kw">let </span>read = filter(<span class="string">b"ACACGTGCGCATCGAGGTAC"</span>);
@@ -1272,8 +1206,6 @@ SOFTWARE.
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>cscdc() {
-        init();
-
         <span class="kw">let </span>refe = filter(<span class="string">b"TATGCTCTGCGTAATCATAG"</span>);
         <span class="comment">//                  |||||||||| | |||||||
         </span><span class="kw">let </span>read = filter(<span class="string">b"TATGCTCTGCAT-ATCATAG"</span>);
@@ -1294,8 +1226,6 @@ SOFTWARE.
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>cdcic() {
-        init();
-
         <span class="kw">let </span>refe = filter(<span class="string">b"GCTTCGTGATAG-TACGCTT"</span>);
         <span class="comment">//                  |||||||||| | |||||||
         </span><span class="kw">let </span>read = filter(<span class="string">b"GCTTCGTGAT-GATACGCTT"</span>);
@@ -1316,8 +1246,6 @@ SOFTWARE.
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>cdcsc() {
-        init();
-
         <span class="kw">let </span>refe = filter(<span class="string">b"GGACCTGATCACGTCAATTA"</span>);
         <span class="comment">//                  |||||||||| | |||||||
         </span><span class="kw">let </span>read = filter(<span class="string">b"GGACCTGATC-CCTCAATTA"</span>);
@@ -1338,8 +1266,6 @@ SOFTWARE.
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>cdcdc() {
-        init();
-
         <span class="kw">let </span>refe = filter(<span class="string">b"GGAATACGTGCGTTGGGTAA"</span>);
         <span class="comment">//                  |||||||||| | |||||||
         </span><span class="kw">let </span>read = filter(<span class="string">b"GGAATACGTG-G-TGGGTAA"</span>);
