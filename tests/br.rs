@@ -13,6 +13,10 @@ mod tests {
             "tests/data/raw.fasta",
             "-o",
             "tests/data/corr.fasta",
+            #[cfg(feature = "parallel")]
+            "-t",
+            #[cfg(feature = "parallel")]
+            "4",
             "fasta",
             "-i",
             "tests/data/raw.fasta",
@@ -36,6 +40,10 @@ mod tests {
             "tests/data/raw.fasta",
             "-o",
             "tests/data/corr.fasta",
+            #[cfg(feature = "parallel")]
+            "-t",
+            #[cfg(feature = "parallel")]
+            "4",
             "solid",
             "-i",
             "tests/data/raw.k11.a2.solid",
@@ -58,6 +66,10 @@ mod tests {
             "tests/data/raw.fasta",
             "-o",
             "tests/data/corr.fasta",
+            #[cfg(feature = "parallel")]
+            "-t",
+            #[cfg(feature = "parallel")]
+            "4",
             "large-kmer",
             "-i",
             "tests/data/raw.k31.fasta",

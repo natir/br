@@ -3,6 +3,8 @@
 /* std use */
 
 /* crates use */
+#[cfg(feature = "parallel")]
+use rayon::prelude::*;
 
 /* project use */
 use crate::error;
@@ -41,6 +43,7 @@ impl Pcon {
         Ok(Self { set })
     }
 
+    #[cfg(not(feature = "parallel"))]
     pub fn from_fasta<R>(input: R, k: u8) -> Self
     where
         R: std::io::BufRead,
@@ -63,6 +66,51 @@ impl Pcon {
         Self { set }
     }
 
+    #[cfg(feature = "parallel")]
+    pub fn from_fasta<R>(input: R, k: u8) -> Self
+    where
+        R: std::io::BufRead,
+    {
+        let mut set = pcon::solid::Solid::new(k);
+
+        let mut reader = noodles::fasta::Reader::new(input);
+
+        let mut iter = reader.records();
+        let mut records = Vec::with_capacity(8192);
+
+        let mut end = true;
+        while end {
+            log::info!("Start populate buffer");
+            end = crate::populate_buffer(&mut iter, &mut records, 8192);
+            log::info!("End populate buffer {}", records.len());
+
+            set.extend(
+                records
+                    .par_iter()
+                    .filter(|record| record.sequence().len() >= k as usize)
+                    .map(|record| {
+                        let mut set = pcon::solid::Solid::new(k);
+                        let kmerizer =
+                            cocktail::tokenizer::Canonical::new(record.sequence().as_ref(), k);
+                        for canonical in kmerizer {
+                            set.set(canonical, true);
+                        }
+                        set
+                    })
+                    .reduce(
+                        || pcon::solid::Solid::new(k),
+                        |mut x, y| {
+                            x.extend(y);
+                            x
+                        },
+                    ),
+            );
+        }
+
+        Self { set }
+    }
+
+    #[cfg(not(feature = "parallel"))]
     pub fn from_fastq<R>(input: R, k: u8) -> Self
     where
         R: std::io::BufRead,
@@ -80,6 +128,50 @@ impl Pcon {
                     set.set(canonical, true);
                 }
             }
+        }
+
+        Self { set }
+    }
+
+    #[cfg(feature = "parallel")]
+    pub fn from_fastq<R>(input: R, k: u8) -> Self
+    where
+        R: std::io::BufRead,
+    {
+        let mut set = pcon::solid::Solid::new(k);
+
+        let mut reader = noodles::fastq::Reader::new(input);
+
+        let mut iter = reader.records();
+        let mut records = Vec::with_capacity(8192);
+
+        let mut end = true;
+        while end {
+            log::info!("Start populate buffer");
+            end = crate::populate_bufferq(&mut iter, &mut records, 8192);
+            log::info!("End populate buffer {}", records.len());
+
+            set.extend(
+                records
+                    .par_iter()
+                    .filter(|record| record.sequence().len() >= k as usize)
+                    .map(|record| {
+                        let mut set = pcon::solid::Solid::new(k);
+                        let kmerizer =
+                            cocktail::tokenizer::Canonical::new(record.sequence().as_ref(), k);
+                        for canonical in kmerizer {
+                            set.set(canonical, true);
+                        }
+                        set
+                    })
+                    .reduce(
+                        || pcon::solid::Solid::new(k),
+                        |mut x, y| {
+                            x.extend(y);
+                            x
+                        },
+                    ),
+            );
         }
 
         Self { set }

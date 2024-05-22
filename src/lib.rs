@@ -84,18 +84,11 @@ pub fn run_correction<'a>(
         let mut records = Vec::with_capacity(record_buffer_len as usize);
         let mut corrected: Vec<error::Result<noodles::fasta::Record>>;
 
-        let mut end = false;
-        while !end {
-            for _ in 0..record_buffer_len {
-                if let Some(Ok(record)) = iter.next() {
-                    records.push(record);
-                } else {
-                    end = true;
-                    break;
-                }
-            }
-
-            log::info!("Buffer len: {}", records.len());
+        let mut end = true;
+        while end {
+            log::info!("Start populate buffer");
+            end = populate_buffer(&mut iter, &mut records, 8192);
+            log::info!("End populate buffer {}", records.len());
 
             corrected = records
                 .drain(..)
@@ -168,6 +161,54 @@ pub fn build_methods<'a>(
     }
 
     methods
+}
+
+#[cfg(feature = "parallel")]
+/// Populate record buffer with content of iterator
+fn populate_buffer<R>(
+    iter: &mut noodles::fasta::reader::Records<'_, R>,
+    records: &mut Vec<noodles::fasta::Record>,
+    record_buffer: u64,
+) -> bool
+where
+    R: std::io::BufRead,
+{
+    records.clear();
+
+    for i in 0..record_buffer {
+        if let Some(Ok(record)) = iter.next() {
+            records.push(record);
+        } else {
+            records.truncate(i as usize);
+            return false;
+        }
+    }
+
+    true
+}
+
+#[cfg(feature = "parallel")]
+/// Populate record buffer with content of iterator
+fn populate_bufferq<R>(
+    iter: &mut noodles::fastq::reader::Records<'_, R>,
+    records: &mut Vec<noodles::fastq::Record>,
+    record_buffer: u64,
+) -> bool
+where
+    R: std::io::BufRead,
+{
+    records.clear();
+
+    for i in 0..record_buffer {
+        if let Some(Ok(record)) = iter.next() {
+            records.push(record);
+        } else {
+            records.truncate(i as usize);
+            return false;
+        }
+    }
+
+    true
 }
 
 #[cfg(test)]

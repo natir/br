@@ -1105,7 +1105,7 @@ checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
 [[package]]
 name = "pcon"
 version = "0.1.0"
-source = "git+https://github.com/natir/pcon.git#4584f753b7289f891733bd925311d5cbdd4af6a1"
+source = "git+https://github.com/natir/pcon.git#0184ae77be1bff4f10d16a81da998b10126c2191"
 dependencies = [
  "anyhow",
  "bitvec",

@@ -72,7 +72,7 @@ impl Hash {
         let mut end = true;
         while end {
             log::info!("Start populate buffer");
-            end = populate_buffer(&mut iter, &mut records, 8192);
+            end = crate::populate_buffer(&mut iter, &mut records, 8192);
             log::info!("End populate buffer {}", records.len());
 
             set.extend(
@@ -138,7 +138,7 @@ impl Hash {
         let mut end = true;
         while end {
             log::info!("Start populate buffer");
-            end = populate_bufferq(&mut iter, &mut records, 8192);
+            end = crate::populate_bufferq(&mut iter, &mut records, 8192);
             log::info!("End populate buffer {}", records.len());
 
             set.extend(
@@ -166,54 +166,6 @@ impl Hash {
 
         Self { set, k }
     }
-}
-
-#[cfg(feature = "parallel")]
-/// Populate record buffer with content of iterator
-fn populate_buffer<R>(
-    iter: &mut noodles::fasta::reader::Records<'_, R>,
-    records: &mut Vec<noodles::fasta::Record>,
-    record_buffer: u64,
-) -> bool
-where
-    R: std::io::BufRead,
-{
-    records.clear();
-
-    for i in 0..record_buffer {
-        if let Some(Ok(record)) = iter.next() {
-            records.push(record);
-        } else {
-            records.truncate(i as usize);
-            return false;
-        }
-    }
-
-    true
-}
-
-#[cfg(feature = "parallel")]
-/// Populate record buffer with content of iterator
-fn populate_bufferq<R>(
-    iter: &mut noodles::fastq::reader::Records<'_, R>,
-    records: &mut Vec<noodles::fastq::Record>,
-    record_buffer: u64,
-) -> bool
-where
-    R: std::io::BufRead,
-{
-    records.clear();
-
-    for i in 0..record_buffer {
-        if let Some(Ok(record)) = iter.next() {
-            records.push(record);
-        } else {
-            records.truncate(i as usize);
-            return false;
-        }
-    }
-
-    true
 }
 
 impl set::KmerSet for Hash {
