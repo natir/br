@@ -867,7 +867,7 @@
             LargeKmerInput::Fasta =&gt; open_send(<span class="kw-2">&amp;</span><span class="self">self</span>.input),
             LargeKmerInput::Fastq =&gt; open_send(<span class="kw-2">&amp;</span><span class="self">self</span>.input),
             <span class="attr">#[cfg(feature = <span class="string">"kff"</span>)]
-            </span>LargeKmerInput::Kff =&gt; open(<span class="kw-2">&amp;</span><span class="self">self</span>.input),
+            </span>LargeKmerInput::Kff =&gt; open_send(<span class="kw-2">&amp;</span><span class="self">self</span>.input),
         }
     }
 
@@ -993,7 +993,7 @@
         <span class="kw">match </span>cmd.subcommand {
             SubCommand::Fasta(subcmd) =&gt; {
                 <span class="macro">assert_eq!</span>(subcmd.kmer_size(), <span class="number">13</span>);
-                <span class="macro">assert_eq!</span>(subcmd.abundance(), <span class="number">2</span>);
+                <span class="macro">assert_eq!</span>(subcmd.abundance(), <span class="prelude-val">Some</span>(<span class="number">2</span>));
                 <span class="macro">assert!</span>(<span class="macro">matches!</span>(subcmd.abundance_selection(), <span class="prelude-val">None</span>));
             }
             <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
