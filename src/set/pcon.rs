@@ -24,6 +24,7 @@ impl Pcon {
         })
     }
 
+    #[cfg(feature = "csv")]
     pub fn from_csv<R>(input: R, k: u8) -> error::Result<Self>
     where
         R: std::io::BufRead,
@@ -110,6 +111,7 @@ impl Pcon {
         Self { set }
     }
 
+    #[cfg(feature = "fastq")]
     #[cfg(not(feature = "parallel"))]
     pub fn from_fastq<R>(input: R, k: u8) -> Self
     where
@@ -133,6 +135,7 @@ impl Pcon {
         Self { set }
     }
 
+    #[cfg(feature = "fastq")]
     #[cfg(feature = "parallel")]
     pub fn from_fastq<R>(input: R, k: u8) -> Self
     where

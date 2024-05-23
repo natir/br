@@ -37,10 +37,10 @@ log            = { version = "0.4" }
 stderrlog      = { version = "0.6" }
 
 # IO management
-csv            = { version = "1" }
+csv            = { version = "1", optional = true }
 kff            = { version = "0.9", optional = true }
 niffler	       = { version = "2", features = ["bz2", "lzma", "gz"] }
-noodles        = { version = "0.74", features = ["fasta", "fastq"] }
+noodles        = { version = "0.74", features = ["fasta"] }
 
 
 [dev-dependencies]
@@ -54,6 +54,9 @@ assert_cmd     = { version = "2" }
 default   = ["count_u8"]
 parallel  = ["dep:rayon", "pcon/parallel"]
 kff       = ["dep:kff", "pcon/kff"]
+csv       = ["dep:csv"]
+fastq     = ["noodles/fastq"]
+
 count_u8  = ["pcon/count_u8"]
 count_u16 = ["pcon/count_u16"]
 count_u32 = ["pcon/count_u32"]

@@ -7,6 +7,7 @@
 use rayon::prelude::*;
 
 /* project use */
+#[cfg(feature = "csv")]
 use crate::error;
 use crate::set;
 
@@ -16,6 +17,7 @@ pub struct Hash {
 }
 
 impl Hash {
+    #[cfg(feature = "csv")]
     pub fn from_csv<R>(input: R, k: u8) -> error::Result<Self>
     where
         R: std::io::BufRead,
@@ -101,6 +103,7 @@ impl Hash {
         Self { set, k }
     }
 
+    #[cfg(feature = "fastq")]
     #[cfg(not(feature = "parallel"))]
     pub fn from_fastq<R>(input: R, k: u8) -> Self
     where
@@ -124,6 +127,7 @@ impl Hash {
         Self { set, k }
     }
 
+    #[cfg(feature = "fastq")]
     #[cfg(feature = "parallel")]
     pub fn from_fastq<R>(input: R, k: u8) -> Self
     where

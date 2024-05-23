@@ -117,6 +117,7 @@ fn count2solid(
 fn solid(subparams: &br::cli::Solid) -> error::Result<Box<dyn br::set::KmerSet>> {
     let set = match subparams.format() {
         cli::SolidInput::Solid => set::Pcon::from_pcon_solid(subparams.input()?)?,
+        #[cfg(feature = "csv")]
         cli::SolidInput::Csv => set::Pcon::from_csv(
             subparams.input()?,
             subparams
@@ -129,6 +130,7 @@ fn solid(subparams: &br::cli::Solid) -> error::Result<Box<dyn br::set::KmerSet>>
                 .kmer_size()
                 .ok_or(error::Error::SolidRequireKmerSize)?,
         ),
+        #[cfg(feature = "fastq")]
         cli::SolidInput::Fastq => set::Pcon::from_fastq(
             subparams.input()?,
             subparams
@@ -144,10 +146,12 @@ fn solid(subparams: &br::cli::Solid) -> error::Result<Box<dyn br::set::KmerSet>>
 
 fn large_kmer(subparams: &br::cli::LargeKmer) -> error::Result<Box<dyn br::set::KmerSet>> {
     let set = match subparams.format() {
+        #[cfg(feature = "csv")]
         cli::LargeKmerInput::Csv => set::Hash::from_csv(subparams.input()?, subparams.kmer_size())?,
         cli::LargeKmerInput::Fasta => {
             set::Hash::from_fasta(subparams.input()?, subparams.kmer_size())
         }
+        #[cfg(feature = "fastq")]
         cli::LargeKmerInput::Fastq => {
             set::Hash::from_fastq(subparams.input()?, subparams.kmer_size())
         }

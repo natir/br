@@ -292,8 +292,10 @@ impl Fasta {
 #[derive(clap::ValueEnum, std::clone::Clone, std::fmt::Debug)]
 pub enum SolidInput {
     Solid,
+    #[cfg(feature = "csv")]
     Csv,
     Fasta,
+    #[cfg(feature = "fastq")]
     Fastq,
     #[cfg(feature = "kff")]
     Kff,
@@ -334,8 +336,10 @@ impl Solid {
 
 #[derive(clap::ValueEnum, std::clone::Clone, std::fmt::Debug)]
 pub enum LargeKmerInput {
+    #[cfg(feature = "csv")]
     Csv,
     Fasta,
+    #[cfg(feature = "fastq")]
     Fastq,
     #[cfg(feature = "kff")]
     Kff,
@@ -361,8 +365,10 @@ impl LargeKmer {
     /// Get input
     pub fn input(&self) -> error::Result<Box<dyn std::io::BufRead + std::marker::Send>> {
         match self.format {
+            #[cfg(feature = "csv")]
             LargeKmerInput::Csv => open_send(&self.input),
             LargeKmerInput::Fasta => open_send(&self.input),
+            #[cfg(feature = "fastq")]
             LargeKmerInput::Fastq => open_send(&self.input),
             #[cfg(feature = "kff")]
             LargeKmerInput::Kff => open_send(&self.input),
