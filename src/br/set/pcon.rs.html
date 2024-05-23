@@ -252,6 +252,9 @@
 <a href="#250" id="250">250</a>
 <a href="#251" id="251">251</a>
 <a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Pcon set
 
 </span><span class="comment">/* std use */
@@ -278,7 +281,8 @@
         })
     }
 
-    <span class="kw">pub fn </span>from_csv&lt;R&gt;(input: R, k: u8) -&gt; error::Result&lt;<span class="self">Self</span>&gt;
+    <span class="attr">#[cfg(feature = <span class="string">"csv"</span>)]
+    </span><span class="kw">pub fn </span>from_csv&lt;R&gt;(input: R, k: u8) -&gt; error::Result&lt;<span class="self">Self</span>&gt;
     <span class="kw">where
         </span>R: std::io::BufRead,
     {
@@ -364,7 +368,8 @@
         <span class="self">Self </span>{ set }
     }
 
-    <span class="attr">#[cfg(not(feature = <span class="string">"parallel"</span>))]
+    <span class="attr">#[cfg(feature = <span class="string">"fastq"</span>)]
+    #[cfg(not(feature = <span class="string">"parallel"</span>))]
     </span><span class="kw">pub fn </span>from_fastq&lt;R&gt;(input: R, k: u8) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>R: std::io::BufRead,
@@ -387,7 +392,8 @@
         <span class="self">Self </span>{ set }
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">"parallel"</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"fastq"</span>)]
+    #[cfg(feature = <span class="string">"parallel"</span>)]
     </span><span class="kw">pub fn </span>from_fastq&lt;R&gt;(input: R, k: u8) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>R: std::io::BufRead,
