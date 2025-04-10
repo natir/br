@@ -1,3 +1,9 @@
-(function() {var implementors = {
-"br":[["impl IntoEnumIterator for <a class=\"enum\" href=\"br/correct/exist/one/enum.ScenarioOne.html\" title=\"enum br::correct::exist::one::ScenarioOne\">ScenarioOne</a>"],["impl IntoEnumIterator for <a class=\"enum\" href=\"br/correct/exist/two/enum.ScenarioTwo.html\" title=\"enum br::correct::exist::two::ScenarioTwo\">ScenarioTwo</a>"]]
-};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
+(function() {
+    var implementors = Object.fromEntries([["br",[["impl IntoEnumIterator for <a class=\"enum\" href=\"br/correct/exist/one/enum.ScenarioOne.html\" title=\"enum br::correct::exist::one::ScenarioOne\">ScenarioOne</a>"],["impl IntoEnumIterator for <a class=\"enum\" href=\"br/correct/exist/two/enum.ScenarioTwo.html\" title=\"enum br::correct::exist::two::ScenarioTwo\">ScenarioTwo</a>"]]]]);
+    if (window.register_implementors) {
+        window.register_implementors(implementors);
+    } else {
+        window.pending_implementors = implementors;
+    }
+})()
+//{"start":57,"fragment_lengths":[344]}
