@@ -46,7 +46,7 @@ noodles        = { version = "0.74", features = ["fasta"] }
 [dev-dependencies]
 criterion      = { version = "0.5" }
 tempfile       = { version = "3" }
-rand           = { version = "0.8" }
+rand           = { version = "0.9" }
 assert_cmd     = { version = "2" }
 
 
