@@ -51,12 +51,13 @@ impl Pcon {
     {
         let mut set = pcon::solid::Solid::new(k);
 
-        let mut reader = noodles::fasta::Reader::new(input);
+        let mut reader = noodles::fasta::io::Reader::new(input);
         let mut records = reader.records();
 
         while let Some(Ok(record)) = records.next() {
             if record.sequence().len() >= k as usize {
-                let kmerizer = cocktail::tokenizer::Canonical::new(record.sequence().as_ref(), k);
+                let kmerizer =
+                    cocktail::tokenizer::kmer::Canonical::new(record.sequence().as_ref(), k);
 
                 for canonical in kmerizer {
                     set.set(canonical, true);
@@ -74,7 +75,7 @@ impl Pcon {
     {
         let mut set = pcon::solid::Solid::new(k);
 
-        let mut reader = noodles::fasta::Reader::new(input);
+        let mut reader = noodles::fasta::io::Reader::new(input);
 
         let mut iter = reader.records();
         let mut records = Vec::with_capacity(8192);
@@ -204,13 +205,13 @@ mod tests {
     #[test]
     fn canonical() {
         let mut solid = pcon::solid::Solid::new(11);
-        for cano in cocktail::tokenizer::Canonical::new(SEQ, 11) {
+        for cano in cocktail::tokenizer::kmer::Canonical::new(SEQ, 11) {
             solid.set(cano, true);
         }
 
         let set: crate::set::BoxKmerSet = Box::new(Pcon::new(solid));
 
-        for cano in cocktail::tokenizer::Canonical::new(SEQ, 11) {
+        for cano in cocktail::tokenizer::kmer::Canonical::new(SEQ, 11) {
             assert!(set.get(cano))
         }
     }
@@ -218,13 +219,13 @@ mod tests {
     #[test]
     fn forward() {
         let mut solid = pcon::solid::Solid::new(11);
-        for cano in cocktail::tokenizer::Canonical::new(SEQ, 11) {
+        for cano in cocktail::tokenizer::kmer::Canonical::new(SEQ, 11) {
             solid.set(cano, true);
         }
 
         let set: crate::set::BoxKmerSet = Box::new(Pcon::new(solid));
 
-        for kmer in cocktail::tokenizer::Tokenizer::new(SEQ, 11) {
+        for kmer in cocktail::tokenizer::basic::Tokenizer::new(SEQ, 11) {
             assert!(set.get(kmer))
         }
     }
@@ -232,7 +233,7 @@ mod tests {
     #[test]
     fn absence() {
         let mut solid = pcon::solid::Solid::new(11);
-        for cano in cocktail::tokenizer::Canonical::new(SEQ, 11) {
+        for cano in cocktail::tokenizer::kmer::Canonical::new(SEQ, 11) {
             solid.set(cano, true);
         }
 
@@ -244,7 +245,7 @@ mod tests {
     #[test]
     fn k() {
         let mut solid = pcon::solid::Solid::new(11);
-        for cano in cocktail::tokenizer::Canonical::new(SEQ, 11) {
+        for cano in cocktail::tokenizer::kmer::Canonical::new(SEQ, 11) {
             solid.set(cano, true);
         }
 

@@ -30,11 +30,7 @@ struct Score;
 
 impl bio::alignment::pairwise::MatchFunc for Score {
     fn score(&self, a: u8, b: u8) -> i32 {
-        if a == b {
-            1
-        } else {
-            -1
-        }
+        if a == b { 1 } else { -1 }
     }
 }
 
@@ -122,7 +118,7 @@ impl<'a> Corrector for Greedy<'a> {
         self.valid_kmer.k()
     }
 
-    fn valid_kmer(&self) -> &set::BoxKmerSet {
+    fn valid_kmer(&'_ self) -> &set::BoxKmerSet<'_> {
         self.valid_kmer
     }
 
@@ -136,9 +132,7 @@ impl<'a> Corrector for Greedy<'a> {
         let mut viewed_kmer = rustc_hash::FxHashSet::default();
 
         let mut local_corr = Vec::new();
-        let before_seq = cocktail::kmer::kmer2seq(kmer >> 2, self.k() - 1)
-            .as_bytes()
-            .to_vec();
+        let before_seq = cocktail::kmer::kmer2seq(kmer >> 2, self.k() - 1).to_vec();
 
         kmer = add_nuc_to_end(kmer >> 2, alts[0], self.k());
 
@@ -184,7 +178,7 @@ mod tests {
     fn get_solid() -> pcon::solid::Solid {
         let mut data: pcon::solid::Solid = pcon::solid::Solid::new(K);
 
-        for kmer in cocktail::tokenizer::Tokenizer::new(REFE, K) {
+        for kmer in cocktail::tokenizer::basic::Tokenizer::new(REFE, K) {
             data.set(kmer, true);
         }
 

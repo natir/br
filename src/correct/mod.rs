@@ -42,7 +42,7 @@ pub(crate) fn mask(k: u8) -> u64 {
 }
 
 pub trait Corrector {
-    fn valid_kmer(&self) -> &set::BoxKmerSet;
+    fn valid_kmer(&'_ self) -> &set::BoxKmerSet<'_>;
 
     fn correct_error(&self, kmer: u64, seq: &[u8]) -> Option<(Vec<u8>, usize)>;
 

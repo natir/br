@@ -33,7 +33,9 @@ pub enum Error {
     ComputeAbundanceThreshold,
 
     /// In count and reads subcommand user should set minimum abundance or abundance selection method
-    #[error("In count and reads subcommand user should set minimum abundance or abundance selection method")]
+    #[error(
+        "In count and reads subcommand user should set minimum abundance or abundance selection method"
+    )]
     AbundanceThresholdOrAbundanceMethod,
 
     /// In solid mode csv, fasta and fastq format require kmer size

@@ -59,7 +59,7 @@ impl<'a> GapSize<'a> {
 
             if alts.len() != 1 {
                 debug!(
-                    "failled multiple successor {} {:?} i: {}",
+                    "failled multiple successor {:?} {:?} i: {}",
                     cocktail::kmer::kmer2seq(corr, self.valid_kmer.k()),
                     alts,
                     i
@@ -69,12 +69,12 @@ impl<'a> GapSize<'a> {
 
             corr = add_nuc_to_end(corr, alts[0], self.k());
             debug!(
-                "kmer {}",
+                "kmer {:?}",
                 cocktail::kmer::kmer2seq(corr, self.valid_kmer.k())
             );
             if viewed_kmer.contains(&corr) {
                 debug!(
-                    "we view this kmer previously {}",
+                    "we view this kmer previously {:?}",
                     cocktail::kmer::kmer2seq(corr, self.k())
                 );
                 return None;
@@ -121,7 +121,7 @@ mod tests {
 
         let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
 
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+        for kmer in cocktail::tokenizer::basic::Tokenizer::new(refe, 5) {
             data.set(kmer, true);
         }
 
@@ -141,7 +141,7 @@ mod tests {
 
         let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
 
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+        for kmer in cocktail::tokenizer::basic::Tokenizer::new(refe, 5) {
             data.set(kmer, true);
         }
 
@@ -161,7 +161,7 @@ mod tests {
 
         let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
 
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+        for kmer in cocktail::tokenizer::basic::Tokenizer::new(refe, 5) {
             data.set(kmer, true);
         }
 
@@ -184,7 +184,7 @@ mod tests {
 
         let mut data: pcon::solid::Solid = pcon::solid::Solid::new(11);
 
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 11) {
+        for kmer in cocktail::tokenizer::basic::Tokenizer::new(refe, 11) {
             data.set(kmer, true);
         }
 
@@ -204,7 +204,7 @@ mod tests {
 
         let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
 
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+        for kmer in cocktail::tokenizer::basic::Tokenizer::new(refe, 5) {
             data.set(kmer, true);
         }
 
@@ -224,7 +224,7 @@ mod tests {
 
         let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
 
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+        for kmer in cocktail::tokenizer::basic::Tokenizer::new(refe, 5) {
             data.set(kmer, true);
         }
 
@@ -244,7 +244,7 @@ mod tests {
 
         let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
 
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+        for kmer in cocktail::tokenizer::basic::Tokenizer::new(refe, 5) {
             data.set(kmer, true);
         }
 

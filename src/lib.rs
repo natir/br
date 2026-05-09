@@ -27,8 +27,8 @@ pub fn run_correction<'a>(
     _record_buffer_len: u64,
 ) -> error::Result<()> {
     for (input, output) in inputs.iter_mut().zip(outputs.iter_mut()) {
-        let mut reader = noodles::fasta::Reader::new(input);
-        let mut writer = noodles::fasta::Writer::new(output);
+        let mut reader = noodles::fasta::io::Reader::new(input);
+        let mut writer = noodles::fasta::io::Writer::new(output);
 
         let mut records = reader.records();
 
@@ -77,8 +77,8 @@ pub fn run_correction<'a>(
     record_buffer_len: u64,
 ) -> error::Result<()> {
     for (input, output) in inputs.iter_mut().zip(outputs.iter_mut()) {
-        let mut reader = noodles::fasta::Reader::new(input);
-        let mut writer = noodles::fasta::Writer::new(output);
+        let mut reader = noodles::fasta::io::Reader::new(input);
+        let mut writer = noodles::fasta::io::Writer::new(output);
 
         let mut iter = reader.records();
         let mut records = Vec::with_capacity(record_buffer_len as usize);

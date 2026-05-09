@@ -15,10 +15,10 @@ license-file = "LICENSE"
 
 
 [dependencies]
-rustc-hash     = { version = "1" }
-strum          = { version = "0.26" }
-strum_macros   = { version = "0.26" }
-bio            = { version = "1" }
+rustc-hash     = { version = "2" }
+strum          = { version = "0.28" }
+strum_macros   = { version = "0.28" }
+bio            = { version = "3" }
 cocktail       = { git = "https://github.com/natir/cocktail.git" }
 pcon	       = { git = "https://github.com/natir/pcon.git", features = ["count_u8", "parallel"] }
 
@@ -29,7 +29,7 @@ rayon          = { version = "1", optional = true}
 clap           = { version = "4", features = ["derive"] }
 
 # Error management
-thiserror      = { version = "1" }
+thiserror      = { version = "2" }
 anyhow         = { version = "1" }
 
 # Logging and error management
@@ -39,14 +39,14 @@ stderrlog      = { version = "0.6" }
 # IO management
 csv            = { version = "1", optional = true }
 kff            = { version = "0.9", optional = true }
-niffler	       = { version = "2", features = ["bz2", "lzma", "gz"] }
-noodles        = { version = "0.74", features = ["fasta"] }
+niffler	       = { version = "3", features = ["bz2", "lzma", "gz"] }
+noodles        = { version = "0.110", features = ["fasta"] }
 
 
 [dev-dependencies]
-criterion      = { version = "0.5" }
+criterion      = { version = "0.8" }
 tempfile       = { version = "3" }
-rand           = { version = "0.8" }
+rand           = { version = "0.10" }
 assert_cmd     = { version = "2" }
 
 

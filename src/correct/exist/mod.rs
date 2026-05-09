@@ -113,7 +113,7 @@ impl<'a, S> Corrector for Exist<'a, S>
 where
     S: Scenario + IntoEnumIterator,
 {
-    fn valid_kmer(&self) -> &set::BoxKmerSet {
+    fn valid_kmer(&'_ self) -> &set::BoxKmerSet<'_> {
         self.valid_kmer
     }
 

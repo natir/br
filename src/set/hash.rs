@@ -44,12 +44,13 @@ impl Hash {
     {
         let mut set = rustc_hash::FxHashSet::default();
 
-        let mut reader = noodles::fasta::Reader::new(input);
+        let mut reader = noodles::fasta::io::Reader::new(input);
         let mut records = reader.records();
 
         while let Some(Ok(record)) = records.next() {
             if record.sequence().len() >= k as usize {
-                let kmerizer = cocktail::tokenizer::Canonical::new(record.sequence().as_ref(), k);
+                let kmerizer =
+                    cocktail::tokenizer::kmer::Canonical::new(record.sequence().as_ref(), k);
 
                 for canonical in kmerizer {
                     set.insert(canonical);
@@ -67,7 +68,7 @@ impl Hash {
     {
         let mut set = rustc_hash::FxHashSet::default();
 
-        let mut reader = noodles::fasta::Reader::new(input);
+        let mut reader = noodles::fasta::io::Reader::new(input);
         let mut iter = reader.records();
         let mut records = Vec::with_capacity(8192);
 
@@ -83,8 +84,10 @@ impl Hash {
                     .filter(|record| record.sequence().len() >= k as usize)
                     .map(|record| {
                         let mut set = rustc_hash::FxHashSet::default();
-                        let kmerizer =
-                            cocktail::tokenizer::Canonical::new(record.sequence().as_ref(), k);
+                        let kmerizer = cocktail::tokenizer::kmer::Canonical::new(
+                            record.sequence().as_ref(),
+                            k,
+                        );
                         for canonical in kmerizer {
                             set.insert(canonical);
                         }
@@ -197,7 +200,8 @@ mod tests {
         let set: crate::set::BoxKmerSet = Box::new(hash);
 
         let mut records = bio::io::fasta::Reader::new(FILE).records();
-        for cano in cocktail::tokenizer::Canonical::new(records.next().unwrap().unwrap().seq(), 11)
+        for cano in
+            cocktail::tokenizer::kmer::Canonical::new(records.next().unwrap().unwrap().seq(), 11)
         {
             assert!(set.get(cano))
         }
@@ -212,7 +216,8 @@ mod tests {
         let set: crate::set::BoxKmerSet = Box::new(hash);
 
         let mut records = bio::io::fasta::Reader::new(FILE).records();
-        for kmer in cocktail::tokenizer::Tokenizer::new(records.next().unwrap().unwrap().seq(), 11)
+        for kmer in
+            cocktail::tokenizer::basic::Tokenizer::new(records.next().unwrap().unwrap().seq(), 11)
         {
             assert!(set.get(kmer))
         }

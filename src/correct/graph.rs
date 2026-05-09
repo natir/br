@@ -37,7 +37,7 @@ impl<'a> Graph<'a> {
 }
 
 impl<'a> Corrector for Graph<'a> {
-    fn valid_kmer(&self) -> &set::BoxKmerSet {
+    fn valid_kmer(&'_ self) -> &set::BoxKmerSet<'_> {
         self.valid_kmer
     }
 
@@ -98,7 +98,7 @@ mod tests {
 
         let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
 
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+        for kmer in cocktail::tokenizer::basic::Tokenizer::new(refe, 5) {
             data.set(kmer, true);
         }
 
@@ -120,7 +120,7 @@ mod tests {
 
         let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
 
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+        for kmer in cocktail::tokenizer::basic::Tokenizer::new(refe, 5) {
             data.set(kmer, true);
         }
 
@@ -142,7 +142,7 @@ mod tests {
 
         let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
 
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+        for kmer in cocktail::tokenizer::basic::Tokenizer::new(refe, 5) {
             data.set(kmer, true);
         }
 
@@ -164,7 +164,7 @@ mod tests {
 
         let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
 
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+        for kmer in cocktail::tokenizer::basic::Tokenizer::new(refe, 5) {
             data.set(kmer, true);
         }
 
@@ -184,7 +184,7 @@ mod tests {
 
         let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
 
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+        for kmer in cocktail::tokenizer::basic::Tokenizer::new(refe, 5) {
             data.set(kmer, true);
         }
 
@@ -204,7 +204,7 @@ mod tests {
 
         let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
 
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+        for kmer in cocktail::tokenizer::basic::Tokenizer::new(refe, 5) {
             data.set(kmer, true);
         }
 
@@ -224,7 +224,7 @@ mod tests {
 
         let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
 
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+        for kmer in cocktail::tokenizer::basic::Tokenizer::new(refe, 5) {
             data.set(kmer, true);
         }
 
@@ -244,7 +244,7 @@ mod tests {
 
         let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
 
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+        for kmer in cocktail::tokenizer::basic::Tokenizer::new(refe, 5) {
             data.set(kmer, true);
         }
 
@@ -264,7 +264,7 @@ mod tests {
 
         let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
 
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+        for kmer in cocktail::tokenizer::basic::Tokenizer::new(refe, 5) {
             data.set(kmer, true);
         }
 
@@ -284,7 +284,7 @@ mod tests {
 
         let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
 
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+        for kmer in cocktail::tokenizer::basic::Tokenizer::new(refe, 5) {
             data.set(kmer, true);
         }
 
@@ -304,7 +304,7 @@ mod tests {
 
         let mut data: pcon::solid::Solid = pcon::solid::Solid::new(5);
 
-        for kmer in cocktail::tokenizer::Tokenizer::new(refe, 5) {
+        for kmer in cocktail::tokenizer::basic::Tokenizer::new(refe, 5) {
             data.set(kmer, true);
         }
 
